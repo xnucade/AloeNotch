@@ -15,6 +15,9 @@ struct MediaView: View {
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.7))
                         .lineLimit(1)
+                    if media.current.duration > 0 {
+                        ProgressScrubber(media: media).padding(.top, 5)
+                    }
                     controls
                 } else {
                     Text(media.isAvailable ? "Nothing playing" : "Now Playing unavailable")
@@ -27,6 +30,7 @@ struct MediaView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .animation(.smooth(duration: 0.3), value: media.current)
     }
@@ -102,5 +106,67 @@ private struct PressableButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.86 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+/// Slim progress bar that advances live and can be dragged to seek. The
+/// elapsed value is interpolated by the manager between source updates.
+private struct ProgressScrubber: View {
+    @ObservedObject var media: NowPlayingManager
+    @State private var dragging = false
+    @State private var dragFraction: Double = 0
+
+    var body: some View {
+        // Repaint twice a second so the fill creeps forward between updates.
+        TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+            let duration = media.current.duration
+            let elapsed = dragging ? dragFraction * duration : media.liveElapsed()
+            let fraction = duration > 0 ? min(1, max(0, elapsed / duration)) : 0
+
+            VStack(spacing: 3) {
+                GeometryReader { geo in
+                    let w = geo.size.width
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.white.opacity(0.15))
+                        Capsule().fill(.white.opacity(0.85))
+                            .frame(width: max(2, w * fraction))
+                        Circle().fill(.white)
+                            .frame(width: dragging ? 9 : 0, height: dragging ? 9 : 0)
+                            .offset(x: min(w - 4.5, max(-4.5, w * fraction - 4.5)))
+                    }
+                    .frame(height: 3)
+                    .frame(maxHeight: .infinity, alignment: .center)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { g in
+                                dragging = true
+                                dragFraction = min(1, max(0, g.location.x / max(1, w)))
+                            }
+                            .onEnded { _ in
+                                media.seek(to: dragFraction * duration)
+                                dragging = false
+                            }
+                    )
+                }
+                .frame(height: 11)
+                .animation(.linear(duration: dragging ? 0 : 0.5), value: fraction)
+
+                HStack {
+                    Text(timeString(elapsed))
+                    Spacer()
+                    Text(timeString(duration))
+                }
+                .font(.system(size: 9))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.5))
+            }
+        }
+    }
+
+    private func timeString(_ t: Double) -> String {
+        guard t.isFinite, t >= 0 else { return "0:00" }
+        let s = Int(t.rounded())
+        return String(format: "%d:%02d", s / 60, s % 60)
     }
 }

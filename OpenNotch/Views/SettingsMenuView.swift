@@ -5,6 +5,7 @@ import SwiftUI
 struct SettingsMenuView: View {
     @ObservedObject private var settings = AppSettings.shared
     let onReposition: () -> Void
+    let onOpenSettings: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -27,6 +28,19 @@ struct SettingsMenuView: View {
             Divider()
 
             toggleRow("power", "Launch at Login", $settings.launchAtLogin)
+
+            Divider()
+
+            Button {
+                onOpenSettings()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "gearshape").font(.system(size: 12)).frame(width: 18)
+                    Text("Settings…").font(.system(size: 12))
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
 
             Divider()
 

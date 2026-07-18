@@ -186,4 +186,16 @@ final class MediaAdapterEngine {
         p.standardError = FileHandle.nullDevice
         try? p.run()
     }
+
+    /// Seek to a timeline position. The adapter's `seek` takes MICROSECONDS
+    /// (payload elapsed/duration are in seconds), so convert here.
+    func seek(toSeconds seconds: Double) {
+        let micros = Int((max(0, seconds) * 1_000_000).rounded())
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+        p.arguments = [scriptURL.path, frameworkURL.path, "seek", String(micros)]
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        try? p.run()
+    }
 }

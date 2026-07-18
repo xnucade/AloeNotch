@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import Combine
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -6,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var viewModel: NotchViewModel?
     private var screenObserver: AnyCancellable?
     private var sigtermSource: DispatchSourceSignal?
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -38,5 +40,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         viewModel?.tearDown()
+    }
+
+    /// Open (or focus) the preferences window. As an accessory app we must
+    /// activate ourselves for the window to come forward and take input.
+    func showSettings() {
+        if settingsWindow == nil {
+            let view = SettingsView(
+                onReposition: { [weak self] in self?.notchController?.repositionOnActiveScreen() }
+            )
+            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+            window.title = "AloeNotch Settings"
+            window.styleMask = [.titled, .closable, .miniaturizable]
+            window.isReleasedWhenClosed = false
+            window.center()
+            settingsWindow = window
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
     }
 }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A00000000000000000000004 /* OpenNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000004 /* AloeNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AloeNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -47,7 +47,7 @@
 		A00000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A00000000000000000000004 /* OpenNotch.app */,
+				A00000000000000000000004 /* AloeNotch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -73,7 +73,7 @@
 			);
 			name = OpenNotch;
 			productName = OpenNotch;
-			productReference = A00000000000000000000004 /* OpenNotch.app */;
+			productReference = A00000000000000000000004 /* AloeNotch.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

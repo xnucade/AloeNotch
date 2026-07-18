@@ -9,6 +9,10 @@ struct NowPlaying: Equatable {
     var artwork: NSImage? = nil
     /// Dominant artwork color, punched up for use as the ambient rim glow.
     var accent: Color? = nil
+    /// Track length in seconds (0 when unknown / live streams). Stable per
+    /// track, so it doesn't churn `current`; elapsed time is interpolated
+    /// separately via `liveElapsed()`.
+    var duration: Double = 0
 
     var hasContent: Bool { !title.isEmpty || !artist.isEmpty }
 }
@@ -32,6 +36,12 @@ final class NowPlayingManager: ObservableObject {
     private var artworkCacheKey: String?
     private var cachedArtwork: NSImage?
     private var cachedAccent: Color?
+
+    // Elapsed-time interpolation: the source reports elapsed only every ~150ms,
+    // so we advance it locally between updates from the last known value.
+    private var elapsedBase: Double = 0
+    private var elapsedCapturedAt = Date()
+    private var playbackRate: Double = 0
 
     func start() {
         MediaAdapterEngine.probe { [weak self] engine in
@@ -73,6 +83,22 @@ final class NowPlayingManager: ObservableObject {
         if let adapter { adapter.send(.previousTrack) } else { bridge.send(.previousTrack) }
     }
 
+    /// Interpolated current playback position, in seconds. Read this from a
+    /// TimelineView so the progress bar advances smoothly between updates.
+    func liveElapsed() -> Double {
+        guard current.duration > 0 else { return 0 }
+        let advance = playbackRate > 0 ? Date().timeIntervalSince(elapsedCapturedAt) * playbackRate : 0
+        return min(current.duration, max(0, elapsedBase + advance))
+    }
+
+    /// Seek to a position in seconds (adapter path only; the legacy bridge has
+    /// no seek). Updates the local estimate immediately for a responsive bar.
+    func seek(to seconds: Double) {
+        elapsedBase = max(0, seconds)
+        elapsedCapturedAt = Date()
+        adapter?.seek(toSeconds: seconds)
+    }
+
     // MARK: - Adapter path
 
     private func apply(_ payload: [String: Any]) {
@@ -108,8 +134,17 @@ final class NowPlayingManager: ObservableObject {
             np.artist = Self.displayName(forBundleID: bundleID)
         }
 
+        np.duration = payload["duration"] as? Double ?? 0
+
+        let playing = (payload["playing"] as? NSNumber)?.boolValue ?? false
+        // Capture the elapsed baseline so liveElapsed() can advance from it.
+        elapsedBase = payload["elapsedTime"] as? Double ?? 0
+        elapsedCapturedAt = Date()
+        let rate = payload["playbackRate"] as? Double ?? 0
+        playbackRate = playing ? (rate > 0 ? rate : 1) : 0
+
         current = np
-        isPlaying = (payload["playing"] as? NSNumber)?.boolValue ?? false
+        isPlaying = playing
     }
 
     /// Average color of the artwork via CIAreaAverage, with saturation and
@@ -192,6 +227,11 @@ final class NowPlayingManager: ObservableObject {
                 np.artwork = image
                 np.accent = Self.accentColor(from: image)
             }
+            np.duration = info["kMRMediaRemoteNowPlayingInfoDuration"] as? Double ?? 0
+            self.elapsedBase = info["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? Double ?? 0
+            self.elapsedCapturedAt = Date()
+            let rate = info["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double ?? 0
+            self.playbackRate = rate
             self.current = np
         }
     }

@@ -16,6 +16,9 @@ struct TrayView: View {
                     .textCase(.uppercase)
                     .foregroundStyle(.white.opacity(0.5))
                 Spacer()
+                if tray.items.count >= 2 {
+                    dragAllHandle
+                }
                 if !tray.items.isEmpty {
                     Button { tray.clear() } label: {
                         Image(systemName: "trash").font(.system(size: 10))
@@ -41,6 +44,25 @@ struct TrayView: View {
         }
     }
 
+    /// A small pill that drags every staged file out at once.
+    private var dragAllHandle: some View {
+        ZStack {
+            HStack(spacing: 4) {
+                Image(systemName: "square.stack.3d.up.fill").font(.system(size: 9))
+                Text("Drag all").font(.system(size: 9.5, weight: .medium))
+            }
+            .foregroundStyle(.white.opacity(0.65))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(.white.opacity(0.08), in: Capsule())
+            // Transparent AppKit drag source sits on top and initiates the
+            // multi-item drag session (SwiftUI's .onDrag is single-item only).
+            MultiFileDragHandle(urls: tray.items.map(\.url))
+        }
+        .fixedSize()
+        .help("Drag all \(tray.items.count) files out together")
+    }
+
     @ViewBuilder
     private var content: some View {
         if tray.items.isEmpty {
@@ -64,6 +86,45 @@ struct TrayView: View {
         }
     }
 
+}
+
+/// Wraps an AppKit drag source that begins a dragging session containing every
+/// staged file as its own dragging item — so dropping the handle onto Finder or
+/// another app deposits all of them at once.
+private struct MultiFileDragHandle: NSViewRepresentable {
+    let urls: [URL]
+
+    func makeNSView(context: Context) -> DragSourceView {
+        let v = DragSourceView()
+        v.urls = urls
+        return v
+    }
+
+    func updateNSView(_ nsView: DragSourceView, context: Context) {
+        nsView.urls = urls
+    }
+
+    final class DragSourceView: NSView, NSDraggingSource {
+        var urls: [URL] = []
+
+        override func mouseDown(with event: NSEvent) {
+            guard !urls.isEmpty else { return }
+            let items: [NSDraggingItem] = urls.enumerated().map { i, url in
+                let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+                let icon = NSWorkspace.shared.icon(forFile: url.path)
+                // Fan the icons out a little so the drag reads as a stack.
+                let o = CGFloat(i) * 5
+                item.setDraggingFrame(CGRect(x: o, y: -o, width: 28, height: 28), contents: icon)
+                return item
+            }
+            beginDraggingSession(with: items, event: event, source: self)
+        }
+
+        func draggingSession(_ session: NSDraggingSession,
+                             sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+            .copy
+        }
+    }
 }
 
 private struct TrayChip: View {

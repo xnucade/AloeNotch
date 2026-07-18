@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 /// Owns the floating panel, positions it over the notch, and keeps the
 /// passthrough hit-test region in sync with the collapsed/expanded state.
@@ -7,14 +8,34 @@ import SwiftUI
 /// so no explicit invalidation is needed when expansion changes.
 final class NotchWindowController {
     private let viewModel: NotchViewModel
+    private let settings = AppSettings.shared
     private var panel: NotchPanel?
     private var hostingView: PassthroughHostingView<NotchRootView>?
     private var metrics: NotchMetrics
+    private var cancellables = Set<AnyCancellable>()
 
     init(viewModel: NotchViewModel) {
         self.viewModel = viewModel
         self.metrics = NotchGeometry.metrics(for: NotchGeometry.preferredScreen())
         viewModel.metrics = metrics
+
+        // Nudge the panel live when the position offset changes in Settings.
+        settings.$positionOffset
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.applyFrame(animate: false) }
+            .store(in: &cancellables)
+    }
+
+    /// The window frame with the user's horizontal offset applied.
+    private func positionedFrame() -> CGRect {
+        var frame = metrics.windowFrame
+        frame.origin.x += CGFloat(settings.positionOffset)
+        return frame
+    }
+
+    private func applyFrame(animate: Bool) {
+        panel?.setFrame(positionedFrame(), display: true, animate: animate)
     }
 
     func show() {
@@ -23,7 +44,7 @@ final class NotchWindowController {
     }
 
     private func buildPanel() {
-        let frame = metrics.windowFrame
+        let frame = positionedFrame()
         let panel = NotchPanel(contentRect: frame)
 
         let root = NotchRootView(viewModel: viewModel)
@@ -74,7 +95,6 @@ final class NotchWindowController {
         let newMetrics = NotchGeometry.metrics(for: NotchGeometry.preferredScreen())
         self.metrics = newMetrics
         viewModel.metrics = newMetrics
-        guard let panel else { return }
-        panel.setFrame(newMetrics.windowFrame, display: true, animate: false)
+        applyFrame(animate: false)
     }
 }

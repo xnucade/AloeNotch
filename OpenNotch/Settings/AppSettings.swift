@@ -15,6 +15,10 @@ final class AppSettings: ObservableObject {
     @Published var showWeather: Bool { didSet { save(showWeather, "showWeather") } }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
 
+    /// Horizontal nudge of the panel from screen-center, in points (−400…400).
+    /// 0 keeps the collapsed strip aligned with the hardware notch.
+    @Published var positionOffset: Double { didSet { defaults.set(positionOffset, forKey: "positionOffset") } }
+
     private let defaults = UserDefaults.standard
 
     private init() {
@@ -30,6 +34,7 @@ final class AppSettings: ObservableObject {
         showShelf = defaults.bool(forKey: "showShelf")
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
+        positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

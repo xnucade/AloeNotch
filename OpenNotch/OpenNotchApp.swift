@@ -10,7 +10,8 @@ struct AloeNotchApp: App {
         // accessory (LSUIElement) with no Dock icon.
         MenuBarExtra("AloeNotch", systemImage: "rectangle.topthird.inset.filled") {
             SettingsMenuView(
-                onReposition: { appDelegate.notchController?.repositionOnActiveScreen() }
+                onReposition: { appDelegate.notchController?.repositionOnActiveScreen() },
+                onOpenSettings: { appDelegate.showSettings() }
             )
         }
         .menuBarExtraStyle(.window)
