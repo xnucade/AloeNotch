@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — AloeNotch</title>
+  <meta name="description" content="How AloeNotch handles your data: local-first, no accounts, no tracking.">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" width="28" height="28">
+        <span>AloeNotch</span>
+      </a>
+      <a class="btn btn-small" href="index.html#download">Download</a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <a class="back" href="index.html">← Back to AloeNotch</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: July 17, 2026</p>
+
+    <p>AloeNotch (“the app”) is a macOS menu bar app made by Kade’s Lab (“we”,
+    “us”). We built it to be private by default: it has no accounts, no
+    analytics, no advertising, and no tracking. This policy explains the small
+    amount of data the app touches and where it goes.</p>
+
+    <h2>The short version</h2>
+    <p>Everything AloeNotch shows you — now playing, your calendar, battery, and
+    files on the shelf — is read on your Mac and stays on your Mac. The only
+    time any data leaves your device is to fetch the weather, and even then it’s
+    just an approximate location sent to a weather service. We never see your
+    data, because none of it is sent to us. We don’t operate servers that
+    receive your information.</p>
+
+    <h2>What the app accesses on your device</h2>
+    <ul>
+      <li><strong>Now playing.</strong> The app reads the title, artist, artwork,
+      and playback state of whatever your Mac is currently playing (Apple Music,
+      Spotify, a browser tab, etc.) so it can display it and offer play/pause
+      controls. This is read locally and is never transmitted anywhere.</li>
+      <li><strong>Calendar.</strong> If you enable the calendar feature and grant
+      access, the app reads your events for the next 24 hours to show what’s
+      upcoming. Event data is read locally through Apple’s EventKit and never
+      leaves your device.</li>
+      <li><strong>Battery.</strong> The app reads your battery level and charging
+      state from the system. This stays on your device.</li>
+      <li><strong>Shelf files.</strong> When you drag a file onto the notch, the
+      app holds a reference to that file for the current session so you can drag
+      it back out. Files are not copied, moved, uploaded, or read beyond
+      generating a thumbnail preview locally.</li>
+    </ul>
+
+    <h2>The one thing that leaves your device: weather</h2>
+    <p>If you enable the weather feature and grant location access, AloeNotch
+    requests your approximate location from macOS (reduced-accuracy, rounded to
+    about three decimal places of latitude and longitude — roughly
+    neighborhood-level) and sends those coordinates to the
+    <a href="https://open-meteo.com/">Open-Meteo</a> weather API to retrieve the
+    current conditions for your area.</p>
+    <ul>
+      <li>No name, account, device identifier, or other personal information is
+      sent — only the rounded coordinates.</li>
+      <li>Open-Meteo is a third-party service with its own
+      <a href="https://open-meteo.com/en/terms">terms and privacy practices</a>.</li>
+      <li>You can turn this off entirely: leave the weather feature disabled, or
+      deny location access. With it off, the app makes no network requests for
+      weather and no location data leaves your Mac.</li>
+    </ul>
+
+    <h2>Permissions</h2>
+    <p>AloeNotch only asks for permissions the features you enable actually need
+    — Calendar access for upcoming events, and Location access for weather. Both
+    are optional. If you deny or disable them, the related feature simply hides
+    and the app keeps working. You can change these any time in <strong>System
+    Settings → Privacy &amp; Security</strong>.</p>
+
+    <h2>The website</h2>
+    <p>This website is a static page hosted on Cloudflare. It sets no advertising
+    or tracking cookies. As with any website, our hosting provider may process
+    standard technical request data (such as IP address and browser type) to
+    deliver and secure the page; see
+    <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare’s privacy
+    policy</a>. Downloading the app transfers the installer file to your
+    computer; we don’t attach any identifier to it.</p>
+
+    <h2>Children</h2>
+    <p>AloeNotch is not directed at children and does not knowingly collect any
+    information from anyone, including children under 13.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>If we change how the app handles data, we’ll update this page and the
+    “last updated” date above. Material changes will be reflected in a new
+    release of the app.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy? The best way to reach us is on GitHub.</p>
+    <p><a class="btn btn-small" href="https://github.com/xnucade" target="_blank" rel="noopener">Contact on GitHub</a></p>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
+    </div>
+    <p>© <span id="year"></span> Kade’s Lab. Not affiliated with Apple.</p>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

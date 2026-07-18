@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — AloeNotch</title>
+  <meta name="description" content="The terms for using AloeNotch, a free macOS notch app.">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" width="28" height="28">
+        <span>AloeNotch</span>
+      </a>
+      <a class="btn btn-small" href="index.html#download">Download</a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <a class="back" href="index.html">← Back to AloeNotch</a>
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: July 17, 2026</p>
+
+    <p>These terms govern your use of AloeNotch (“the app”) and this website,
+    provided by Kade’s Lab (“we”, “us”). By downloading or using the app, you
+    agree to them. If you don’t agree, please don’t use the app.</p>
+
+    <h2>License</h2>
+    <p>AloeNotch is free to download and use for personal, non-commercial
+    purposes. We grant you a personal, non-exclusive, non-transferable license
+    to install and run the app on Macs you own or control. You may not sell,
+    rent, or redistribute the app as your own, or remove its notices.</p>
+
+    <h2>Provided “as is”</h2>
+    <p>The app is provided <strong>“as is” and “as available,” without warranties
+    of any kind</strong>, whether express or implied, including but not limited
+    to merchantability, fitness for a particular purpose, and non-infringement.
+    We do not warrant that the app will be uninterrupted, error-free, or
+    compatible with every Mac or macOS version.</p>
+
+    <h2>System integration and Apple</h2>
+    <p>AloeNotch is an independent project. It is <strong>not affiliated with,
+    endorsed by, or sponsored by Apple Inc.</strong> “Mac”, “macOS”, and related
+    marks are trademarks of Apple.</p>
+    <p>To display now-playing information on current macOS versions, the app
+    relies on the open-source
+    <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>,
+    which interacts with system media components. Because this depends on
+    system behavior that Apple may change, this feature — like others that
+    depend on macOS — may stop working or behave differently after an operating
+    system update. The app is distributed outside the Mac App Store and is not
+    reviewed or notarized by Apple as an App Store product.</p>
+
+    <h2>Your responsibilities</h2>
+    <ul>
+      <li>Use the app in compliance with applicable laws and with Apple’s
+      software terms for your Mac.</li>
+      <li>Grant only the permissions you’re comfortable with; features you don’t
+      enable won’t run.</li>
+      <li>Keep backups of your files. The shelf holds temporary references to
+      files you drag in; it is not storage or a backup.</li>
+    </ul>
+
+    <h2>Third-party services and software</h2>
+    <p>The optional weather feature retrieves data from
+    <a href="https://open-meteo.com/">Open-Meteo</a>, which has its own terms.
+    The app bundles open-source components, including mediaremote-adapter (BSD
+    3-Clause license). Your use of those components is subject to their
+    respective licenses.</p>
+
+    <h2>Limitation of liability</h2>
+    <p>To the maximum extent permitted by law, Kade’s Lab will not be liable for
+    any indirect, incidental, special, consequential, or punitive damages, or
+    any loss of data, profits, or goodwill, arising out of or related to your
+    use of (or inability to use) the app or website. Because the app is provided
+    free of charge, our total liability for any claim relating to the app is
+    limited to the amount you paid for it — which is zero.</p>
+
+    <h2>Changes</h2>
+    <p>We may update the app and these terms from time to time. Changes take
+    effect when posted here, with an updated date above. Continuing to use the
+    app after changes means you accept the revised terms.</p>
+
+    <h2>Termination</h2>
+    <p>You may stop using the app and delete it at any time. We may discontinue
+    the app or this website at any time.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about these terms? The best way to reach us is on GitHub.</p>
+    <p><a class="btn btn-small" href="https://github.com/xnucade" target="_blank" rel="noopener">Contact on GitHub</a></p>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
+    </div>
+    <p>© <span id="year"></span> Kade’s Lab. Not affiliated with Apple.</p>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

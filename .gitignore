@@ -1,0 +1,43 @@
+# --- macOS ---
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+Icon?
+
+# --- Xcode ---
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+
+# --- Build artifacts (regenerate with scripts/make-dmg.sh) ---
+*.dmg
+
+# --- Node / Wrangler (site) ---
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# --- Secrets / local env (never commit) ---
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+*.p12
+*.mobileprovision
+
+# --- Raw working media (not part of the app/site; may show desktop contents) ---
+Media/
+
+# --- Editors / tooling ---
+.vscode/
+.idea/
+.claude/settings.local.json

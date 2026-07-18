@@ -1,0 +1,10 @@
+{
+  // Deploy: npx wrangler deploy (from this directory).
+  // Then add the custom domain (e.g. aloenotch.kadeslab.com) in the
+  // Cloudflare dashboard under the worker's Domains & Routes.
+  "name": "aloenotch-site",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "."
+  }
+}
