@@ -57,16 +57,10 @@ as non-notch Macs / external displays (where it renders a simulated strip).
   break on any macOS update. For a distributable version you'd want a supported
   alternative (e.g. per-app scripting bridges, or Apple's public frameworks where
   they cover your need).
-- **No app sandbox.** Disabled on purpose so IOKit battery reads and the media
-  bridge work. This is fine for a personal/local tool; revisit before distributing.
-- **First launch permissions.** Nothing beyond signing is required for the current
-  features, but dragging files relies on standard drag-and-drop (no Full Disk
-  Access needed).
 
 ## Suggested next steps
 
 - Persist the shelf across launches; add multi-file drag-out as a group.
 - Add a proper Settings window (position offset, which modules are enabled).
 - Launch-at-login via `SMAppService`.
-- A real app icon (the `AppIcon` set is currently empty).
 - Song scrubber / progress ring using the elapsed-time keys from MediaRemote.
