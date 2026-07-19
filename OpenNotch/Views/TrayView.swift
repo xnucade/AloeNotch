@@ -29,7 +29,7 @@ struct TrayView: View {
             }
 
             content
-                .frame(maxWidth: .infinity, minHeight: 74)
+                .frame(maxWidth: .infinity, minHeight: 62)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .strokeBorder(

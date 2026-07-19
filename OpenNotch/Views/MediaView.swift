@@ -16,7 +16,7 @@ struct MediaView: View {
                         .foregroundStyle(.white.opacity(0.7))
                         .lineLimit(1)
                     if media.current.duration > 0 {
-                        ProgressScrubber(media: media).padding(.top, 5)
+                        ProgressScrubber(media: media).padding(.top, 3)
                     }
                     controls
                 } else {
@@ -64,7 +64,7 @@ struct MediaView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 4) {
             TransportButton(symbol: "backward.fill") { media.previous() }
             TransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill", size: 15) {
                 media.togglePlayPause()
@@ -72,7 +72,7 @@ struct MediaView: View {
             .contentTransition(.symbolEffect(.replace))
             TransportButton(symbol: "forward.fill") { media.next() }
         }
-        .padding(.top, 4)
+        .padding(.top, 1)
     }
 }
 
@@ -90,7 +90,7 @@ private struct TransportButton: View {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundStyle(.white.opacity(hovering ? 1 : 0.85))
-                .frame(width: 30, height: 30)
+                .frame(width: 27, height: 27)
                 .background(.white.opacity(hovering ? 0.12 : 0), in: Circle())
                 .scaleEffect(hovering ? 1.08 : 1)
         }
@@ -123,7 +123,7 @@ private struct ProgressScrubber: View {
             let elapsed = dragging ? dragFraction * duration : media.liveElapsed()
             let fraction = duration > 0 ? min(1, max(0, elapsed / duration)) : 0
 
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 GeometryReader { geo in
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
@@ -149,7 +149,7 @@ private struct ProgressScrubber: View {
                             }
                     )
                 }
-                .frame(height: 11)
+                .frame(height: 9)
                 .animation(.linear(duration: dragging ? 0 : 0.5), value: fraction)
 
                 HStack {
@@ -157,9 +157,9 @@ private struct ProgressScrubber: View {
                     Spacer()
                     Text(timeString(duration))
                 }
-                .font(.system(size: 9))
+                .font(.system(size: 8.5))
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.white.opacity(0.45))
             }
         }
     }

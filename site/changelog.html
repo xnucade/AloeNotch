@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog — AloeNotch</title>
+  <meta name="description" content="What's new in AloeNotch — release notes and ongoing updates.">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" width="28" height="28">
+        <span>AloeNotch</span>
+      </a>
+      <a class="btn btn-small" href="index.html#download">Download</a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <a class="back" href="index.html">← Back to AloeNotch</a>
+    <h1>Changelog</h1>
+    <p class="updated">AloeNotch is actively developed. Here's what's changed.</p>
+
+    <h2>0.2.0 — July 19, 2026</h2>
+    <ul>
+      <li><strong>Song scrubber.</strong> Now Playing shows a live progress bar
+      with elapsed / total time — drag it to seek.</li>
+      <li><strong>The shelf remembers.</strong> Staged files now persist across
+      launches, and a new <strong>Drag all</strong> handle pulls every file out
+      at once.</li>
+      <li><strong>Settings window.</strong> A proper preferences window: toggle
+      each module, launch at login, and nudge the panel's horizontal position.</li>
+      <li><strong>Tighter layout.</strong> The expanded panel is more compact and
+      better spaced for the content it holds.</li>
+    </ul>
+
+    <h2>0.1.0 — July 17, 2026</h2>
+    <ul>
+      <li>First release: a Dynamic Island-style panel that hugs the MacBook
+      notch and expands on hover.</li>
+      <li><strong>Now Playing from any app</strong> — Apple Music, Spotify, and
+      even YouTube in a browser — with transport controls and an ambient glow
+      drawn from the artwork's color.</li>
+      <li><strong>Drop shelf</strong> for staging files, plus calendar, weather,
+      battery, and a live clock at a glance.</li>
+      <li>Menu-bar switchboard to show or hide each module.</li>
+    </ul>
+
+    <p style="margin-top:32px">
+      Follow along or file ideas on
+      <a href="https://github.com/xnucade/AloeNotch">GitHub</a>.
+    </p>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="changelog.html">Changelog</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
+    </div>
+    <p>© <span id="year"></span> Kade’s Lab. Not affiliated with Apple.</p>
+  </footer>
+
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

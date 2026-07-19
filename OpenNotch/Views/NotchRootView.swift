@@ -17,8 +17,8 @@ struct NotchRootView: View {
     private var hasHardwareNotch: Bool {
         metrics?.hasHardwareNotch ?? false
     }
-    private var expandedWidth: CGFloat { metrics?.expandedWidth ?? 640 }
-    private var expandedHeight: CGFloat { metrics?.expandedHeight ?? 250 }
+    private var expandedWidth: CGFloat { metrics?.expandedWidth ?? 560 }
+    private var expandedHeight: CGFloat { metrics?.expandedHeight ?? 244 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,9 +35,9 @@ struct NotchRootView: View {
             Group {
                 if viewModel.isExpanded {
                     ExpandedContent(viewModel: viewModel)
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 18)
                         .padding(.top, collapsedSize.height + 6) // clear the physical notch
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 13)
                         .transition(.blurReplace.combined(with: .opacity))
                 } else if !hasHardwareNotch {
                     // Indicators only make sense on the simulated strip; behind
@@ -226,11 +226,11 @@ private struct ExpandedContent: View {
     @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             HeaderRow(viewModel: viewModel)
 
             if settings.showMedia || settings.showShelf {
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: 14) {
                     if settings.showMedia {
                         MediaView(media: viewModel.media)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -244,7 +244,7 @@ private struct ExpandedContent: View {
                     }
                     if settings.showShelf {
                         TrayView(tray: viewModel.tray)
-                            .frame(maxWidth: settings.showMedia ? 190 : .infinity)
+                            .frame(maxWidth: settings.showMedia ? 168 : .infinity)
                     }
                 }
                 .frame(maxHeight: .infinity)
@@ -349,8 +349,8 @@ private struct CalendarRow: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
+        .padding(.horizontal, 11)
+        .padding(.vertical, 6)
         // Radius is concentric with the panel: 26 (panel) − 16 (bottom inset).
         .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .animation(.smooth(duration: 0.3), value: calendar.upcoming)
