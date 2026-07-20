@@ -351,6 +351,30 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
 .footer-links a { color: var(--muted); text-decoration: none; }
 .footer-links a:hover { color: var(--text); }
 
+/* ---------- Buy me a coffee ---------- */
+.btn-coffee {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: #ffdd00;
+  /* !important so page-level `a` colors (legal/footer) don't tint it blue */
+  color: #1a1500 !important;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  text-decoration: none !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-coffee:hover { transform: scale(1.04); box-shadow: 0 0 24px rgba(255, 221, 0, 0.35); }
+.btn-coffee svg { width: 18px; height: 18px; }
+.footer-support { margin-bottom: 20px; }
+
+/* ---------- Nav actions ---------- */
+.nav-actions { display: flex; align-items: center; gap: 20px; }
+.nav-link { color: var(--muted); font-size: 14px; text-decoration: none; }
+.nav-link:hover { color: var(--text); }
+
 /* ---------- Legal pages ---------- */
 .legal {
   max-width: 760px;
