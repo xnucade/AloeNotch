@@ -23,6 +23,7 @@ struct SettingsMenuView: View {
                 toggleRow("tray.full", "Shelf", $settings.showShelf)
                 toggleRow("calendar", "Calendar", $settings.showCalendar)
                 toggleRow("cloud.sun", "Weather", $settings.showWeather)
+                toggleRow("speaker.wave.2", "Volume & Brightness", $settings.showHUD)
             }
 
             Divider()

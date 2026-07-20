@@ -83,7 +83,8 @@ final class NotchWindowController {
         // Match the strip's on-screen size, including the now-playing wings, so
         // hovering the glyph opens the panel.
         let collapsed = metrics.collapsedSize(
-            showingMediaGlyph: settings.showMedia && viewModel.media.isPlaying
+            showingMediaGlyph: settings.showMedia && viewModel.media.isPlaying,
+            showingHUD: viewModel.hud != nil
         )
         let w = collapsed.width
         let h = collapsed.height

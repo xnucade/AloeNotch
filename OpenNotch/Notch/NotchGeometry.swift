@@ -18,11 +18,20 @@ struct NotchMetrics {
     /// now-playing glyph out where it's actually visible.
     static let mediaWingWidth: CGFloat = 46
 
-    /// Collapsed size, grown into "wings" while media is playing so the glyph
-    /// clears the physical notch. Displays without a notch already show their
-    /// whole simulated strip, so they don't grow.
-    func collapsedSize(showingMediaGlyph: Bool) -> CGSize {
-        guard showingMediaGlyph, hasHardwareNotch else { return notchSize }
+    /// Wider wings for a volume/brightness readout, which needs room for an
+    /// icon and a level bar.
+    static let hudWingWidth: CGFloat = 84
+
+    /// Collapsed size, grown into "wings" while a HUD or the now-playing glyph
+    /// is showing so they clear the physical notch. Displays without a notch
+    /// already show their whole simulated strip, so they don't grow.
+    func collapsedSize(showingMediaGlyph: Bool, showingHUD: Bool = false) -> CGSize {
+        guard hasHardwareNotch else { return notchSize }
+        if showingHUD {
+            return CGSize(width: notchSize.width + Self.hudWingWidth * 2,
+                          height: notchSize.height)
+        }
+        guard showingMediaGlyph else { return notchSize }
         return CGSize(width: notchSize.width + Self.mediaWingWidth * 2,
                       height: notchSize.height)
     }

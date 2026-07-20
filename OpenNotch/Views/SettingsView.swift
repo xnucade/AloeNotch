@@ -8,6 +8,38 @@ struct SettingsView: View {
     let onReposition: () -> Void
     let onShowWelcome: () -> Void
 
+    /// Replacing the macOS HUD means swallowing the volume/brightness keys,
+    /// which needs Accessibility. Until it's granted we leave the system HUD be.
+    @State private var trusted = MediaKeyInterceptor.isTrusted
+
+    private var accessibilityRow: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: trusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(trusted ? .green : .orange)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(trusted
+                     ? "Accessibility granted — the macOS HUD is replaced."
+                     : "Needs Accessibility access to replace the macOS HUD.")
+                    .font(.callout)
+                if !trusted {
+                    Text("Without it, macOS keeps drawing its own HUD, so AloeNotch stays out of the way.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer()
+            if !trusted {
+                Button("Grant…") { MediaKeyInterceptor.requestTrust() }
+                    .controlSize(.small)
+            }
+        }
+        // Pick up the grant without needing a relaunch.
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            trusted = MediaKeyInterceptor.isTrusted
+        }
+    }
+
     private var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
     }
@@ -35,6 +67,8 @@ struct SettingsView: View {
                 Toggle("Shelf", isOn: $settings.showShelf)
                 Toggle("Calendar", isOn: $settings.showCalendar)
                 Toggle("Weather", isOn: $settings.showWeather)
+                Toggle("Volume & Brightness HUD", isOn: $settings.showHUD)
+                if settings.showHUD { accessibilityRow }
             }
 
             Section("Position") {

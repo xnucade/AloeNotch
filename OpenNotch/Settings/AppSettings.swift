@@ -13,6 +13,8 @@ final class AppSettings: ObservableObject {
     @Published var showShelf: Bool { didSet { save(showShelf, "showShelf") } }
     @Published var showCalendar: Bool { didSet { save(showCalendar, "showCalendar") } }
     @Published var showWeather: Bool { didSet { save(showWeather, "showWeather") } }
+    /// Volume / brightness readouts in the notch instead of the macOS HUD.
+    @Published var showHUD: Bool { didSet { save(showHUD, "showHUD") } }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
 
     /// Horizontal nudge of the panel from screen-center, in points (−400…400).
@@ -33,12 +35,14 @@ final class AppSettings: ObservableObject {
             "showShelf": true,
             "showCalendar": true,
             "showWeather": true,
+            "showHUD": true,
         ])
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
         showShelf = defaults.bool(forKey: "showShelf")
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
+        showHUD = defaults.bool(forKey: "showHUD")
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
         // Login-item state lives with the system, not in defaults.

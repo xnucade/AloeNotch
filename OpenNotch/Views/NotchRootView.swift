@@ -17,7 +17,8 @@ struct NotchRootView: View {
     }
 
     private var collapsedSize: CGSize {
-        metrics?.collapsedSize(showingMediaGlyph: showMediaGlyph)
+        metrics?.collapsedSize(showingMediaGlyph: showMediaGlyph,
+                               showingHUD: viewModel.hud != nil)
             ?? NotchGeometry.simulatedNotchSize
     }
     private var hasHardwareNotch: Bool {
@@ -35,8 +36,9 @@ struct NotchRootView: View {
     }
 
     private var notchSurface: some View {
-        ZStack {
-            background
+        let radius: CGFloat = viewModel.isExpanded ? 26 : 10
+        return ZStack {
+            panelFill
 
             Group {
                 if viewModel.isExpanded {
@@ -44,7 +46,16 @@ struct NotchRootView: View {
                         .padding(.horizontal, 18)
                         .padding(.top, collapsedSize.height + 6) // clear the physical notch
                         .padding(.bottom, 13)
-                        .transition(.blurReplace.combined(with: .opacity))
+                        // Plain opacity+scale rather than a blur transition:
+                        // blurring every frame is what makes the open/close
+                        // stutter on a high-refresh display.
+                        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                } else if let hud = viewModel.hud {
+                    // A system readout takes over the strip while it's showing.
+                    HUDContent(hud: hud,
+                               deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0)
+                        .padding(.horizontal, hasHardwareNotch ? 12 : 16)
+                        .transition(.opacity)
                 } else {
                     // On a hardware notch this only draws while media plays (in
                     // the wings that peek out either side); otherwise it renders
@@ -56,19 +67,31 @@ struct NotchRootView: View {
                         showMediaGlyph: showMediaGlyph
                     )
                     .padding(.horizontal, hasHardwareNotch ? 9 : 14)
-                    .transition(.blurReplace.combined(with: .opacity))
+                    .transition(.opacity)
                 }
             }
-            // Keep inner light effects (artwork glow etc.) inside the panel —
-            // without this they bleed out into the transparent window margin.
-            .clipShape(NotchShape(cornerRadius: viewModel.isExpanded ? 26 : 10))
         }
         .frame(
             width: viewModel.isExpanded ? expandedWidth : collapsedSize.width,
             height: viewModel.isExpanded ? expandedHeight : collapsedSize.height
         )
-        // Grow/shrink the wings gently when playback starts or stops.
-        .animation(.snappy(duration: 0.4), value: showMediaGlyph)
+        // Clip AFTER the frame so the clip bounds follow the animating size.
+        // (Clipping the inner Group instead sized the clip to the *content*, so
+        // collapsing left the outgoing panel ghosted at full width outside the
+        // notch.) This also keeps inner light effects inside the panel.
+        .clipShape(NotchShape(cornerRadius: radius))
+        // Glow lives outside the clip so its bloom can still extend past the edge.
+        .background {
+            if settings.ambientGlow {
+                AmbientGlow(
+                    media: viewModel.media,
+                    radius: radius,
+                    isExpanded: viewModel.isExpanded
+                )
+            }
+        }
+        // Any collapsed width change — media wings or a HUD — eases in/out.
+        .animation(NotchViewModel.hudAnimation, value: collapsedSize.width)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
         // Dragging a file over the collapsed strip opens the shelf; dropping
@@ -85,24 +108,12 @@ struct NotchRootView: View {
     // sides and bottom, so the shadow can blur out fully instead of being
     // clipped into corner artifacts. Keep its extent (radius + y offset) well
     // inside that margin.
-    private var background: some View {
+    private var panelFill: some View {
         // 26pt expanded radius (Tahoe-era curvature); inner cards derive their
         // radii concentrically from this minus their inset.
         let radius: CGFloat = viewModel.isExpanded ? 26 : 10
         return NotchShape(cornerRadius: radius)
             .fill(.black)
-            .background {
-                // Ambient mode: the album art, clipped to the panel silhouette
-                // and blurred, spills colored light out past the frame. The
-                // window's shadow margin gives the bleed room to render.
-                if settings.ambientGlow {
-                    AmbientGlow(
-                        media: viewModel.media,
-                        radius: radius,
-                        isExpanded: viewModel.isExpanded
-                    )
-                }
-            }
             .overlay {
                 // Hairline edge on the sides and bottom only. Nothing light may
                 // touch the top region: the fill must stay pure black there so
@@ -242,6 +253,36 @@ private struct CollapsedContent: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+}
+
+/// Volume / brightness readout: icon in one wing, level bar in the other, with
+/// the physical notch kept clear between them.
+private struct HUDContent: View {
+    let hud: NotchHUD
+    let deadZone: CGFloat
+
+    private let barWidth: CGFloat = 62
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Image(systemName: hud.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+                .contentTransition(.symbolEffect(.replace))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: deadZone)
+
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.18))
+                Capsule().fill(.white.opacity(0.92))
+                    .frame(width: max(3, barWidth * CGFloat(min(1, max(0, hud.level)))))
+            }
+            .frame(width: barWidth, height: 4)
+            .animation(.smooth(duration: 0.18), value: hud.level)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
