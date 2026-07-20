@@ -14,6 +14,19 @@ struct NotchMetrics {
     /// hardware notch exactly, so the app is invisible until it expands.
     var collapsedSize: CGSize { notchSize }
 
+    /// Extra width on each side of the hardware notch, used to peek a small
+    /// now-playing glyph out where it's actually visible.
+    static let mediaWingWidth: CGFloat = 46
+
+    /// Collapsed size, grown into "wings" while media is playing so the glyph
+    /// clears the physical notch. Displays without a notch already show their
+    /// whole simulated strip, so they don't grow.
+    func collapsedSize(showingMediaGlyph: Bool) -> CGSize {
+        guard showingMediaGlyph, hasHardwareNotch else { return notchSize }
+        return CGSize(width: notchSize.width + Self.mediaWingWidth * 2,
+                      height: notchSize.height)
+    }
+
     // Expanded panel dimensions — wide and short, a horizontal three-column
     // layout (media · calendar · shelf).
     var expandedWidth: CGFloat { max(collapsedSize.width + 40, 616) }

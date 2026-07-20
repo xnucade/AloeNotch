@@ -80,8 +80,13 @@ final class NotchWindowController {
         // Collapsed: only the top-center notch strip (notch + wings).
         // NSHostingView is flipped (top-left origin), so "top" depends on the
         // flipped state.
-        let w = metrics.collapsedSize.width
-        let h = metrics.collapsedSize.height
+        // Match the strip's on-screen size, including the now-playing wings, so
+        // hovering the glyph opens the panel.
+        let collapsed = metrics.collapsedSize(
+            showingMediaGlyph: settings.showMedia && viewModel.media.isPlaying
+        )
+        let w = collapsed.width
+        let h = collapsed.height
         return CGRect(
             x: bounds.midX - w / 2,
             y: host.isFlipped ? bounds.minY : bounds.maxY - h,

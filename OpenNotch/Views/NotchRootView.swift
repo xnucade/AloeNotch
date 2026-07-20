@@ -11,8 +11,14 @@ struct NotchRootView: View {
 
     private var metrics: NotchMetrics? { viewModel.metrics }
 
+    /// Peek the now-playing glyph out beside the notch while something plays.
+    private var showMediaGlyph: Bool {
+        settings.showMedia && viewModel.media.isPlaying
+    }
+
     private var collapsedSize: CGSize {
-        metrics?.collapsedSize ?? NotchGeometry.simulatedNotchSize
+        metrics?.collapsedSize(showingMediaGlyph: showMediaGlyph)
+            ?? NotchGeometry.simulatedNotchSize
     }
     private var hasHardwareNotch: Bool {
         metrics?.hasHardwareNotch ?? false
@@ -39,12 +45,18 @@ struct NotchRootView: View {
                         .padding(.top, collapsedSize.height + 6) // clear the physical notch
                         .padding(.bottom, 13)
                         .transition(.blurReplace.combined(with: .opacity))
-                } else if !hasHardwareNotch {
-                    // Indicators only make sense on the simulated strip; behind
-                    // a hardware notch they'd be invisible anyway.
-                    CollapsedContent(media: viewModel.media, battery: viewModel.battery)
-                        .padding(.horizontal, 14)
-                        .transition(.blurReplace.combined(with: .opacity))
+                } else {
+                    // On a hardware notch this only draws while media plays (in
+                    // the wings that peek out either side); otherwise it renders
+                    // nothing and the strip stays invisible.
+                    CollapsedContent(
+                        media: viewModel.media,
+                        battery: viewModel.battery,
+                        deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0,
+                        showMediaGlyph: showMediaGlyph
+                    )
+                    .padding(.horizontal, hasHardwareNotch ? 9 : 14)
+                    .transition(.blurReplace.combined(with: .opacity))
                 }
             }
             // Keep inner light effects (artwork glow etc.) inside the panel —
@@ -55,6 +67,8 @@ struct NotchRootView: View {
             width: viewModel.isExpanded ? expandedWidth : collapsedSize.width,
             height: viewModel.isExpanded ? expandedHeight : collapsedSize.height
         )
+        // Grow/shrink the wings gently when playback starts or stops.
+        .animation(.snappy(duration: 0.4), value: showMediaGlyph)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
         // Dragging a file over the collapsed strip opens the shelf; dropping
@@ -186,36 +200,79 @@ struct NotchShape: Shape {
     }
 }
 
-/// Collapsed strip indicators, shown only on the simulated (non-notch) strip.
+/// What shows on the collapsed strip: artwork on the left, the equalizer glyph
+/// on the right, with the physical notch left clear between them.
 private struct CollapsedContent: View {
     @ObservedObject var media: NowPlayingManager
     @ObservedObject var battery: BatteryMonitor
+    /// Width of the hardware notch to keep clear in the middle (0 when the
+    /// whole simulated strip is visible).
+    let deadZone: CGFloat
+    let showMediaGlyph: Bool
 
     var body: some View {
-        HStack {
-            if media.isPlaying {
-                if let art = media.current.artwork {
+        HStack(spacing: 0) {
+            HStack(spacing: 5) {
+                if showMediaGlyph, let art = media.current.artwork {
                     Image(nsImage: art)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 16, height: 16)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .frame(width: 15, height: 15)
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        .transition(.scale.combined(with: .opacity))
                 }
-                Image(systemName: "waveform")
-                    .foregroundStyle(.white.opacity(0.85))
-                    .font(.system(size: 11, weight: .semibold))
-                    .symbolEffect(.variableColor.iterative, options: .repeating)
             }
-            Spacer()
-            if battery.isCharging {
-                BatteryBolt()
-            } else if battery.isPresent && battery.level < 0.2 {
-                Image(systemName: "battery.25percent")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.red)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: deadZone)
+
+            HStack(spacing: 5) {
+                if showMediaGlyph {
+                    WaveformGlyph(tint: media.current.accent ?? .white)
+                        .transition(.scale.combined(with: .opacity))
+                }
+                // Battery hints only fit where the strip is fully visible.
+                if deadZone == 0 {
+                    if battery.isCharging {
+                        BatteryBolt()
+                    } else if battery.isPresent && battery.level < 0.2 {
+                        Image(systemName: "battery.25percent")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+}
+
+/// The little equalizer from the website — a few bars that breathe while
+/// something is playing. Tinted with the artwork's accent so it ties into the
+/// ambient glow.
+private struct WaveformGlyph: View {
+    var tint: Color = .white
+
+    @State private var animating = false
+    private let heights: [CGFloat] = [5, 11, 7, 9]
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 2) {
+            ForEach(Array(heights.enumerated()), id: \.offset) { index, height in
+                Capsule()
+                    .fill(tint.opacity(0.9))
+                    .frame(width: 2.5, height: animating ? height : 3)
+                    .animation(
+                        .easeInOut(duration: 0.5)
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.11),
+                        value: animating
+                    )
             }
         }
-        .transaction { $0.animation = nil } // indicators shouldn't wiggle during expand
+        .frame(height: 12)
+        .onAppear { animating = true }
+        .onDisappear { animating = false }
     }
 }
 
