@@ -31,9 +31,12 @@ final class NotchViewModel: ObservableObject {
         battery.start()
 
         // Calendar and weather follow their toggles so a disabled feature does
-        // no permission prompting or polling at all. The publishers emit the
-        // stored value immediately, which performs the initial start.
+        // no permission prompting or polling at all. They're also gated on the
+        // welcome having been seen, so a first-time user isn't hit with system
+        // permission prompts before they know what the app is.
         settings.$showCalendar
+            .combineLatest(settings.$hasSeenWelcome)
+            .map { $0 && $1 }
             .removeDuplicates()
             .sink { [weak self] enabled in
                 if enabled { self?.calendar.start() } else { self?.calendar.stop() }
@@ -41,6 +44,8 @@ final class NotchViewModel: ObservableObject {
             .store(in: &cancellables)
 
         settings.$showWeather
+            .combineLatest(settings.$hasSeenWelcome)
+            .map { $0 && $1 }
             .removeDuplicates()
             .sink { [weak self] enabled in
                 if enabled { self?.weather.start() } else { self?.weather.stop() }

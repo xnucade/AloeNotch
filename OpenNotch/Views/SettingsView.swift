@@ -6,6 +6,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject private var settings = AppSettings.shared
     let onReposition: () -> Void
+    let onShowWelcome: () -> Void
 
     private var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
@@ -56,6 +57,7 @@ struct SettingsView: View {
 
             Section("General") {
                 Toggle("Launch at Login", isOn: $settings.launchAtLogin)
+                Button("Show Welcome Screen…", action: onShowWelcome)
             }
 
             Section {

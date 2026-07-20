@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var screenObserver: AnyCancellable?
     private var sigtermSource: DispatchSourceSignal?
     private var settingsWindow: NSWindow?
+    private var welcomeWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -37,6 +38,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             .sink { [weak controller] _ in
                 controller?.repositionOnActiveScreen()
             }
+
+        // First launch: the app is invisible until hovered, so introduce it.
+        if !AppSettings.shared.hasSeenWelcome {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.showWelcome()
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -48,7 +56,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func showSettings() {
         if settingsWindow == nil {
             let view = SettingsView(
-                onReposition: { [weak self] in self?.notchController?.repositionOnActiveScreen() }
+                onReposition: { [weak self] in self?.notchController?.repositionOnActiveScreen() },
+                onShowWelcome: { [weak self] in self?.showWelcome() }
             )
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
             window.title = "AloeNotch Settings"
@@ -66,9 +75,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         settingsWindow?.orderFrontRegardless()
     }
 
+    /// Show (or focus) the first-run welcome. Also reachable from Settings.
+    func showWelcome() {
+        if welcomeWindow == nil {
+            let view = WelcomeView(onDone: { [weak self] in self?.finishWelcome() })
+            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+            window.title = "Welcome to AloeNotch"
+            window.styleMask = [.titled, .closable]
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            window.center()
+            welcomeWindow = window
+        }
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        welcomeWindow?.makeKeyAndOrderFront(nil)
+        welcomeWindow?.orderFrontRegardless()
+    }
+
+    private func finishWelcome() {
+        AppSettings.shared.hasSeenWelcome = true
+        welcomeWindow?.close()
+    }
+
     func windowWillClose(_ notification: Notification) {
-        if (notification.object as? NSWindow) === settingsWindow {
-            NSApp.setActivationPolicy(.accessory)
+        // Dismissing with the close button counts as seen — don't nag on relaunch.
+        if (notification.object as? NSWindow) === welcomeWindow {
+            AppSettings.shared.hasSeenWelcome = true
+        }
+        // Drop back to an accessory app once no windows of ours remain. Deferred
+        // because the closing window is still visible at willClose time.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let anyVisible = [self.settingsWindow, self.welcomeWindow]
+                .contains { $0?.isVisible == true }
+            if !anyVisible { NSApp.setActivationPolicy(.accessory) }
         }
     }
 }

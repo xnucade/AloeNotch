@@ -19,6 +19,11 @@ final class AppSettings: ObservableObject {
     /// 0 keeps the collapsed strip aligned with the hardware notch.
     @Published var positionOffset: Double { didSet { defaults.set(positionOffset, forKey: "positionOffset") } }
 
+    /// Whether the one-time welcome has been shown. Calendar/weather hold off
+    /// on requesting permission until this is true, so the prompts arrive in
+    /// context rather than before the user knows what the app is.
+    @Published var hasSeenWelcome: Bool { didSet { defaults.set(hasSeenWelcome, forKey: "hasSeenWelcome") } }
+
     private let defaults = UserDefaults.standard
 
     private init() {
@@ -35,6 +40,7 @@ final class AppSettings: ObservableObject {
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
+        hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
