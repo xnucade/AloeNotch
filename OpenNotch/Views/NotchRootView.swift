@@ -17,8 +17,8 @@ struct NotchRootView: View {
     private var hasHardwareNotch: Bool {
         metrics?.hasHardwareNotch ?? false
     }
-    private var expandedWidth: CGFloat { metrics?.expandedWidth ?? 560 }
-    private var expandedHeight: CGFloat { metrics?.expandedHeight ?? 244 }
+    private var expandedWidth: CGFloat { metrics?.expandedWidth ?? 616 }
+    private var expandedHeight: CGFloat { metrics?.expandedHeight ?? 208 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -219,66 +219,62 @@ private struct CollapsedContent: View {
     }
 }
 
-/// Expanded panel: header (date/clock, weather, battery), media + shelf,
-/// upcoming calendar events.
+/// Expanded panel: a slim header (clock, weather, battery, settings) over a
+/// horizontal three-column body — media · calendar week · shelf.
 private struct ExpandedContent: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 9) {
             HeaderRow(viewModel: viewModel)
 
-            if settings.showMedia || settings.showShelf {
-                HStack(alignment: .top, spacing: 14) {
-                    if settings.showMedia {
-                        MediaView(media: viewModel.media)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    if settings.showMedia && settings.showShelf {
-                        LinearGradient(
-                            colors: [.clear, .white.opacity(0.14), .clear],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                        .frame(width: 1)
-                    }
-                    if settings.showShelf {
-                        TrayView(tray: viewModel.tray)
-                            .frame(maxWidth: settings.showMedia ? 168 : .infinity)
-                    }
+            HStack(alignment: .center, spacing: 14) {
+                if settings.showMedia {
+                    MediaView(media: viewModel.media)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxHeight: .infinity)
-            } else {
-                Spacer(minLength: 0)
+                if settings.showMedia && (settings.showCalendar || settings.showShelf) {
+                    columnDivider
+                }
+                if settings.showCalendar {
+                    CalendarWeekStrip(calendar: viewModel.calendar)
+                        .frame(maxWidth: .infinity)
+                }
+                if settings.showCalendar && settings.showShelf {
+                    columnDivider
+                }
+                if settings.showShelf {
+                    TrayView(tray: viewModel.tray)
+                        .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 150 : .infinity)
+                }
             }
-
-            if settings.showCalendar {
-                CalendarRow(calendar: viewModel.calendar)
-            }
+            .frame(maxHeight: .infinity)
         }
         .foregroundStyle(.white)
     }
+
+    private var columnDivider: some View {
+        LinearGradient(colors: [.clear, .white.opacity(0.14), .clear],
+                       startPoint: .top, endPoint: .bottom)
+            .frame(width: 1)
+    }
 }
 
-/// Date + live clock on the left, weather pill and battery on the right.
+/// Slim top strip: live clock on the left; weather, battery, and a settings
+/// gear on the right.
 private struct HeaderRow: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
         TimelineView(.everyMinute) { context in
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(context.date, format: .dateTime.weekday(.wide).month().day())
-                        .font(.system(size: 9.5, weight: .semibold))
-                        .tracking(0.8)
-                        .foregroundStyle(.white.opacity(0.5))
-                        .textCase(.uppercase)
-                    Text(context.date, format: .dateTime.hour().minute())
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                }
+            HStack(spacing: 9) {
+                Text(context.date, format: .dateTime.hour().minute())
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .foregroundStyle(.white.opacity(0.85))
 
                 Spacer()
 
@@ -286,6 +282,13 @@ private struct HeaderRow: View {
                     WeatherPill(weather: viewModel.weather)
                 }
                 BatteryView(battery: viewModel.battery)
+                Button { viewModel.onOpenSettings?() } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.55))
+                }
+                .buttonStyle(.plain)
+                .help("Settings")
             }
         }
     }
@@ -315,44 +318,55 @@ private struct WeatherPill: View {
     }
 }
 
-/// Up to two upcoming events with their calendar color; quiet when empty.
-private struct CalendarRow: View {
+/// Horizontal week strip — month + a 7-day window centred on today (today
+/// highlighted) — with the next event (or "Nothing for today") beneath it.
+private struct CalendarWeekStrip: View {
     @ObservedObject var calendar: CalendarModel
 
+    private let accent = Color(red: 0.28, green: 0.6, blue: 1.0)
+
     var body: some View {
-        HStack(spacing: 14) {
-            if !calendar.isAuthorized || calendar.upcoming.isEmpty {
-                Image(systemName: "calendar")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.35))
-                Text(calendar.isAuthorized ? "No events in the next 24 hours" : "Calendar access off")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.45))
-            } else {
-                ForEach(calendar.upcoming.prefix(2)) { event in
-                    HStack(spacing: 7) {
-                        Capsule()
-                            .fill(event.tint)
-                            .frame(width: 3, height: 16)
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(event.title)
-                                .font(.system(size: 11, weight: .medium))
-                                .lineLimit(1)
-                            Text(event.timeText)
-                                .font(.system(size: 9.5))
-                                .foregroundStyle(.white.opacity(0.55))
-                                .monospacedDigit()
+        TimelineView(.everyMinute) { context in
+            let today = context.date
+            let cal = Calendar.current
+            let days = (-3...3).compactMap { cal.date(byAdding: .day, value: $0, to: today) }
+
+            VStack(spacing: 8) {
+                HStack(alignment: .center, spacing: 10) {
+                    Text(today, format: .dateTime.month(.abbreviated))
+                        .font(.system(size: 19, weight: .bold, design: .rounded))
+                        .fixedSize()
+                    HStack(spacing: 3) {
+                        ForEach(days, id: \.self) { day in
+                            let isToday = cal.isDate(day, inSameDayAs: today)
+                            VStack(spacing: 3) {
+                                Text(day, format: .dateTime.weekday(.narrow))
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundStyle(isToday ? accent : .white.opacity(0.3))
+                                Text(day, format: .dateTime.day())
+                                    .font(.system(size: 13, weight: isToday ? .bold : .regular, design: .rounded))
+                                    .monospacedDigit()
+                                    .foregroundStyle(isToday ? accent : .white.opacity(0.6))
+                            }
+                            .frame(width: 21)
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+
+                HStack(spacing: 5) {
+                    Image(systemName: "calendar").font(.system(size: 9.5))
+                    Text(subtitle).font(.system(size: 10)).lineLimit(1)
+                }
+                .foregroundStyle(.white.opacity(0.5))
             }
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity)
+            .animation(.smooth(duration: 0.3), value: calendar.upcoming)
         }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 6)
-        // Radius is concentric with the panel: 26 (panel) − 16 (bottom inset).
-        .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .animation(.smooth(duration: 0.3), value: calendar.upcoming)
+    }
+
+    private var subtitle: String {
+        if !calendar.isAuthorized { return "Calendar access off" }
+        if let next = calendar.upcoming.first { return "\(next.timeText) · \(next.title)" }
+        return "Nothing for today"
     }
 }

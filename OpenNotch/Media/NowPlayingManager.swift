@@ -7,6 +7,8 @@ struct NowPlaying: Equatable {
     var artist: String = ""
     var album: String = ""
     var artwork: NSImage? = nil
+    /// Icon of the app the audio is coming from (Music, Spotify, browser…).
+    var sourceIcon: NSImage? = nil
     /// Dominant artwork color, punched up for use as the ambient rim glow.
     var accent: Color? = nil
     /// Track length in seconds (0 when unknown / live streams). Stable per
@@ -36,6 +38,8 @@ final class NowPlayingManager: ObservableObject {
     private var artworkCacheKey: String?
     private var cachedArtwork: NSImage?
     private var cachedAccent: Color?
+    private var cachedSourceBundleID: String?
+    private var cachedSourceIcon: NSImage?
 
     // Elapsed-time interpolation: the source reports elapsed only every ~150ms,
     // so we advance it locally between updates from the last known value.
@@ -127,11 +131,22 @@ final class NowPlayingManager: ObservableObject {
             cachedAccent = nil
         }
 
-        // Browser sources (YouTube etc.) often have a title but no artist;
-        // show the app's name in that slot so the row doesn't look broken.
-        if np.artist.isEmpty, !np.title.isEmpty,
-           let bundleID = payload["bundleIdentifier"] as? String {
-            np.artist = Self.displayName(forBundleID: bundleID)
+        // Source app: browser sources (YouTube etc.) often have a title but no
+        // artist, so show the app's name there; also grab its icon for a badge.
+        if let bundleID = payload["bundleIdentifier"] as? String {
+            if np.artist.isEmpty, !np.title.isEmpty {
+                np.artist = Self.displayName(forBundleID: bundleID)
+            }
+            if bundleID != cachedSourceBundleID {
+                cachedSourceBundleID = bundleID
+                cachedSourceIcon = NSWorkspace.shared
+                    .urlForApplication(withBundleIdentifier: bundleID)
+                    .map { NSWorkspace.shared.icon(forFile: $0.path) }
+            }
+            np.sourceIcon = cachedSourceIcon
+        } else {
+            cachedSourceBundleID = nil
+            cachedSourceIcon = nil
         }
 
         np.duration = payload["duration"] as? Double ?? 0

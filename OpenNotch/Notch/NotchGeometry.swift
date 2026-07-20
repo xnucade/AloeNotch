@@ -14,9 +14,10 @@ struct NotchMetrics {
     /// hardware notch exactly, so the app is invisible until it expands.
     var collapsedSize: CGSize { notchSize }
 
-    // Expanded panel dimensions — sized to the content, not roomy.
-    var expandedWidth: CGFloat { max(collapsedSize.width + 40, 560) }
-    var expandedHeight: CGFloat { 244 }
+    // Expanded panel dimensions — wide and short, a horizontal three-column
+    // layout (media · calendar · shelf).
+    var expandedWidth: CGFloat { max(collapsedSize.width + 40, 616) }
+    var expandedHeight: CGFloat { 208 }
 
     /// Transparent margin around the expanded panel (sides and bottom) so the
     /// drop shadow and ambient glow can fade out fully inside the window.

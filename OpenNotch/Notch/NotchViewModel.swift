@@ -8,6 +8,9 @@ final class NotchViewModel: ObservableObject {
     @Published var isExpanded = false
     @Published var metrics: NotchMetrics?
 
+    /// Opens the preferences window; set by AppDelegate.
+    var onOpenSettings: (() -> Void)?
+
     let media = NowPlayingManager()
     let tray = TrayModel()
     let battery = BatteryMonitor()

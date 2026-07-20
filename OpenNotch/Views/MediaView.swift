@@ -36,31 +36,45 @@ struct MediaView: View {
     }
 
     private var artwork: some View {
-        Group {
-            if let art = media.current.artwork {
-                Image(nsImage: art).resizable().scaledToFill()
-            } else {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.white.opacity(0.08))
-                    .overlay(Image(systemName: "music.note").foregroundStyle(.white.opacity(0.4)))
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if let art = media.current.artwork {
+                    Image(nsImage: art).resizable().scaledToFill()
+                } else {
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(.white.opacity(0.08))
+                        .overlay(Image(systemName: "music.note").foregroundStyle(.white.opacity(0.4)))
+                }
             }
-        }
-        .frame(width: 58, height: 58)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        // Ambient glow: the artwork itself, enlarged and blurred, casts its
-        // colors onto the black panel the way the Dynamic Island does.
-        .background {
-            if let art = media.current.artwork {
-                Image(nsImage: art)
+            .frame(width: 62, height: 62)
+            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            // Ambient glow: the artwork itself, enlarged and blurred, casts its
+            // colors onto the black panel the way the Dynamic Island does.
+            .background {
+                if let art = media.current.artwork {
+                    Image(nsImage: art)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 62, height: 62)
+                        .scaleEffect(1.35)
+                        .blur(radius: 22)
+                        .opacity(0.55)
+                }
+            }
+            .shadow(color: .black.opacity(0.35), radius: 6, y: 3)
+
+            // Small badge of the source app (Music, Spotify, browser…).
+            if let icon = media.current.sourceIcon {
+                Image(nsImage: icon)
                     .resizable()
-                    .scaledToFill()
-                    .frame(width: 58, height: 58)
-                    .scaleEffect(1.35)
-                    .blur(radius: 22)
-                    .opacity(0.55)
+                    .frame(width: 20, height: 20)
+                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(.black.opacity(0.25), lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.4), radius: 2, y: 1)
+                    .offset(x: -5, y: 5)
             }
         }
-        .shadow(color: .black.opacity(0.35), radius: 6, y: 3)
     }
 
     private var controls: some View {

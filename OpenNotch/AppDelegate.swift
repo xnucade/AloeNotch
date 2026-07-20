@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import Combine
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var notchController: NotchWindowController?
     private var viewModel: NotchViewModel?
     private var screenObserver: AnyCancellable?
@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sigtermSource = source
 
         let vm = NotchViewModel()
+        vm.onOpenSettings = { [weak self] in self?.showSettings() }
         let controller = NotchWindowController(viewModel: vm)
         controller.show()
 
@@ -53,10 +54,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.title = "AloeNotch Settings"
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.isReleasedWhenClosed = false
+            window.delegate = self
             window.center()
             settingsWindow = window
         }
+        // Accessory apps can't bring a window forward over another app; become a
+        // regular app while Settings is open, then revert on close.
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
+        settingsWindow?.orderFrontRegardless()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if (notification.object as? NSWindow) === settingsWindow {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 }
