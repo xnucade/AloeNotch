@@ -368,7 +368,6 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
 }
 .btn-coffee:hover { transform: scale(1.04); box-shadow: 0 0 24px rgba(255, 221, 0, 0.35); }
 .btn-coffee svg { width: 18px; height: 18px; }
-.footer-support { margin-bottom: 20px; }
 
 /* ---------- Nav actions ---------- */
 .nav-actions { display: flex; align-items: center; gap: 20px; }
