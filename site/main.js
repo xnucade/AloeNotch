@@ -10,10 +10,13 @@ notch.addEventListener("mouseleave", () => {
 });
 notch.addEventListener("click", () => notch.classList.toggle("open"));
 
-// Demo video: if assets/demo.mp4 isn't there yet, show the placeholder.
+// Demo video: if none of the sources can play, show the placeholder. Listen on
+// the LAST source only — the browser walks the list in order, so an error on
+// the first (WebM) just means it is moving on to the MP4 fallback.
 const video = document.getElementById("demoVideo");
 const placeholder = document.getElementById("demoPlaceholder");
-video.querySelector("source").addEventListener("error", () => {
+const sources = [...video.querySelectorAll("source")];
+sources[sources.length - 1].addEventListener("error", () => {
   video.style.display = "none";
   placeholder.classList.add("show");
 });

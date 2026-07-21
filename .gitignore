@@ -19,6 +19,14 @@ xcuserdata/
 # --- Build artifacts (regenerate with scripts/make-dmg.sh) ---
 *.dmg
 
+# --- Rendered demo video (regenerate with video/build.sh) ---
+# Several MB of binary that would bloat every clone, and it is fully
+# reproducible from video/. Like the DMG, it reaches users only via the
+# deployed site. Run `cd video && ./build.sh` before deploying a fresh clone.
+# The poster stays tracked: it is small and gives the page a still to show.
+site/assets/demo.mp4
+site/assets/demo.webm
+
 # --- Node / Wrangler (site) ---
 node_modules/
 .wrangler/

@@ -1,0 +1,9 @@
+# Rendered PNG sequence — thousands of files, fully reproducible from source.
+frames/
+
+# Encoded output. The shipping copies live in site/assets/ (and the mp4/webm
+# there are what actually reach users); these are build artifacts.
+out/
+
+node_modules/
+package-lock.json

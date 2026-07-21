@@ -63,15 +63,20 @@
       </div>
     </section>
 
-    <!-- Demo video in a MacBook-style display frame.
-         Drop your edited demo at assets/demo.mp4 (or assets/demo.gif and swap
-         the <video> for an <img>). Until then a placeholder shows. -->
+    <!-- Demo video in a MacBook-style display frame. Rebuild it with
+         `cd video && ./build.sh`, which re-renders and drops the encoded files
+         straight into assets/. See video/README.md. -->
     <section class="demo reveal">
       <div class="macbook">
         <div class="screen">
-          <!-- No fake notch overlay here: the recording contains the real one. -->
-          <video id="demoVideo" autoplay loop muted playsinline
-                 poster="assets/demo-poster.jpg">
+          <!-- No fake notch overlay here: the video draws its own. -->
+          <!-- WebM first: browsers pick the first source they can play, and it
+               is roughly half the size of the H.264 fallback. The video is
+               silent, so `muted` costs nothing and permits autoplay. Controls
+               are on because a 66s tour is long enough to want to scrub. -->
+          <video id="demoVideo" autoplay loop muted playsinline controls
+                 preload="metadata" poster="assets/demo-poster.jpg">
+            <source src="assets/demo.webm" type="video/webm">
             <source src="assets/demo.mp4" type="video/mp4">
           </video>
           <div class="demo-placeholder" id="demoPlaceholder">

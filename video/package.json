@@ -1,0 +1,14 @@
+{
+  "name": "aloenotch-video",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Deterministic renderer for the AloeNotch demo video.",
+  "scripts": {
+    "render": "node render.mjs",
+    "build": "./build.sh"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.10.0"
+  }
+}

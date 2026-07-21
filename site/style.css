@@ -206,7 +206,10 @@ a { color: inherit; text-decoration: none; }
 .macbook { max-width: 860px; margin: 0 auto; }
 .screen {
   position: relative;
-  aspect-ratio: 16 / 10;
+  /* Matches the demo render (1920x1080). A 16/10 frame here would let
+     `object-fit: cover` crop ~5% off each side of the video, clipping the
+     notch panel in the wide shots. */
+  aspect-ratio: 16 / 9;
   background: #0a0a0c;
   border: 2px solid #26262a;
   border-bottom: none;
