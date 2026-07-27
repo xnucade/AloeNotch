@@ -62,6 +62,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
             window.title = "AloeNotch Settings"
             window.styleMask = [.titled, .closable, .miniaturizable]
+            // Without this the window paints its own opaque backing and the
+            // behind-window frost has nothing to show through.
+            window.configureForGlass()
             window.isReleasedWhenClosed = false
             window.delegate = self
             window.center()
@@ -82,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
             window.title = "Welcome to AloeNotch"
             window.styleMask = [.titled, .closable]
+            window.configureForGlass()
             window.isReleasedWhenClosed = false
             window.delegate = self
             window.center()

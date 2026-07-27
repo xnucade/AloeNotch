@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "puppeteer": "^24.10.0"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
   }
 }

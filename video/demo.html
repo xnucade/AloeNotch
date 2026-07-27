@@ -79,6 +79,27 @@ body {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.45) 100%);
 }
+/* Corner falloff. A large flat wash reads as empty; letting the edges drop
+   gives the frame shape and keeps the eye on the panel. Part of the wallpaper
+   art, not a camera effect — a lens vignette on a screen recreation would be
+   a lie, but wallpapers really do fall off like this. */
+#wallpaper .falloff {
+  position: absolute; inset: 0;
+  background: radial-gradient(118% 92% at 50% 34%,
+    transparent 34%, rgba(2,6,14,0.30) 72%, rgba(1,3,9,0.58) 100%);
+}
+/* Static dither. The desktop is a smooth dark-blue gradient, which is exactly
+   where 8-bit banding shows — measured as flat plateaus stepping 1–2 levels
+   across hundreds of pixels — and H.264 exaggerates it. A fixed-seed noise
+   tile at ~3% breaks the bands up. Static, not animated: moving dither would
+   crawl and cost bitrate. */
+#wallpaper .dither {
+  position: absolute; inset: 0;
+  opacity: 0.05;
+  background-size: 360px 360px;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='11'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23d)'/%3E%3C/svg%3E");
+}
 /* Soft silhouetted ridge along the bottom, so the desktop reads as a photo
    rather than a flat gradient. */
 #wallpaper .ridge {
@@ -267,16 +288,38 @@ body {
 /* ---------- Overlays (outside the camera, so zooms don't move them) ----- */
 #overlay { position: absolute; inset: 0; z-index: 60; pointer-events: none; }
 
+/* Opening statement: white type on true black, nothing else on screen.
+   The two lines live here rather than as captions over the desktop — a
+   sentence gets a frame of its own before the product appears. */
+#intro {
+  position: absolute; inset: 0;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+#intro .line {
+  position: absolute;
+  font-size: 76px; font-weight: 600; letter-spacing: -0.022em;
+  will-change: transform, opacity, filter;
+}
+
+/* Captions. One headline size, one sub size, one position — a single
+   typographic voice for the whole film. Per-shot sizes read as indecision. */
 #caption {
-  position: absolute; left: 0; right: 0; bottom: 122px;
+  position: absolute; left: 0; right: 0; bottom: 118px;
   text-align: center;
-  font-size: 46px; font-weight: 600; letter-spacing: -0.6px;
-  text-shadow: 0 2px 30px rgba(0,0,0,0.65);
+}
+#caption .line {
+  display: block;
+  font-size: 54px; font-weight: 600; letter-spacing: -0.022em;
+  text-shadow: 0 2px 34px rgba(0,0,0,0.7);
+  will-change: transform, opacity, filter;
 }
 #caption .sub {
-  display: block; margin-top: 14px;
-  font-size: 24px; font-weight: 400; letter-spacing: 0;
-  color: rgba(245,245,247,0.62);
+  display: block; margin-top: 15px;
+  font-size: 25px; font-weight: 400; letter-spacing: -0.004em;
+  color: rgba(235,235,245,0.6);   /* Apple dark-mode secondary label */
+  text-shadow: 0 1px 22px rgba(0,0,0,0.7);
+  will-change: transform, opacity;
 }
 
 /* Full-bleed title / end cards. */
@@ -291,7 +334,19 @@ body {
   background: radial-gradient(circle, rgba(115,191,255,0.16), transparent 62%);
 }
 #card .icon { width: 148px; height: 148px; border-radius: 33px; overflow: hidden; position: relative; }
-#card .wordmark { font-size: 92px; font-weight: 700; letter-spacing: -2.4px; position: relative; }
+#card .wordmark {
+  font-size: 92px; font-weight: 700; letter-spacing: -2.4px;
+  position: relative; overflow: hidden;
+}
+/* A single slow pass of light across the wordmark — the one flourish the logo
+   gets, and only after the type has settled. */
+#card .wordmark .sheen {
+  position: absolute; inset: -40% -20%;
+  background: linear-gradient(104deg, transparent 40%,
+    rgba(255,255,255,0.55) 50%, transparent 60%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
 #card .tag { font-size: 30px; color: rgba(245,245,247,0.62); position: relative; }
 #card .meta { font-size: 22px; color: rgba(245,245,247,0.38); position: relative; }
 #card .url { font-size: 30px; color: #73bfff; position: relative; font-weight: 500; }
@@ -307,6 +362,8 @@ body {
         <div class="grad"></div>
         <div class="ridge"></div>
         <div class="veil"></div>
+        <div class="falloff"></div>
+        <div class="dither"></div>
       </div>
 
       <div id="menubar">
@@ -434,6 +491,10 @@ body {
   <div id="overlay">
     <div id="caption"></div>
     <div id="card"></div>
+    <div id="intro">
+      <div class="line" id="introA">Your Mac has a notch.</div>
+      <div class="line" id="introB">It has never done anything.</div>
+    </div>
   </div>
 </div>
 

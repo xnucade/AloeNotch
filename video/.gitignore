@@ -7,3 +7,14 @@ out/
 
 node_modules/
 package-lock.json
+
+# Freesound API key — a credential, never commit it.
+.freesound-key
+
+# Downloaded audition candidates. Only the promoted slot files are kept;
+# re-fetch with `node freesound.mjs`.
+sfx/*/candidates/
+
+# Abandoned 3D exploration (Three.js). Kept on disk as reference, but it is
+# a dead end plus ~2MB of vendored library — not worth carrying in history.
+lab/

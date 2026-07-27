@@ -151,20 +151,21 @@ const FILES = [
   { fill: 'linear-gradient(150deg,#fca5a5,#dc2626)', kind: 'pdf' },
 ];
 
+/* The two opening lines live in #intro (type on black), not here — captions
+   only ever appear over the product. One headline size, one position; the
+   rhythm does the emphasis, not the point size. */
 const CAPTIONS = [
-  { at: 1.1,  hold: 2.3, text: 'Your Mac has a notch.' },
-  { at: 4.0,  hold: 1.6, text: 'It has never done anything.' },
-  { at: 9.4,  hold: 2.6, text: 'AloeNotch', sub: 'A Dynamic Island for your MacBook.', big: true },
+  { at: 9.4,  hold: 2.6, text: 'Meet AloeNotch.', sub: 'A Dynamic Island for your MacBook.' },
   { at: 14.0, hold: 2.6, text: 'Now playing, from any app', sub: 'Music, Spotify — even a browser tab.' },
   { at: 18.2, hold: 2.2, text: 'Scrub, seek, skip', sub: 'Real controls, not just a readout.' },
-  { at: 23.2, hold: 3.4, text: 'Ambient glow', sub: "The panel takes on the artwork's color." },
-  { at: 30.0, hold: 3.0, text: 'Drop shelf', sub: 'Park files in the notch while you move between apps.' },
+  { at: 23.2, hold: 3.4, text: 'Ambient glow', sub: 'The panel takes on the artwork’s color.' },
+  { at: 30.0, hold: 3.0, text: 'Drop shelf', sub: 'Park files while you move between apps.' },
   { at: 35.0, hold: 2.4, text: 'Then drag them all out at once.' },
   { at: 40.0, hold: 2.8, text: 'Your week at a glance', sub: 'The next event, right under the date.' },
-  { at: 44.0, hold: 2.0, text: 'Weather and battery, always in the header.' },
-  { at: 48.4, hold: 2.6, text: 'It replaces the macOS HUD', sub: 'Volume and brightness land in the notch.' },
-  { at: 52.4, hold: 1.8, text: 'No more grey square over your work.' },
-  { at: 56.0, hold: 2.6, text: 'And when you don’t need it, it vanishes.', sub: 'The collapsed strip hugs the hardware notch exactly.' },
+  { at: 44.0, hold: 2.0, text: 'Weather and battery, always up top.' },
+  { at: 48.4, hold: 2.6, bottom: 660, text: 'It replaces the macOS HUD', sub: 'Volume and brightness land in the notch.' },
+  { at: 52.4, hold: 1.8, bottom: 660, text: 'No more grey square over your work.' },
+  { at: 56.0, hold: 2.6, text: 'And when you don’t need it, it vanishes.', sub: 'Collapsed, it hugs the hardware notch exactly.' },
 ];
 
 /* ---------- Element handles -------------------------------------------- */
@@ -176,7 +177,7 @@ const el = {};
  'artAura','artMain','artBadge','mTitle','mArtist','scrubFill','scrubKnob',
  'tElapsed','tTotal','btnPlay','btnPrev','btnNext','calDays','calSub','hClock',
  'battFill','battPct','shelfDrop','shelfEmpty','shelfGrid','dragAll','shelfTrash',
- 'div1','div2','wxPill'].forEach(id => el[id] = $(id));
+ 'div1','div2','wxPill','wallpaper','intro','introA','introB'].forEach(id => el[id] = $(id));
 
 const glowBloom = el.glow.querySelector('.bloom');
 const glowLine  = el.glow.querySelector('.line');
@@ -217,13 +218,45 @@ const chips = [...el.shelfGrid.querySelectorAll('.chip')];
 el.card.innerHTML = `
   <div class="glowbed"></div>
   <div class="icon"><img src="../site/assets/icon.png" width="148" height="148" alt=""></div>
-  <div class="wordmark">AloeNotch</div>
+  <div class="wordmark">AloeNotch<span class="sheen"></span></div>
   <div class="rule"></div>
   <div class="tag">Free and open source.</div>
-  <div class="url">aloenotch.kadeslab.com</div>
-  <div class="meta">macOS 15+ &middot; Apple Silicon &middot; MIT licensed</div>
+  <div class="url">aloenotch.com</div>
+  <div class="meta">macOS 26+ &middot; Apple Silicon &middot; MIT licensed</div>
 `;
 const cardItems = [...el.card.children].slice(1);
+
+/* ---------- Typography --------------------------------------------------
+   Words are individually wrapped so each can clear from a blur on its own
+   beat. The effect is deliberately small — 18px of travel and 7px of blur,
+   40ms apart. Enough that a line resolves rather than simply appearing;
+   not so much that the reader notices the mechanism.                       */
+
+const splitWords = text =>
+  text.split(' ').map(w => `<span class="w">${w}</span>`).join(' ');
+
+function animateWords(nodes, t, start,
+                      { stagger = 0.04, dur = 0.55, rise = 18, blur = 7 } = {}) {
+  nodes.forEach((n, i) => {
+    const p = easeOutQuint(clamp01((t - (start + i * stagger)) / dur));
+    n.style.opacity = p;
+    n.style.transform = `translateY(${lerp(rise, 0, p)}px)`;
+    n.style.filter = p < 0.995 ? `blur(${((1 - p) * blur).toFixed(2)}px)` : 'none';
+  });
+}
+
+el.introA.innerHTML = splitWords(el.introA.textContent);
+el.introB.innerHTML = splitWords(el.introB.textContent);
+const introAWords = [...el.introA.querySelectorAll('.w')];
+const introBWords = [...el.introB.querySelectorAll('.w')];
+
+/* Opening statement beats. The desktop is not revealed until the type has
+   had the frame to itself and left it. */
+const INTRO = {
+  aAt: 0.55, aHold: 1.35,
+  bAt: 2.95, bHold: 1.25,
+  fadeAt: 5.25, fadeDur: 1.25,   // black dissolves away → desktop, idle notch
+};
 
 /* ---------- Per-frame state -------------------------------------------- */
 
@@ -307,10 +340,12 @@ const CAM = [
   { t: S.hud - 0.6,     x: 810, s: 2.05 },
   { t: S.hud + 0.8,     x: 756, s: 1.55 },   // pull back so the panel can collapse
   { t: S.hud + 1.7,     x: 756, s: 1.55 },
-  // The collapsed strip is only 32pt tall, so the HUD beats need a hard push
-  // in — at this zoom the frame shows just the top ~250pt of the screen.
-  { t: S.hud + 2.3,     x: 756, s: 3.30 },
-  { t: S.invisible-0.6, x: 756, s: 3.30 },
+  // The collapsed strip is only 32pt tall and needs a hard push in — but at
+  // 3.30 it left two thirds of the frame as bare wallpaper. 2.70 still spans
+  // the 368pt HUD strip across most of the width while keeping the strip and
+  // its caption in the same half of the frame.
+  { t: S.hud + 2.3,     x: 756, s: 2.70 },
+  { t: S.invisible-0.6, x: 756, s: 2.70 },
   { t: S.invisible+1.4, x: 756, s: 1.00 },   // wide: the notch disappears
   { t: DURATION,        x: 756, s: 1.00 },
 ];
@@ -356,9 +391,31 @@ const cursorAt = t => ({
 function render(t) {
   /* --- Camera --- */
   const cam = cameraAt(t);
+  /* A whisper of camera life. Held perfectly still for seconds at a time the
+     frame reads as a screenshot rather than a shot; this is ~4px over eight
+     seconds, below conscious notice.
+
+     Two constraints keep it from letterboxing, which is why it is clamped
+     rather than free:
+       - the breath only ever scales UP (never below 1.0), since the screen at
+         s = 1.00 exactly covers the frame and any shrink exposes the edges;
+       - lateral drift is capped by the actual horizontal headroom at the
+         current zoom, so a wide shot gets none at all. */
+  const breath = 1 + (Math.sin(t * 0.19 + 0.4) + 1) * 0.0011;
+  const headroom = Math.max(0, (SCREEN_W * cam.s - FRAME_W) / 2);
+  const sway = Math.sin(t * 0.13) * 2.6 + Math.sin(t * 0.071 + 1.3) * 1.5;
+  const driftX = Math.max(-headroom * 0.4, Math.min(headroom * 0.4, sway));
+
   // Screen point (cam.x, 0) lands at frame (centre, top).
   el.camera.style.transform =
-    `translate(${FRAME_W / 2}px, 0px) scale(${cam.s}) translate(${-cam.x}px, 0px)`;
+    `translate(${FRAME_W / 2 + driftX}px, 0px) scale(${cam.s * breath}) ` +
+    `translate(${-cam.x}px, 0px)`;
+
+  // As the camera closes in, ease the desktop down so the panel carries the
+  // frame. A dim rather than a lens blur: nothing here is out of focus, and
+  // faking bokeh on a screen recreation would be a lie the eye can spot.
+  const closeness = clamp01((cam.s / BASE_SCALE - 1.25) / 0.85);
+  el.wallpaper.style.filter = `brightness(${lerp(1, 0.7, closeness).toFixed(3)})`;
 
   /* --- Panel size --- */
   const expanded = isExpanded(t);
@@ -417,13 +474,24 @@ function render(t) {
   // Accent crossfades over 0.8s when the artwork changes (AmbientGlow).
   const prev = TRACKS[Math.max(0, trackIdx - 1)];
   const accent = mixHex(prev.accent, tr.accent, ramp(t, trackSince, 0.8));
-  const glowVisible = playing ? 1 : 0;
-  const glowFade = playing
-    ? clamp01((t - MEDIA_START) / 0.6)
+  // Nothing has played before MEDIA_START, so there is no accent to throw yet.
+  // (Omitting the first branch leaves the "not playing" case fully lit for all
+  // time before MEDIA_END — the notch glows pink over the opening, before a
+  // note has sounded.)
+  // The rise rides the panel's OWN spring rather than an independent timer.
+  // A separate 0.6s linear ramp left the glow still climbing 0.2s after the
+  // panel had stopped moving and the artwork was fully on screen, so the
+  // colour visibly arrived late. It is also what the app does: AmbientGlow is
+  // a `.transition(.opacity)`, which runs under whatever animation wraps the
+  // state change — here the hover expand, `.smooth(0.40, extraBounce: 0.10)`.
+  const glowFade = t < MEDIA_START ? 0
+    : playing ? clamp01(springAt(t, MEDIA_START, EXPAND))
     : clamp01(1 - (t - MEDIA_END) / 0.5);
   glowBloom.style.stroke = accent;
   glowLine.style.stroke = accent;
-  glowBloom.style.opacity = (expanded ? 0.5 : 0.35) * glowFade * glowVisible || (glowFade * 0.35);
+  // No `|| fallback` here: when the product of these is 0 it is genuinely 0,
+  // and a falsy-guard would light the bloom back up exactly when it must not.
+  glowBloom.style.opacity = (expanded ? 0.5 : 0.35) * glowFade;
   glowLine.style.opacity = (expanded ? 0.95 : 0.7) * glowFade;
   el.glow.style.opacity = glowFade;
 
@@ -546,6 +614,7 @@ function render(t) {
 
   /* --- Captions --- */
   renderCaption(t);
+  renderIntro(t);
 
   /* --- Cards: opening fade-from-black and the end card --- */
   renderCard(t);
@@ -636,34 +705,58 @@ function renderDragGhost(t) {
   g.style.boxShadow = '0 10px 26px rgba(0,0,0,0.55)';
 }
 
+/** The opening statement: type on black, before the product is shown. */
+function renderIntro(t) {
+  const gone = t >= INTRO.fadeAt + INTRO.fadeDur;
+  el.intro.style.display = gone ? 'none' : 'flex';
+  if (gone) return;
+
+  el.intro.style.opacity =
+    1 - easeInOut(clamp01((t - INTRO.fadeAt) / INTRO.fadeDur));
+
+  const aO = envelope(t, INTRO.aAt, INTRO.aHold, 0.6, 0.45);
+  const bO = envelope(t, INTRO.bAt, INTRO.bHold, 0.6, 0.45);
+  el.introA.style.opacity = aO;
+  el.introB.style.opacity = bO;
+  if (aO > 0) animateWords(introAWords, t, INTRO.aAt, { rise: 22, blur: 9 });
+  if (bO > 0) animateWords(introBWords, t, INTRO.bAt, { rise: 22, blur: 9 });
+}
+
+let captionKey = null;
+
 function renderCaption(t) {
   let active = null;
   for (const c of CAPTIONS) {
-    const o = envelope(t, c.at, c.hold, 0.45, 0.45);
+    const o = envelope(t, c.at, c.hold, 0.55, 0.45);
     if (o > 0) { active = { c, o }; break; }
   }
   if (!active) { el.caption.style.opacity = 0; return; }
   const { c, o } = active;
+
+  // Rebuild only when the caption changes, so word spans stay stable across
+  // frames and the per-word animation reads as one continuous movement.
+  if (c.at !== captionKey) {
+    el.caption.innerHTML =
+      `<span class="line">${splitWords(c.text)}</span>` +
+      (c.sub ? `<span class="sub">${c.sub}</span>` : '');
+    captionKey = c.at;
+  }
+
   el.caption.style.opacity = o;
-  el.caption.style.fontSize = (c.big ? 88 : 46) + 'px';
-  el.caption.style.letterSpacing = (c.big ? -2.2 : -0.6) + 'px';
-  el.caption.style.fontWeight = c.big ? 700 : 600;
-  // Rise a few pixels as it fades in — the only movement captions get.
-  const rise = lerp(16, 0, easeOut(clamp01((t - c.at) / 0.6)));
-  el.caption.style.transform = `translateY(${rise}px)`;
-  el.caption.innerHTML = c.text + (c.sub ? `<span class="sub">${c.sub}</span>` : '');
+  el.caption.style.bottom = (c.bottom ?? 118) + 'px';
+  animateWords([...el.caption.querySelectorAll('.line .w')], t, c.at);
+
+  const sub = el.caption.querySelector('.sub');
+  if (sub) {
+    // The supporting line follows a beat behind the headline, never with it.
+    const sp = easeOutQuint(clamp01((t - c.at - 0.26) / 0.62));
+    sub.style.opacity = sp;
+    sub.style.transform = `translateY(${lerp(12, 0, sp)}px)`;
+  }
 }
 
 function renderCard(t) {
-  // Opening: hold black, then dissolve to the desktop.
-  if (t < 1.2) {
-    el.card.style.display = 'flex';
-    el.card.style.background = '#000';
-    el.card.style.opacity = 1 - easeInOut(clamp01((t - 0.35) / 0.85));
-    cardItems.forEach(n => n.style.opacity = 0);
-    return;
-  }
-  // End card.
+  // The opening black is #intro's job now — the card is only the end card.
   if (t >= S.endcard - 0.6) {
     el.card.style.display = 'flex';
     el.card.style.background = '#050507';
@@ -674,10 +767,41 @@ function renderCard(t) {
       n.style.opacity = p;
       n.style.transform = `translateY(${lerp(26, 0, p)}px)`;
     });
+    // Light passes over the wordmark once the card has assembled.
+    const sheen = el.card.querySelector('.sheen');
+    if (sheen) {
+      const sp = clamp01((t - S.endcard - 1.05) / 1.30);
+      sheen.style.opacity = (sp > 0 && sp < 1) ? 1 : 0;
+      sheen.style.transform = `translateX(${lerp(-135, 135, easeInOut(sp))}%)`;
+    }
     return;
   }
   el.card.style.display = 'none';
 }
+
+/* ---------- Cue export --------------------------------------------------
+   The single source of truth for the sound beds. sync-cues.mjs reads this and
+   rewrites sfx/<set>/cues.txt, so picture and audio can never drift apart.
+   Order and length must match each cues.txt; the sync script refuses to guess
+   if they diverge. */
+window.__CUES = [
+  { slot: 'open',        t: EXPAND_AT },
+  { slot: 'track',       t: S.ambient + 1.6 },
+  { slot: 'track',       t: S.ambient + 4.4 },
+  { slot: 'drop-1',      t: DROPS[0][1] },
+  { slot: 'drop-2',      t: DROPS[1][1] },
+  { slot: 'drop-3',      t: DROPS[2][1] },
+  { slot: 'drag',        t: DRAG_ALL_AT + 0.25 },
+  { slot: 'close',       t: COLLAPSE_AT },
+  { slot: 'tick-vol',    t: HUD_EVENTS[0][0] },
+  { slot: 'tick-vol',    t: HUD_EVENTS[1][0] },
+  { slot: 'tick-vol',    t: HUD_EVENTS[2][0] },
+  { slot: 'tick-bright', t: HUD_EVENTS[3][0] },
+  { slot: 'tick-bright', t: HUD_EVENTS[4][0] },
+  { slot: 'tick-bright', t: HUD_EVENTS[5][0] },
+  { slot: 'vanish',      t: MEDIA_END },
+  { slot: 'endcard',     t: S.endcard + 0.35 },
+];
 
 /* ---------- Entry point ------------------------------------------------- */
 

@@ -6,42 +6,86 @@ import SwiftUI
 /// also means a brand-new user launches the app and sees nothing happen. This
 /// screen teaches the gesture (with a looping animation), says what's inside,
 /// and lets permissions be requested afterwards, in context.
+///
+/// Built on Liquid Glass over a frosted, behind-window backdrop, so the actual
+/// desktop shows through rather than a painted background. Cards go through
+/// `panelSurface`, which honours the user's glass preference — offered right
+/// here in the footer, because translucency is a taste call and some desktops
+/// make it hard to read.
 struct WelcomeView: View {
     @ObservedObject private var settings = AppSettings.shared
     let onDone: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            features
-            Divider()
-            footer
+        GlassEffectContainer(spacing: 18) {
+            VStack(spacing: 0) {
+                // The cards are taller than any window we'd want to open at, and
+                // this used to be a plain VStack in a fixed frame — so the
+                // overflow was simply clipped and "Get Started" was unreachable.
+                ScrollView {
+                    VStack(spacing: 16) {
+                        hero
+                        features
+                        footer
+                    }
+                    // Top inset clears the traffic lights: the content view now
+                    // runs full-height under the titlebar.
+                    .padding(.top, 28)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                }
+                .scrollContentBackground(.hidden)
+
+                // Pinned, so the primary action can never scroll out of reach.
+                actionBar
+            }
         }
-        .frame(width: 460)
+        .frame(width: 480, height: 640)
+        .frostedWindowBackground(settings.useGlass)
     }
 
-    private var header: some View {
-        VStack(spacing: 13) {
+    private var actionBar: some View {
+        VStack(spacing: 0) {
+            Divider().opacity(0.35)
+            Button("Get Started", action: onDone)
+                .glassProminentButtonStyle(settings.useGlass)
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+                .padding(.vertical, 14)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: Hero
+
+    private var hero: some View {
+        VStack(spacing: 12) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: 60, height: 60)
+                .frame(width: 62, height: 62)
+                .shadow(color: .black.opacity(0.45), radius: 12, y: 4)
+
             Text("Welcome to AloeNotch")
-                .font(.system(size: 21, weight: .semibold))
+                .font(.system(size: 22, weight: .semibold))
+
             Text("Your notch is awake. Hover it to open — it stays invisible until you do.")
                 .font(.system(size: 12.5))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            MiniNotchDemo().padding(.top, 6)
+
+            MiniNotchDemo().padding(.top, 4)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 26)
-        .padding(.bottom, 22)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 22)
+        .frame(maxWidth: .infinity)
+        .panelSurface(cornerRadius: 26, glass: settings.useGlass)
     }
 
+    // MARK: Features
+
     private var features: some View {
-        VStack(alignment: .leading, spacing: 13) {
+        VStack(alignment: .leading, spacing: 14) {
             row("music.note", "Now Playing",
                 "Controls for whatever your Mac is playing — Music, Spotify, even YouTube in a browser.")
             row("tray.full", "Shelf",
@@ -51,16 +95,17 @@ struct WelcomeView: View {
             row("gearshape", "Settings",
                 "The gear in the panel — or the menu bar icon — changes what shows up.")
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 20)
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .panelSurface(cornerRadius: 22, glass: settings.useGlass)
     }
 
     private func row(_ symbol: String, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 13) {
             Image(systemName: symbol)
-                .font(.system(size: 14))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(.tint)
-                .frame(width: 20)
+                .frame(width: 22, height: 22)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 12.5, weight: .semibold))
                 Text(detail)
@@ -71,22 +116,33 @@ struct WelcomeView: View {
         }
     }
 
+    // MARK: Footer
+
     private var footer: some View {
-        VStack(spacing: 13) {
+        VStack(spacing: 14) {
+            Toggle("Use Liquid Glass", isOn: $settings.useGlass.animation(.smooth(duration: 0.35)))
+                .toggleStyle(.switch)
+            Text("Translucent panels that pick up what's behind them. Turn it off for solid panels if you'd rather have the contrast.")
+                .font(.system(size: 10.5))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Divider().opacity(0.4)
+
             Toggle("Open AloeNotch at login", isOn: $settings.launchAtLogin)
                 .toggleStyle(.switch)
+
             Text("Calendar and weather will ask permission after you continue. Both are optional and can be turned off in Settings.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("Get Started", action: onDone)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 22)
+        .padding(.horizontal, 22)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity)
+        .panelSurface(cornerRadius: 22, glass: settings.useGlass)
     }
 }
 
@@ -98,8 +154,14 @@ private struct MiniNotchDemo: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
+            // A dark plate rather than glass: the notch itself must read as a
+            // true black cutout, and glass behind it would lift the blacks.
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.black.opacity(0.28))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                }
 
             NotchShape(cornerRadius: open ? 14 : 7)
                 .fill(.black)

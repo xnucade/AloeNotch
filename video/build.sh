@@ -29,27 +29,9 @@ mkdir -p "$OUT"
 echo "==> Rendering frames at ${FPS}fps"
 node render.mjs --fps "$FPS" --out "$FRAMES"
 
-echo "==> Encoding H.264"
-# yuv420p + even dimensions for universal playback; faststart so the site can
-# begin playing before the whole file arrives.
-ffmpeg -y -loglevel error -stats \
-  -framerate "$FPS" -i "$FRAMES/f_%06d.png" \
-  -vf "scale=1920:1080:flags=lanczos,format=yuv420p" \
-  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p \
-  -movflags +faststart -r "$FPS" \
-  "$OUT/demo.mp4"
-
-echo "==> Encoding VP9"
-ffmpeg -y -loglevel error -stats \
-  -framerate "$FPS" -i "$FRAMES/f_%06d.png" \
-  -vf "scale=1920:1080:flags=lanczos,format=yuv420p" \
-  -c:v libvpx-vp9 -crf 34 -b:v 0 -row-mt 1 -deadline good -cpu-used 2 \
-  -r "$FPS" \
-  "$OUT/demo.webm"
-
-echo "==> Poster frame"
-# A frame from the reveal, where the panel is open and lit.
-ffmpeg -y -loglevel error -ss 16 -i "$OUT/demo.mp4" -frames:v 1 -q:v 2 "$OUT/poster.jpg"
+# Encoding lives in encode.sh so build.sh and patch-frames.sh can never
+# drift apart on codec settings.
+./encode.sh "$FRAMES" "$OUT" "$FPS"
 
 if [[ "$INSTALL" == "1" ]]; then
   echo "==> Installing into site/assets"

@@ -17,6 +17,12 @@ final class AppSettings: ObservableObject {
     @Published var showHUD: Bool { didSet { save(showHUD, "showHUD") } }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
 
+    /// Liquid Glass on the welcome, menu bar panel and settings window.
+    /// Offered at first run because it is a taste call, not a capability one:
+    /// the material is translucent by design, and over a busy desktop some
+    /// people find it harder to read than a solid panel.
+    @Published var useGlass: Bool { didSet { save(useGlass, "useGlass") } }
+
     /// Horizontal nudge of the panel from screen-center, in points (−400…400).
     /// 0 keeps the collapsed strip aligned with the hardware notch.
     @Published var positionOffset: Double { didSet { defaults.set(positionOffset, forKey: "positionOffset") } }
@@ -36,6 +42,7 @@ final class AppSettings: ObservableObject {
             "showCalendar": true,
             "showWeather": true,
             "showHUD": true,
+            "useGlass": true,
         ])
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
@@ -43,6 +50,7 @@ final class AppSettings: ObservableObject {
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
         showHUD = defaults.bool(forKey: "showHUD")
+        useGlass = defaults.bool(forKey: "useGlass")
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
         // Login-item state lives with the system, not in defaults.

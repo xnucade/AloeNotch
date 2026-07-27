@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AloeNotch — Your notch, awake</title>
   <meta name="description" content="AloeNotch turns your MacBook's notch into a Dynamic Island: now playing from any app, a drop shelf, calendar, weather and battery — invisible until you hover.">
+  <link rel="canonical" href="https://aloenotch.com/">
+
+  <!-- Open Graph / Twitter: the link preview when the site is shared. Absolute
+       URLs on the canonical domain so the card resolves off-site. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AloeNotch">
+  <meta property="og:title" content="AloeNotch — Your notch, awake">
+  <meta property="og:description" content="Turn your MacBook's notch into a Dynamic Island: now playing from any app, a drop shelf, calendar, weather and battery — invisible until you hover. Free and open source.">
+  <meta property="og:url" content="https://aloenotch.com/">
+  <meta property="og:image" content="https://aloenotch.com/assets/demo-poster.jpg">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AloeNotch — Your notch, awake">
+  <meta name="twitter:description" content="Turn your MacBook's notch into a Dynamic Island. Free and open source.">
+  <meta name="twitter:image" content="https://aloenotch.com/assets/demo-poster.jpg">
+
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -42,7 +59,7 @@
         <span>AloeNotch</span>
       </a>
       <div class="nav-actions">
-        <a class="nav-link" href="support.html">Support</a>
+        <a class="nav-link" href="/support">Support</a>
         <a class="btn btn-small" href="#download">Download</a>
       </div>
     </div>
@@ -59,7 +76,7 @@
       </p>
       <div class="hero-cta">
         <a class="btn" href="#download">Download for macOS</a>
-        <span class="fineprint">Free · Apple Silicon · macOS 15+</span>
+        <span class="fineprint">Free · Apple Silicon · macOS 26+</span>
       </div>
     </section>
 
@@ -146,9 +163,9 @@
       <div class="dl-panel reveal">
         <img src="assets/icon.png" alt="AloeNotch icon" width="96" height="96">
         <h2>Get AloeNotch</h2>
-        <p class="fineprint">Version 0.6.0 · Apple Silicon · macOS 15 or later ·
-        <a href="changelog.html">what’s new</a></p>
-        <a class="btn btn-big" href="assets/AloeNotch-0.6.0.dmg" download>Download .dmg</a>
+        <p class="fineprint">Version 0.7.0 · Apple Silicon · macOS 26 or later ·
+        <a href="/changelog">what’s new</a></p>
+        <a class="btn btn-big" href="assets/AloeNotch-0.7.0.dmg" download>Download .dmg</a>
         <details>
           <summary>First launch on macOS</summary>
           <p>AloeNotch is an independent app, so macOS will ask before the first
@@ -156,6 +173,15 @@
           scroll down and click <strong>“Open&nbsp;Anyway”</strong>. You only do
           this once.</p>
         </details>
+
+        <!-- Secondary CTA: right after the download, where intent is highest. -->
+        <div class="dl-follow">
+          <span class="fineprint">AloeNotch is updated often — follow along for new releases.</span>
+          <a class="btn-x" href="https://x.com/xnucade" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Follow @xnucade on X
+          </a>
+        </div>
       </div>
     </section>
 
@@ -163,15 +189,16 @@
 
   <footer>
     <div class="footer-links">
-      <a href="support.html">Support</a>
-      <a href="changelog.html">Changelog</a>
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="terms.html">Terms of Service</a>
+      <a href="/support">Support</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
       <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
+      <a class="with-icon" href="https://x.com/xnucade" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@xnucade</a>
       <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
     </div>
     <p><strong>Actively developed.</strong> New features land regularly — see the
-    <a href="changelog.html">changelog</a> for what’s new.</p>
+    <a href="/changelog">changelog</a> for what’s new.</p>
     <p>© <span id="year"></span> Kade's Lab. Not affiliated with Apple.
     Now-playing powered by
     <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a> (BSD-3).</p>

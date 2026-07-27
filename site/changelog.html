@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Changelog — AloeNotch</title>
   <meta name="description" content="What's new in AloeNotch — release notes and ongoing updates.">
+  <link rel="canonical" href="https://aloenotch.com/changelog">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AloeNotch">
+  <meta property="og:title" content="Changelog — AloeNotch">
+  <meta property="og:description" content="What's new in AloeNotch — release notes and ongoing updates.">
+  <meta property="og:url" content="https://aloenotch.com/changelog">
+  <meta property="og:image" content="https://aloenotch.com/assets/demo-poster.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://aloenotch.com/assets/demo-poster.jpg">
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,22 +21,41 @@
 
   <header class="nav">
     <div class="nav-inner">
-      <a class="brand" href="index.html">
+      <a class="brand" href="/">
         <img src="assets/icon.png" alt="" width="28" height="28">
         <span>AloeNotch</span>
       </a>
       <div class="nav-actions">
-        <a class="nav-link" href="support.html">Support</a>
-        <a class="btn btn-small" href="index.html#download">Download</a>
+        <a class="nav-link" href="/support">Support</a>
+        <a class="btn btn-small" href="/#download">Download</a>
       </div>
     </div>
   </header>
 
   <main class="legal">
-    <a class="back" href="index.html">← Back to AloeNotch</a>
+    <a class="back" href="/">← Back to AloeNotch</a>
     <h1>Changelog</h1>
     <p class="updated">AloeNotch is actively developed. Here's what's changed.</p>
     <!-- new-entry --><!-- release.sh inserts new version entries directly below this line -->
+
+    <h2>0.7.0 — July 27, 2026</h2>
+    <ul>
+      <li><strong>Liquid Glass throughout.</strong> The welcome screen, the menu
+      bar panel and the Settings window are now translucent — your desktop
+      shows through, frosted, instead of a flat grey slab.</li>
+      <li><strong>Glass is optional.</strong> Some wallpapers make translucent
+      panels hard to read, so there's a switch — offered during onboarding and
+      in Settings — that turns everything back to solid.</li>
+      <li><strong>Settings is now tabbed.</strong> Features, Position, General
+      and About, behind a floating glass tab bar. Everything used to live in one
+      long scroll where half of it sat below the fold.</li>
+      <li><strong>A rebuilt welcome screen</strong> with a looping animation of
+      the notch opening, so the hover gesture is obvious before you've tried it.</li>
+      <li>Ambient Glow now lights up in step with the panel instead of arriving a
+      beat late — the artwork's color lands as the panel finishes opening.</li>
+      <li><strong>Requires macOS 26.</strong> Liquid Glass is a macOS 26 API, so
+      this release raises the minimum. 0.6.0 remains available for macOS 15.</li>
+    </ul>
 
     <h2>0.6.0 — July 20, 2026</h2>
     <ul>
@@ -111,11 +139,12 @@
 
   <footer>
     <div class="footer-links">
-      <a href="support.html">Support</a>
-      <a href="changelog.html">Changelog</a>
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="terms.html">Terms of Service</a>
+      <a href="/support">Support</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
       <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
+      <a class="with-icon" href="https://x.com/xnucade" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@xnucade</a>
       <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
     </div>
     <p>© <span id="year"></span> Kade’s Lab. Not affiliated with Apple.</p>

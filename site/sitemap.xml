@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Extensionless URLs: Workers Assets 307-redirects /foo.html to /foo, and a
+     sitemap should list the URL that actually serves 200. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://aloenotch.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://aloenotch.com/changelog</loc><priority>0.7</priority></url>
+  <url><loc>https://aloenotch.com/support</loc><priority>0.5</priority></url>
+  <url><loc>https://aloenotch.com/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://aloenotch.com/terms</loc><priority>0.3</priority></url>
+</urlset>

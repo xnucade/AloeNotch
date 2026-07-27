@@ -1,0 +1,51 @@
+# Cue list for the "freesound" sound set.
+#
+#   time  file  gain  pan  [extra ffmpeg audio filter]
+#
+# Populate the files, then build:
+#   node freesound.mjs      # fetch CC0 candidates and pick defaults
+#   node audition.mjs       # optional: audition alternatives
+#   ./social.sh freesound
+#
+# All sounds are CC0 — see PROVENANCE.json for id, author, and source URL.
+# Any audio format ffmpeg reads is fine (.ogg, .mp3, .wav) — if you swap in a
+# different extension, change it here too.
+#
+# Gains are a starting guess. The bed is normalised to the target peak after
+# mixing, so these only set the balance *between* cues, not overall loudness.
+# Expect to nudge them once you hear it.
+
+# --- The panel springs open. The one cue that has to be frame-exact. --------
+8.40   open.ogg          1.00   0
+
+# --- Track changes during the ambient-glow beat. Barely there on purpose. ---
+23.60  track.ogg         0.40   0
+26.40  track.ogg         0.40   0
+
+# --- Files landing on the shelf. Panned apart so three drops in four seconds
+#     don't read as one repeated noise. Three separate files is better still;
+#     point all three lines at the same file if you only find one you like. --
+31.10  drop-1.ogg        0.85  -0.20
+32.90  drop-2.ogg        0.85   0.05
+34.50  drop-3.ogg        0.85   0.25
+
+# --- The stack dragged back out to the desktop. ----------------------------
+36.65  drag.ogg          0.45   0.30
+
+# --- Panel collapses. ------------------------------------------------------
+48.00  close.ogg         0.90   0
+
+# --- Volume steps, then brightness. Two different samples so the section
+#     reads as two distinct actions rather than six identical clicks. --------
+49.90  tick-vol.ogg      0.80   0
+50.40  tick-vol.ogg      0.80   0
+50.90  tick-vol.ogg      0.80   0
+52.80  tick-bright.ogg   0.65   0
+53.30  tick-bright.ogg   0.65   0
+53.80  tick-bright.ogg   0.65   0
+
+# --- Media stops and the strip goes fully invisible. -----------------------
+56.40  vanish.ogg        0.55   0
+
+# --- End card. If your clip already has a natural tail, drop the aecho. -----
+60.35  endcard.ogg       0.90   0   aecho=0.7:0.85:180:0.28

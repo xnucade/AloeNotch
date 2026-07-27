@@ -25,8 +25,8 @@ as non-notch Macs / external displays (where it renders a simulated strip).
 
 ## Requirements
 
-- macOS 15 (Sequoia) or later
-- Xcode 16 or later
+- macOS 26 (Tahoe) or later — the UI is built on Liquid Glass
+- Xcode 26 or later
 
 ## Build & run
 

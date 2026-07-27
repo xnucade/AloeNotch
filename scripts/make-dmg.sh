@@ -34,19 +34,35 @@ STAGING="$WORK_DIR/dmg-staging"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"   # "-" = ad-hoc
 mkdir -p "$OUT_DIR"
 
-# Use Xcode-beta if xcode-select points at bare CommandLineTools.
-if ! xcodebuild -version >/dev/null 2>&1; then
+# Find a usable xcodebuild when xcode-select points at bare CommandLineTools.
+#
+# Exporting DEVELOPER_DIR and letting the /usr/bin shim find it is NOT enough:
+# Xcode-beta ships no usr/bin/xcrun of its own, and its libxcrun.dylib is
+# arm64-only, so the universal (arm64e) system shim fails to dlopen it with
+# "incompatible architecture". Invoking Xcode's own xcodebuild binary by
+# absolute path avoids the shim entirely.
+XCODEBUILD=""
+if xcodebuild -version >/dev/null 2>&1; then
+    XCODEBUILD="$(command -v xcodebuild)"
+else
     for XC in /Applications/Xcode.app /Applications/Xcode-beta.app; do
-        [ -d "$XC" ] && export DEVELOPER_DIR="$XC/Contents/Developer" && break
+        CANDIDATE="$XC/Contents/Developer/usr/bin/xcodebuild"
+        [ -x "$CANDIDATE" ] && XCODEBUILD="$CANDIDATE" && break
     done
 fi
+[ -n "$XCODEBUILD" ] || {
+    echo "error: no usable xcodebuild found." >&2
+    echo "       Install Xcode, or point xcode-select at it:" >&2
+    echo "       sudo xcode-select -s /Applications/Xcode.app" >&2
+    exit 1
+}
 
 VERSION=$(sed -n 's/.*MARKETING_VERSION = \(.*\);/\1/p' \
     "$PROJECT_DIR/$PROJECT_NAME.xcodeproj/project.pbxproj" | head -1)
 DMG="$OUT_DIR/$APP_NAME-$VERSION.dmg"
 
 echo "==> Building $APP_NAME $VERSION (Release)"
-xcodebuild -project "$PROJECT_DIR/$PROJECT_NAME.xcodeproj" \
+"$XCODEBUILD" -project "$PROJECT_DIR/$PROJECT_NAME.xcodeproj" \
     -scheme "$PROJECT_NAME" -configuration Release build \
     -derivedDataPath "$DERIVED" \
     CODE_SIGNING_ALLOWED=NO -quiet
