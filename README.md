@@ -26,6 +26,8 @@ as non-notch Macs / external displays (where it renders a simulated strip).
 ## Requirements
 
 - macOS 26 (Tahoe) or later — the UI is built on Liquid Glass
+- Apple Silicon. 0.6.0 is the final Intel / macOS 15 release and is no longer
+  maintained; it stays downloadable from [aloenotch.com](https://aloenotch.com/#download).
 - Xcode 26 or later
 
 ## Build & run

@@ -335,6 +335,13 @@ a { color: inherit; text-decoration: none; }
 .dl-panel summary { cursor: pointer; font-weight: 600; color: var(--text); }
 .dl-panel details p { margin-top: 10px; line-height: 1.55; }
 
+/* The Intel / macOS 15 end-of-line build. Sits directly under the first
+   disclosure, so it takes a tighter margin than the 26px that separates the
+   pair from the download button above them. */
+.dl-panel details.dl-legacy { margin-top: 10px; }
+.dl-legacy a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.dl-legacy a:hover { color: var(--accent); }
+
 /* ---------- Follow on X ----------
    Deliberately not X's brand black: the page background is already near-black,
    so a black pill would disappear. A surface fill + hairline border matches the

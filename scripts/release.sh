@@ -61,7 +61,12 @@ fi
 "$PROJECT_DIR/scripts/make-dmg.sh"
 
 # 5. Swap the DMG into the site (drop any older ones).
-rm -f "$ASSETS"/AloeNotch-*.dmg
+#
+# Everything matching AloeNotch-*.dmg except the frozen Intel build. That one
+# is the last universal, macOS 15 release and is deliberately never rebuilt —
+# a blanket `rm AloeNotch-*.dmg` would delete it on the next release and
+# silently 404 the download the changelog points Intel users at.
+find "$ASSETS" -maxdepth 1 -name 'AloeNotch-*.dmg' ! -name '*-intel-eol.dmg' -delete
 cp "$PROJECT_DIR/build/AloeNotch-$NEW.dmg" "$ASSETS/AloeNotch-$NEW.dmg"
 echo "==> Site download set to AloeNotch-$NEW.dmg"
 
