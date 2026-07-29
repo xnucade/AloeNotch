@@ -25,6 +25,15 @@ final class NotchWindowController {
             .removeDuplicates()
             .sink { [weak self] _ in self?.applyFrame(animate: false) }
             .store(in: &cancellables)
+
+        // Panel width changes the *window* size, not just the content: the
+        // window is sized to the expanded panel plus shadow margin, so without
+        // this the panel would be clipped by a window that never grew.
+        settings.$panelWidth
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.applyFrame(animate: false) }
+            .store(in: &cancellables)
     }
 
     /// The window frame with the user's horizontal offset applied.
@@ -62,37 +71,22 @@ final class NotchWindowController {
 
     /// The region that should receive mouse events, in the hosting view's
     /// (bottom-left origin) coordinate space.
+    ///
+    /// The window carries a transparent margin on the sides and bottom so the
+    /// glow can bloom; only the surface itself should take clicks. The size
+    /// comes from `hitTestState` rather than `panelState` — see the note on
+    /// that property for why the two differ while collapsing.
     private func activeRect() -> CGRect {
         guard let host = hostingView else { return .zero }
         let bounds = host.bounds
-        if viewModel.isExpanded {
-            // The window carries a transparent shadow margin on the sides and
-            // bottom; only the panel itself should take clicks.
-            let w = metrics.expandedWidth
-            let h = metrics.expandedHeight
-            return CGRect(
-                x: bounds.midX - w / 2,
-                y: host.isFlipped ? bounds.minY : bounds.maxY - h,
-                width: w,
-                height: h
-            )
-        }
-        // Collapsed: only the top-center notch strip (notch + wings).
+        let size = metrics.size(for: viewModel.hitTestState)
         // NSHostingView is flipped (top-left origin), so "top" depends on the
         // flipped state.
-        // Match the strip's on-screen size, including the now-playing wings, so
-        // hovering the glyph opens the panel.
-        let collapsed = metrics.collapsedSize(
-            showingMediaGlyph: settings.showMedia && viewModel.media.isPlaying,
-            showingHUD: viewModel.hud != nil
-        )
-        let w = collapsed.width
-        let h = collapsed.height
         return CGRect(
-            x: bounds.midX - w / 2,
-            y: host.isFlipped ? bounds.minY : bounds.maxY - h,
-            width: w,
-            height: h
+            x: bounds.midX - size.width / 2,
+            y: host.isFlipped ? bounds.minY : bounds.maxY - size.height,
+            width: size.width,
+            height: size.height
         )
     }
 

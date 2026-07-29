@@ -26,18 +26,49 @@ final class MediaAdapterEngine {
     /// Calls back on main with a ready engine, or nil if unsupported.
     static func probe(_ completion: @escaping (MediaAdapterEngine?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            let engine = try? MediaAdapterEngine()
-            let ok = engine?.runTest() ?? false
-            DispatchQueue.main.async { completion(ok ? engine : nil) }
+            let engine: MediaAdapterEngine
+            do {
+                engine = try MediaAdapterEngine()
+            } catch {
+                NSLog("AloeNotch: Now Playing unavailable — adapter setup failed: \(error.localizedDescription)")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            if let reason = engine.selfTestFailure() {
+                NSLog("AloeNotch: Now Playing unavailable — \(reason)")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            DispatchQueue.main.async { completion(engine) }
+        }
+    }
+
+    /// Why setup failed, in terms that name the actual missing piece. The old
+    /// blanket `CocoaError(.fileNoSuchFile)` could not distinguish a missing
+    /// script from a missing library from an un-writable Application Support.
+    enum SetupError: LocalizedError {
+        case noResourceBundle
+        case missingResource(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .noResourceBundle:
+                "the app bundle has no Resources directory"
+            case .missingResource(let name):
+                "bundled resource '\(name)' is missing from Resources"
+            }
         }
     }
 
     private init() throws {
-        guard let resources = Bundle.main.resourceURL,
-              let script = Self.locate("mediaremote-adapter.pl", under: resources),
-              let lib = Self.locate("MediaRemoteAdapterLib.dat", under: resources)
-        else {
-            throw CocoaError(.fileNoSuchFile)
+        guard let resources = Bundle.main.resourceURL else {
+            throw SetupError.noResourceBundle
+        }
+        guard let script = Self.locate("mediaremote-adapter.pl", under: resources) else {
+            throw SetupError.missingResource("mediaremote-adapter.pl")
+        }
+        guard let lib = Self.locate("MediaRemoteAdapterLib.dat", under: resources) else {
+            throw SetupError.missingResource("MediaRemoteAdapterLib.dat")
         }
         self.scriptURL = script
         self.frameworkURL = try Self.installFramework(from: lib)
@@ -79,15 +110,42 @@ final class MediaAdapterEngine {
         return dir
     }
 
-    private func runTest() -> Bool {
+    /// Runs the adapter's self-test. `nil` means it passed; otherwise a
+    /// human-readable reason.
+    ///
+    /// This is the single point where Now Playing silently switches itself off,
+    /// and it used to discard both the exit status and stderr — so when it
+    /// failed, the UI said "unavailable" forever with nothing anywhere to
+    /// explain why. Whatever perl complained about is worth surfacing.
+    private func selfTestFailure() -> String? {
         let test = Process()
         test.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
         test.arguments = [scriptURL.path, frameworkURL.path, "test"]
         test.standardOutput = FileHandle.nullDevice
-        test.standardError = FileHandle.nullDevice
-        do { try test.run() } catch { return false }
+        let errors = Pipe()
+        test.standardError = errors
+
+        do {
+            try test.run()
+        } catch {
+            return "could not launch /usr/bin/perl: \(error.localizedDescription)"
+        }
+
+        // Drain before waiting: the pipe has a finite buffer, and a chatty
+        // failure could otherwise block the child forever on write while we
+        // block on exit.
+        let data = errors.fileHandleForReading.readDataToEndOfFile()
         test.waitUntilExit()
-        return test.terminationStatus == 0
+        guard test.terminationStatus != 0 else { return nil }
+
+        let message = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let detail = message.isEmpty ? "no error output" : message
+        return """
+            adapter self-test exited \(test.terminationStatus) — \(detail)
+              script: \(scriptURL.path)
+              framework: \(frameworkURL.path)
+            """
     }
 
     // MARK: - Streaming
@@ -134,9 +192,12 @@ final class MediaAdapterEngine {
             guard !data.isEmpty else { return }
             self?.ingest(data)
         }
-        p.terminationHandler = { [weak self] _ in
+        p.terminationHandler = { [weak self] proc in
             // Relaunch after a beat if the stream dies while we still want it.
             guard let self else { return }
+            if self.isRunning {
+                NSLog("AloeNotch: media adapter stream exited (status \(proc.terminationStatus)) — restarting in 2s")
+            }
             DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
                 if self.isRunning { self.launchStream() }
             }

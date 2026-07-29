@@ -15,7 +15,46 @@ final class AppSettings: ObservableObject {
     @Published var showWeather: Bool { didSet { save(showWeather, "showWeather") } }
     /// Volume / brightness readouts in the notch instead of the macOS HUD.
     @Published var showHUD: Bool { didSet { save(showHUD, "showHUD") } }
+    /// Charge level in the expanded header, and the low/charging hints on the
+    /// collapsed strip.
+    @Published var showBattery: Bool { didSet { save(showBattery, "showBattery") } }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
+
+    // MARK: Appearance
+
+    /// Chrome tint — calendar highlight, tab selection, control tints. Stored
+    /// as `#RRGGBB` because `Color` is not directly persistable and a hex
+    /// string stays readable if anyone inspects the defaults by hand.
+    ///
+    /// Deliberately *not* applied to the ambient glow, which follows the
+    /// artwork: that reactivity is the app's signature and a fixed tint would
+    /// flatten it.
+    @Published var accentHex: String { didSet { save(accentHex, "accentHex") } }
+
+    /// Resolved accent, falling back to the default if the stored value is
+    /// somehow unparseable.
+    var accent: Color { Color(hex: accentHex) ?? Color(hex: AccentPalette.default)! }
+
+    /// How frosted the glass surfaces are.
+    @Published var glassIntensity: GlassIntensity {
+        didSet { save(glassIntensity.rawValue, "glassIntensity") }
+    }
+
+    /// Appearance of the app's own windows. The notch panel stays black.
+    @Published var windowTheme: WindowTheme {
+        didSet { save(windowTheme.rawValue, "windowTheme") }
+    }
+
+    /// Multiplier on every animation duration: >1 faster, <1 slower.
+    @Published var animationSpeed: Double {
+        didSet { defaults.set(animationSpeed, forKey: "animationSpeed") }
+    }
+
+    /// Width of the expanded panel, in points. Clamped when read so a bad
+    /// stored value can't produce a panel wider than the screen.
+    @Published var panelWidth: Double { didSet { defaults.set(panelWidth, forKey: "panelWidth") } }
+
+    static let panelWidthRange: ClosedRange<Double> = 520...900
 
     /// Liquid Glass on the welcome, menu bar panel and settings window.
     /// Offered at first run because it is a taste call, not a capability one:
@@ -42,7 +81,13 @@ final class AppSettings: ObservableObject {
             "showCalendar": true,
             "showWeather": true,
             "showHUD": true,
+            "showBattery": true,
             "useGlass": true,
+            "accentHex": AccentPalette.default,
+            "glassIntensity": GlassIntensity.medium.rawValue,
+            "windowTheme": WindowTheme.system.rawValue,
+            "animationSpeed": 1.0,
+            "panelWidth": 616.0,
         ])
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
@@ -50,7 +95,20 @@ final class AppSettings: ObservableObject {
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
         showHUD = defaults.bool(forKey: "showHUD")
+        showBattery = defaults.bool(forKey: "showBattery")
         useGlass = defaults.bool(forKey: "useGlass")
+
+        accentHex = defaults.string(forKey: "accentHex") ?? AccentPalette.default
+        glassIntensity = GlassIntensity(
+            rawValue: defaults.string(forKey: "glassIntensity") ?? ""
+        ) ?? .medium
+        windowTheme = WindowTheme(
+            rawValue: defaults.string(forKey: "windowTheme") ?? ""
+        ) ?? .system
+        animationSpeed = defaults.double(forKey: "animationSpeed")
+        panelWidth = min(max(defaults.double(forKey: "panelWidth"),
+                             Self.panelWidthRange.lowerBound),
+                         Self.panelWidthRange.upperBound)
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
         // Login-item state lives with the system, not in defaults.
@@ -58,6 +116,10 @@ final class AppSettings: ObservableObject {
     }
 
     private func save(_ value: Bool, _ key: String) {
+        defaults.set(value, forKey: key)
+    }
+
+    private func save(_ value: String, _ key: String) {
         defaults.set(value, forKey: key)
     }
 

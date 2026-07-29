@@ -14,15 +14,17 @@ import AppKit
 /// composited underneath and there is nothing to see through.
 struct FrostBackdrop: NSViewRepresentable {
     /// `.sidebar` is the Finder/Mail sidebar material, and it is the one that
-    /// reads as "translucent with some frost" over a whole window.
+    /// reads as "translucent with some frost" over a whole window. It is also
+    /// `GlassIntensity.medium` in Design/Theme.swift, which is where the
+    /// user-facing intensity choice maps to a material.
     ///
-    /// The two obvious neighbours are both wrong here. `.hudWindow` is the
-    /// thinnest material there is, so a saturated wallpaper comes through
-    /// almost unattenuated and swamps secondary text. `.underWindowBackground`
-    /// is not a window frost at all despite the name — it is meant for the
-    /// region *under* a window, and across a full window it collapses to a flat
-    /// grey wash that samples nothing.
-    var material: NSVisualEffectView.Material = .sidebar
+    /// The two obvious neighbours are both wrong as a default here.
+    /// `.hudWindow` is the thinnest material there is, so a saturated wallpaper
+    /// comes through almost unattenuated and swamps secondary text.
+    /// `.underWindowBackground` is not a window frost at all despite the name —
+    /// it is meant for the region *under* a window, and across a full window it
+    /// collapses to a flat grey wash that samples nothing.
+    var material: NSVisualEffectView.Material = GlassIntensity.medium.material
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
@@ -124,12 +126,35 @@ extension View {
 
     /// Frosted window background, honouring the preference. Glass off gets a
     /// normal opaque window so the material never fights legibility.
+    ///
+    /// System Reduce Transparency forces the solid path regardless of the app's
+    /// own switch — it reuses the same fallback rather than introducing a
+    /// second one, so there is only ever one non-glass appearance to maintain.
     @ViewBuilder
     func frostedWindowBackground(_ enabled: Bool) -> some View {
-        if enabled {
-            background(FrostBackdrop().ignoresSafeArea())
-        } else {
-            background(Color(nsColor: .windowBackgroundColor).ignoresSafeArea())
+        modifier(FrostedWindowBackground(enabled: enabled))
+    }
+}
+
+private struct FrostedWindowBackground: ViewModifier {
+    let enabled: Bool
+    @ObservedObject private var a11y = AccessibilityPreferences.shared
+    @ObservedObject private var settings = AppSettings.shared
+
+    func body(content: Content) -> some View {
+        Group {
+            if enabled && !a11y.reduceTransparency {
+                content.background(
+                    FrostBackdrop(material: settings.glassIntensity.material)
+                        .ignoresSafeArea()
+                )
+            } else {
+                content.background(Color(nsColor: .windowBackgroundColor).ignoresSafeArea())
+            }
         }
+        // Windows only. The notch panel never routes through here — it is pure
+        // black in every state, which is what lets it vanish into the cutout.
+        .preferredColorScheme(settings.windowTheme.colorScheme)
+        .tint(settings.accent)
     }
 }

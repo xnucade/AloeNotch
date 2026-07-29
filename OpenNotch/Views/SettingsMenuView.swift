@@ -41,6 +41,7 @@ struct SettingsMenuView: View {
         }
         .frame(width: 268)
         .frostedWindowBackground(settings.useGlass)
+        .withAccessibilityPreferences()
     }
 
     private var header: some View {

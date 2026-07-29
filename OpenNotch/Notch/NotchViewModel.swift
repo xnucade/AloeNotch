@@ -4,6 +4,44 @@ import Combine
 /// Shared state for everything drawn inside the notch. Owns the feature
 /// managers (media, tray, battery, calendar, weather) and the expand/collapse
 /// state.
+
+/// What the notch surface is currently showing.
+///
+/// This used to be a `Bool` plus a peek condition (`showMedia && isPlaying`)
+/// evaluated independently in the view *and* in the window controller's
+/// hit-testing — two places deriving the same truth, free to disagree. Making
+/// it one value means the drawn size and the clickable size are computed from
+/// the same thing, and it gives the collapsed → peek → expanded morph a single
+/// property for one spring to drive.
+enum PanelState: Equatable {
+    /// Bare strip, hugging the hardware notch. The app is invisible here.
+    case collapsed
+    /// Strip grown into "wings" either side of the notch, showing a glanceable
+    /// indicator. The two kinds need different widths, so they are not one case.
+    case peek(Peek)
+    /// Full panel, dropped down below the notch.
+    case expanded
+
+    enum Peek: Equatable {
+        /// Now-playing artwork + equalizer.
+        case media
+        /// Volume / brightness readout, which needs more room than media.
+        case hud
+    }
+
+    var isExpanded: Bool { self == .expanded }
+
+    /// Short name for diagnostics.
+    var debugName: String {
+        switch self {
+        case .collapsed:     "collapsed"
+        case .peek(.media):  "peek(media)"
+        case .peek(.hud):    "peek(hud)"
+        case .expanded:      "expanded"
+        }
+    }
+}
+
 /// A transient system readout shown in the notch (replacing macOS's own HUD).
 enum NotchHUD: Equatable {
     case volume(level: Float, muted: Bool)
@@ -30,9 +68,41 @@ enum NotchHUD: Equatable {
 }
 
 final class NotchViewModel: ObservableObject {
-    @Published var isExpanded = false
+    /// What the surface is showing. Only ever changed through `apply(_:)`, so
+    /// every transition is animated by exactly one spring.
+    @Published private(set) var panelState: PanelState = .collapsed
+
+    /// The state the *hit-test* region should use.
+    ///
+    /// It matches `panelState` except while collapsing, where it trails.
+    /// `panelState` flips the moment the pointer leaves, but the panel takes
+    /// the whole collapse animation to actually shrink — and for that window it
+    /// is still on screen, still under the cursor. Shrinking the clickable
+    /// region immediately is what makes the panel feel like it closes out from
+    /// under you when you move back into it.
+    @Published private(set) var hitTestState: PanelState = .collapsed
+
+    /// The curve the *next* `panelState` change should use.
+    ///
+    /// Published alongside the state rather than wrapped around it with
+    /// `withAnimation`. Wrapping a change to an `@Published` property relies on
+    /// the animation transaction surviving the hop across `objectWillChange`
+    /// into the view's update, which is not something to bet the whole feel of
+    /// the app on — if it does not survive, every transition snaps and there is
+    /// no visible clue as to why. The view applies this explicitly with
+    /// `.animation(_:value:)`, which is unambiguous.
+    @Published private(set) var stateAnimation: Animation = Motion.expand
+
     @Published var metrics: NotchMetrics?
     @Published var hud: NotchHUD?
+
+    /// Convenience for the many call sites that only care about the panel being
+    /// open. Kept so this refactor doesn't churn every view at once.
+    var isExpanded: Bool { panelState.isExpanded }
+
+    /// Whether the pointer is inside the active region. An input to the state
+    /// machine, not a state itself.
+    private var isHovering = false
 
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
@@ -53,15 +123,16 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var canReplaceSystemHUD = MediaKeyInterceptor.isTrusted
 
     /// Springs shared by everything that animates with the expansion so the
-    /// whole surface moves as one piece. `.smooth` is SwiftUI's fluid curve —
-    /// a touch of bounce opening, none closing, so it settles cleanly instead
-    /// of jittering at the end.
-    static let expandAnimation: Animation = .smooth(duration: 0.40, extraBounce: 0.10)
-    static let collapseAnimation: Animation = .smooth(duration: 0.32)
+    /// whole surface moves as one piece. The curves themselves now live in
+    /// `Motion` (Design/Theme.swift) alongside every other animation in the
+    /// app; these stay as the names the notch code already uses.
+    static var expandAnimation: Animation { Motion.expand }
+    static var collapseAnimation: Animation { Motion.collapse }
     /// HUDs and wings share a quicker version of the same curve.
-    static let hudAnimation: Animation = .smooth(duration: 0.28)
+    static var hudAnimation: Animation { Motion.hud }
 
     private var collapseWorkItem: DispatchWorkItem?
+    private var hitTestTrail: DispatchWorkItem?
     private var hudDismiss: DispatchWorkItem?
     private var trustPoll: Timer?
     private var cancellables = Set<AnyCancellable>()
@@ -105,10 +176,14 @@ final class NotchViewModel: ObservableObject {
         // immediately, rather than waiting on the observer.
         mediaKeys.onVolumeStep = { [weak self] delta in
             guard let self else { return }
-            let newLevel = min(1, max(0, self.volume.level() + delta))
+            let previous = self.volume.level()
+            let newLevel = min(1, max(0, previous + delta))
             if delta > 0 { self.volume.setMuted(false) }   // raising unmutes, as macOS does
             self.volume.setLevel(newLevel)
             self.present(.volume(level: newLevel, muted: newLevel <= 0))
+            // Only when the level actually moved. Holding the key down at 0 or
+            // 1 should feel like hitting a stop, not like it is still stepping.
+            if newLevel != previous { Haptics.tick() }
         }
         mediaKeys.onMuteToggle = { [weak self] in
             guard let self else { return }
@@ -118,9 +193,11 @@ final class NotchViewModel: ObservableObject {
         }
         mediaKeys.onBrightnessStep = { [weak self] delta in
             guard let self else { return }
-            let newLevel = min(1, max(0, self.brightness.level() + delta))
+            let previous = self.brightness.level()
+            let newLevel = min(1, max(0, previous + delta))
             self.brightness.setLevel(newLevel)
             self.present(.brightness(level: newLevel))
+            if newLevel != previous { Haptics.tick() }
         }
 
         settings.$showHUD
@@ -129,26 +206,118 @@ final class NotchViewModel: ObservableObject {
                 self?.updateHUDPipeline(enabled: enabled)
             }
             .store(in: &cancellables)
+
+        // The media peek is now an explicit state rather than something the
+        // view re-derives, so the two inputs that produce it have to drive the
+        // state machine directly.
+        media.$isPlaying
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.refreshState() }
+            .store(in: &cancellables)
+
+        settings.$showMedia
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.refreshState() }
+            .store(in: &cancellables)
     }
+
+    // MARK: - State machine
 
     // Hover handling with a small close delay so the panel doesn't flicker
     // when the cursor briefly leaves the content.
     func hoverChanged(_ inside: Bool) {
         collapseWorkItem?.cancel()
         if inside {
-            withAnimation(Self.expandAnimation) {
-                isExpanded = true
-            }
+            isHovering = true
+            refreshState()
         } else {
             let work = DispatchWorkItem { [weak self] in
-                withAnimation(Self.collapseAnimation) {
-                    self?.isExpanded = false
-                }
+                self?.isHovering = false
+                self?.refreshState()
             }
             collapseWorkItem = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.hoverGrace, execute: work)
         }
     }
+
+    /// Grace period before an un-hover closes the panel, so brushing past the
+    /// edge of the content doesn't collapse it.
+    private static let hoverGrace: TimeInterval = 0.25
+
+    /// The state the current inputs imply. Pure — it reads, never writes.
+    ///
+    /// Order matters: hovering always wins (the user is actively asking for the
+    /// panel), then a HUD, which is transient and time-critical, then media.
+    private func targetState() -> PanelState {
+        if isHovering { return .expanded }
+        if hud != nil { return .peek(.hud) }
+        if settings.showMedia && media.isPlaying { return .peek(.media) }
+        return .collapsed
+    }
+
+    /// Recompute and animate to whatever the inputs now imply.
+    private func refreshState() {
+        apply(targetState())
+    }
+
+    private func apply(_ new: PanelState) {
+        let old = panelState
+        guard new != old else { return }
+
+        // Opening gets the bouncier spring; closing gets the settled one; the
+        // small width changes between peeks get the quick one.
+        let animation: Animation
+        let settle: TimeInterval
+        switch (old, new) {
+        case (_, .expanded): animation = Self.expandAnimation; settle = Self.expandSettle
+        case (.expanded, _): animation = Self.collapseAnimation; settle = Self.collapseSettle
+        default:             animation = Self.hudAnimation; settle = Self.hudSettle
+        }
+
+        // Order matters: the view reads `stateAnimation` when `panelState`
+        // changes, so the curve has to be in place first.
+        //
+        // Reduce Motion is resolved here rather than in the view because this
+        // is the single place the panel's curve is chosen — doing it at the
+        // call site would mean every future transition has to remember to.
+        stateAnimation = Motion.resolve(
+            animation,
+            reduceMotion: AccessibilityPreferences.shared.reduceMotion
+        )
+        panelState = new
+
+        // The invariant: the clickable region is never smaller than what is
+        // actually drawn. Growing is safe to apply at once — a region larger
+        // than the pixels only makes the panel easier to reach. Shrinking has
+        // to wait for the animation, or the surface stops taking the mouse
+        // while it is still visibly there.
+        hitTestTrail?.cancel()
+        guard isShrinking(from: old, to: new) else {
+            hitTestState = new
+            return
+        }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.hitTestState = self.panelState
+        }
+        hitTestTrail = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + settle, execute: work)
+    }
+
+    /// Whether the surface is getting smaller in either axis. Falls back to the
+    /// expanded/not comparison before metrics have been measured.
+    private func isShrinking(from old: PanelState, to new: PanelState) -> Bool {
+        guard let metrics else { return old.isExpanded && !new.isExpanded }
+        let a = metrics.size(for: old), b = metrics.size(for: new)
+        return b.width < a.width || b.height < a.height
+    }
+
+    // How long to hold the outgoing hit region, per transition. Each sits just
+    // past its animation's duration so the region never shrinks while pixels
+    // are still moving.
+    private static let expandSettle: TimeInterval = 0.42
+    private static let collapseSettle: TimeInterval = 0.34
+    private static let hudSettle: TimeInterval = 0.30
 
     /// Start or stop the HUD stack. We only show our own readout once we can
     /// actually suppress the system one — otherwise the user gets two HUDs,
@@ -162,6 +331,7 @@ final class NotchViewModel: ObservableObject {
             brightness.stop()
             trustPoll?.invalidate(); trustPoll = nil
             hud = nil
+            refreshState()
             return
         }
 
@@ -176,6 +346,7 @@ final class NotchViewModel: ObservableObject {
             volume.stop()
             brightness.stop()
             hud = nil
+            refreshState()
             guard trustPoll == nil else { return }
             trustPoll = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
                 guard let self, MediaKeyInterceptor.isTrusted else { return }
@@ -188,9 +359,14 @@ final class NotchViewModel: ObservableObject {
     private func present(_ readout: NotchHUD) {
         hudDismiss?.cancel()
         withAnimation(Self.hudAnimation) { hud = readout }
+        // The HUD is an input to the state machine — raising one widens the
+        // strip into HUD wings unless the panel is already open.
+        refreshState()
 
         let work = DispatchWorkItem { [weak self] in
-            withAnimation(Self.hudAnimation) { self?.hud = nil }
+            guard let self else { return }
+            withAnimation(Self.hudAnimation) { self.hud = nil }
+            self.refreshState()
         }
         hudDismiss = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
@@ -206,5 +382,8 @@ final class NotchViewModel: ObservableObject {
         mediaKeys.stop()
         trustPoll?.invalidate()
         trustPoll = nil
+        collapseWorkItem?.cancel()
+        hitTestTrail?.cancel()
+        hudDismiss?.cancel()
     }
 }

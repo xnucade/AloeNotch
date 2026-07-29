@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MediaView: View {
     @ObservedObject var media: NowPlayingManager
+    /// Namespace for the matched artwork pair, owned by NotchRootView.
+    let morph: Namespace.ID
 
     var body: some View {
         HStack(spacing: 14) {
@@ -39,15 +41,38 @@ struct MediaView: View {
         ZStack(alignment: .bottomLeading) {
             Group {
                 if let art = media.current.artwork {
-                    Image(nsImage: art).resizable().scaledToFill()
+                    // Half of the matched pair — the other half is the 15pt
+                    // artwork in the peek strip (NotchRootView.CollapsedContent).
+                    // SwiftUI interpolates the frame between the two, so the
+                    // artwork travels out of the notch and grows.
+                    //
+                    // The ZStack is what carries the matched geometry, and it
+                    // deliberately has no `.id`: the image inside changes
+                    // identity on every track so it can crossfade, and if that
+                    // identity change reached the matched-geometry view the
+                    // morph would be re-registering mid-flight.
+                    ZStack {
+                        Image(nsImage: art)
+                            .resizable()
+                            .scaledToFill()
+                            .id(media.current.artworkToken)
+                            .transition(.opacity)
+                    }
+                    .frame(width: Metrics.expandedArtworkSize,
+                           height: Metrics.expandedArtworkSize)
+                    .clipShape(RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius,
+                                                style: .continuous))
+                    .animation(Motion.contentFade, value: media.current.artworkToken)
+                    .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 } else {
-                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius, style: .continuous)
                         .fill(.white.opacity(0.08))
                         .overlay(Image(systemName: "music.note").foregroundStyle(.white.opacity(0.4)))
+                        .frame(width: Metrics.expandedArtworkSize,
+                               height: Metrics.expandedArtworkSize)
                 }
             }
-            .frame(width: 62, height: 62)
-            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .frame(width: Metrics.expandedArtworkSize, height: Metrics.expandedArtworkSize)
             // Ambient glow: the artwork itself, enlarged and blurred, casts its
             // colors onto the black panel the way the Dynamic Island does.
             .background {
@@ -98,6 +123,7 @@ private struct TransportButton: View {
     let action: () -> Void
 
     @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: action) {
@@ -106,20 +132,16 @@ private struct TransportButton: View {
                 .foregroundStyle(.white.opacity(hovering ? 1 : 0.85))
                 .frame(width: 27, height: 27)
                 .background(.white.opacity(hovering ? 0.12 : 0), in: Circle())
-                .scaleEffect(hovering ? 1.08 : 1)
+                // The lift is travel, so Reduce Motion drops it and lets the
+                // brightness and fill changes carry the hover on their own.
+                .scaleEffect(reduceMotion ? 1 : (hovering ? 1.08 : 1))
         }
         .buttonStyle(PressableButtonStyle())
         .onHover { inside in
-            withAnimation(.snappy(duration: 0.2)) { hovering = inside }
+            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                hovering = inside
+            }
         }
-    }
-}
-
-private struct PressableButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.86 : 1)
-            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -129,6 +151,8 @@ private struct ProgressScrubber: View {
     @ObservedObject var media: NowPlayingManager
     @State private var dragging = false
     @State private var dragFraction: Double = 0
+    @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         // Repaint twice a second so the fill creeps forward between updates.
@@ -144,13 +168,23 @@ private struct ProgressScrubber: View {
                         Capsule().fill(.white.opacity(0.15))
                         Capsule().fill(.white.opacity(0.85))
                             .frame(width: max(2, w * fraction))
+                        // The knob appears on hover as well as during a drag,
+                        // so the bar advertises that it can be scrubbed before
+                        // you commit to grabbing it.
                         Circle().fill(.white)
-                            .frame(width: dragging ? 9 : 0, height: dragging ? 9 : 0)
-                            .offset(x: min(w - 4.5, max(-4.5, w * fraction - 4.5)))
+                            .frame(width: knobSize, height: knobSize)
+                            .offset(x: min(w - knobSize / 2,
+                                           max(-knobSize / 2, w * fraction - knobSize / 2)))
                     }
-                    .frame(height: 3)
+                    // Thickens under the cursor, the way system sliders do.
+                    .frame(height: hovering || dragging ? 5 : 3)
                     .frame(maxHeight: .infinity, alignment: .center)
                     .contentShape(Rectangle())
+                    .onHover { inside in
+                        withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                            hovering = inside
+                        }
+                    }
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { g in
@@ -176,6 +210,11 @@ private struct ProgressScrubber: View {
                 .foregroundStyle(.white.opacity(0.45))
             }
         }
+    }
+
+    /// Grows on hover, grows further while actually dragging.
+    private var knobSize: CGFloat {
+        dragging ? 9 : (hovering ? 7 : 0)
     }
 
     private func timeString(_ t: Double) -> String {

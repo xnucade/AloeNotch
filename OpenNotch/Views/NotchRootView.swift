@@ -7,25 +7,60 @@ import SwiftUI
 struct NotchRootView: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
+    /// Observed directly rather than read from the environment: the panel is
+    /// mounted in a bare NSHostingView rather than a SwiftUI scene, so SwiftUI
+    /// does not populate `\.accessibilityReduceMotion` here. This view both
+    /// reads the values and republishes them to its children.
+    @ObservedObject private var a11y = AccessibilityPreferences.shared
     @State private var isDropTargeted = false
 
+    /// Namespace for the shared artwork element. See `sharedArtwork`.
+    @Namespace private var morph
+
     private var metrics: NotchMetrics? { viewModel.metrics }
+    private var state: PanelState { viewModel.panelState }
 
     /// Peek the now-playing glyph out beside the notch while something plays.
-    private var showMediaGlyph: Bool {
-        settings.showMedia && viewModel.media.isPlaying
+    /// Now read from the state machine rather than re-derived here, so the
+    /// drawn surface and the clickable region can't disagree.
+    private var showMediaGlyph: Bool { state == .peek(.media) }
+
+    /// The surface's current on-screen size, straight from the one function
+    /// that decides it (`NotchMetrics.size(for:)`).
+    private var surfaceSize: CGSize {
+        metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize
     }
 
-    private var collapsedSize: CGSize {
-        metrics?.collapsedSize(showingMediaGlyph: showMediaGlyph,
-                               showingHUD: viewModel.hud != nil)
-            ?? NotchGeometry.simulatedNotchSize
+    /// Height of the collapsed strip — i.e. the hardware notch. Constant across
+    /// states (wings only ever change width), and used to push expanded content
+    /// clear of the physical cutout.
+    private var stripHeight: CGFloat {
+        metrics?.notchSize.height ?? NotchGeometry.simulatedNotchSize.height
     }
+
     private var hasHardwareNotch: Bool {
         metrics?.hasHardwareNotch ?? false
     }
-    private var expandedWidth: CGFloat { metrics?.expandedWidth ?? 616 }
-    private var expandedHeight: CGFloat { metrics?.expandedHeight ?? 208 }
+
+    // MARK: Shared artwork geometry
+    //
+    // The artwork is a matched pair: a real image in the peek strip and a real
+    // image in the expanded panel, both carrying `artworkID` in the `morph`
+    // namespace. SwiftUI treats a matched insert/remove pair as one element and
+    // explicitly interpolates the frame between them.
+    //
+    // An earlier attempt used one persistent image with `isSource: false`,
+    // anchored to invisible placeholders in each branch, on the theory that a
+    // single never-removed view could not cross-fade. It positioned correctly
+    // but would not animate: with a separate follower, the position is read
+    // from whichever source currently exists, so when the source *changes
+    // identity* across the branch swap the frame changes discretely — and
+    // geometry-derived values are not interpolated. The pair below is the
+    // pattern SwiftUI actually animates.
+    //
+    // The cross-fade that motivated the original detour is a non-issue here:
+    // both views draw the *same* image, so dissolving between them at a shared
+    // interpolated frame is indistinguishable from a single moving view.
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,28 +68,37 @@ struct NotchRootView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .withAccessibilityPreferences()
     }
 
     private var notchSurface: some View {
-        let radius: CGFloat = viewModel.isExpanded ? 26 : 10
+        let radius = Metrics.radius(expanded: state.isExpanded)
         return ZStack {
             panelFill
 
             Group {
-                if viewModel.isExpanded {
-                    ExpandedContent(viewModel: viewModel)
-                        .padding(.horizontal, 18)
-                        .padding(.top, collapsedSize.height + 6) // clear the physical notch
-                        .padding(.bottom, 13)
+                if state.isExpanded {
+                    ExpandedContent(viewModel: viewModel, morph: morph)
+                        .padding(.horizontal, Metrics.panelHorizontalInset)
+                        // Clear the physical notch.
+                        .padding(.top, stripHeight + Metrics.contentTopGap)
+                        .padding(.bottom, Metrics.panelBottomInset)
                         // Plain opacity+scale rather than a blur transition:
                         // blurring every frame is what makes the open/close
-                        // stutter on a high-refresh display.
-                        .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
-                } else if let hud = viewModel.hud {
+                        // stutter on a high-refresh display. Under Reduce
+                        // Motion the scale goes too, leaving a plain fade.
+                        .transition(a11y.reduceMotion
+                                    ? .opacity
+                                    : .opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                } else if state == .peek(.hud), let hud = viewModel.hud {
                     // A system readout takes over the strip while it's showing.
+                    // Keyed on the state, not just `hud != nil`, so the content
+                    // drawn always matches the width the state machine sized
+                    // the strip for.
                     HUDContent(hud: hud,
                                deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0)
-                        .padding(.horizontal, hasHardwareNotch ? 12 : 16)
+                        .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
+                                                              : Metrics.hudInsetSimulated)
                         .transition(.opacity)
                 } else {
                     // On a hardware notch this only draws while media plays (in
@@ -64,17 +108,17 @@ struct NotchRootView: View {
                         media: viewModel.media,
                         battery: viewModel.battery,
                         deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0,
-                        showMediaGlyph: showMediaGlyph
+                        showMediaGlyph: showMediaGlyph,
+                        showBattery: settings.showBattery,
+                        morph: morph
                     )
-                    .padding(.horizontal, hasHardwareNotch ? 9 : 14)
+                    .padding(.horizontal, hasHardwareNotch ? Metrics.stripInsetHardware
+                                                           : Metrics.stripInsetSimulated)
                     .transition(.opacity)
                 }
             }
         }
-        .frame(
-            width: viewModel.isExpanded ? expandedWidth : collapsedSize.width,
-            height: viewModel.isExpanded ? expandedHeight : collapsedSize.height
-        )
+        .frame(width: surfaceSize.width, height: surfaceSize.height)
         // Clip AFTER the frame so the clip bounds follow the animating size.
         // (Clipping the inner Group instead sized the clip to the *content*, so
         // collapsing left the outgoing panel ghosted at full width outside the
@@ -86,39 +130,47 @@ struct NotchRootView: View {
                 AmbientGlow(
                     media: viewModel.media,
                     radius: radius,
-                    isExpanded: viewModel.isExpanded
+                    isExpanded: state.isExpanded
                 )
             }
         }
-        // Any collapsed width change — media wings or a HUD — eases in/out.
-        .animation(NotchViewModel.hudAnimation, value: collapsedSize.width)
+        // The one animation driving the whole surface: frame, corner radius,
+        // the content branch transitions, and the matched artwork all move
+        // under this. The curve comes from the view model, which picks it per
+        // transition (bouncier opening, settled closing, quick between peeks).
+        .animation(viewModel.stateAnimation, value: state)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
         // Dragging a file over the collapsed strip opens the shelf; dropping
         // directly on the strip stages it immediately.
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
-            viewModel.tray.handleDrop(providers)
+            let accepted = viewModel.tray.handleDrop(providers)
+            if accepted { Haptics.caught() }
+            return accepted
         }
         .onChange(of: isDropTargeted) { _, targeted in
-            viewModel.hoverChanged(targeted || viewModel.isExpanded)
+            viewModel.hoverChanged(targeted || state.isExpanded)
         }
     }
+
+    /// Matched-geometry id for the artwork, shared by CollapsedContent and MediaView.
+    static let artworkID = "notch.artwork"
 
     // The window has `NotchMetrics.shadowMargin` of transparent room on the
     // sides and bottom, so the shadow can blur out fully instead of being
     // clipped into corner artifacts. Keep its extent (radius + y offset) well
     // inside that margin.
     private var panelFill: some View {
-        // 26pt expanded radius (Tahoe-era curvature); inner cards derive their
-        // radii concentrically from this minus their inset.
-        let radius: CGFloat = viewModel.isExpanded ? 26 : 10
+        // Same source as the clip shape above (Metrics.radius), so the fill and
+        // the clip can never disagree about the silhouette they are drawing.
+        let radius = Metrics.radius(expanded: state.isExpanded)
         return NotchShape(cornerRadius: radius)
             .fill(.black)
             .overlay {
                 // Hairline edge on the sides and bottom only. Nothing light may
                 // touch the top region: the fill must stay pure black there so
                 // the hardware notch cutout is indistinguishable from the panel.
-                if viewModel.isExpanded {
+                if state.isExpanded {
                     NotchEdgeShape(cornerRadius: radius)
                         .stroke(.white.opacity(0.09), lineWidth: 1)
                 }
@@ -155,7 +207,12 @@ private struct AmbientGlow: View {
             }
             .allowsHitTesting(false)
             .transition(.opacity)
-            .animation(.smooth(duration: 0.8), value: media.current.accent)
+            // Keyed on the artwork token rather than the colour: the accent now
+            // arrives a beat after the track metadata (it is derived off the
+            // main thread), and keying on `accent` meant the very first frame
+            // of a new track could paint the old colour with no animation
+            // pending. The token changes exactly once per cover.
+            .animation(Motion.accentShift, value: media.current.artworkToken)
         }
     }
 }
@@ -220,17 +277,30 @@ private struct CollapsedContent: View {
     /// whole simulated strip is visible).
     let deadZone: CGFloat
     let showMediaGlyph: Bool
+    let showBattery: Bool
+    let morph: Namespace.ID
 
     var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: 5) {
                 if showMediaGlyph, let art = media.current.artwork {
-                    Image(nsImage: art)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 15, height: 15)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                        .transition(.scale.combined(with: .opacity))
+                    // Half of the matched pair — the other half is the 62pt
+                    // artwork in MediaView. No `.transition` on the wrapper:
+                    // the matched geometry owns its insert and removal, and a
+                    // scale/opacity transition on top fights it.
+                    ZStack {
+                        Image(nsImage: art)
+                            .resizable()
+                            .scaledToFill()
+                            .id(media.current.artworkToken)
+                            .transition(.opacity)
+                    }
+                    .frame(width: Metrics.peekArtworkSize,
+                           height: Metrics.peekArtworkSize)
+                    .clipShape(RoundedRectangle(cornerRadius: Metrics.peekArtworkRadius,
+                                                style: .continuous))
+                    .animation(Motion.contentFade, value: media.current.artworkToken)
+                    .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -239,11 +309,12 @@ private struct CollapsedContent: View {
 
             HStack(spacing: 5) {
                 if showMediaGlyph {
-                    WaveformGlyph(tint: media.current.accent ?? .white)
+                    WaveformGlyph(tint: media.current.accent ?? .white,
+                                  isPlaying: media.isPlaying)
                         .transition(.scale.combined(with: .opacity))
                 }
                 // Battery hints only fit where the strip is fully visible.
-                if deadZone == 0 {
+                if showBattery, deadZone == 0 {
                     if battery.isCharging {
                         BatteryBolt()
                     } else if battery.isPresent && battery.level < 0.2 {
@@ -293,21 +364,40 @@ private struct HUDContent: View {
 /// ambient glow.
 private struct WaveformGlyph: View {
     var tint: Color = .white
+    /// Drives the bars. Paused music leaves them settled rather than dancing to
+    /// nothing — the glyph used to loop forever regardless of playback, which
+    /// made the notch look like it was playing when it wasn't.
+    var isPlaying: Bool
 
     @State private var animating = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
     private let heights: [CGFloat] = [5, 11, 7, 9]
+    private let restHeight: CGFloat = 3
+
+    /// Bars only move when there is sound *and* the user hasn't asked for less
+    /// motion. Under Reduce Motion they hold at their full heights instead of
+    /// collapsing, so the glyph still reads as "audio" without moving.
+    private var isDancing: Bool { isPlaying && animating && !reduceMotion }
 
     var body: some View {
         HStack(alignment: .center, spacing: 2) {
             ForEach(Array(heights.enumerated()), id: \.offset) { index, height in
                 Capsule()
                     .fill(tint.opacity(0.9))
-                    .frame(width: 2.5, height: animating ? height : 3)
+                    .frame(width: 2.5,
+                           height: isDancing ? height
+                                 : (reduceMotion && isPlaying ? height : restHeight))
                     .animation(
-                        .easeInOut(duration: 0.5)
-                            .repeatForever(autoreverses: true)
-                            .delay(Double(index) * 0.11),
-                        value: animating
+                        isDancing
+                            ? .easeInOut(duration: 0.5)
+                                .repeatForever(autoreverses: true)
+                                .delay(Double(index) * 0.11)
+                            // Settling on pause is a one-shot, not a loop —
+                            // keeping repeatForever here would leave an
+                            // animation running against a constant value.
+                            : Motion.micro,
+                        value: isDancing
                     )
             }
         }
@@ -322,6 +412,7 @@ private struct WaveformGlyph: View {
 private struct ExpandedContent: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
+    let morph: Namespace.ID
 
     var body: some View {
         VStack(spacing: 9) {
@@ -329,7 +420,7 @@ private struct ExpandedContent: View {
 
             HStack(alignment: .center, spacing: 14) {
                 if settings.showMedia {
-                    MediaView(media: viewModel.media)
+                    MediaView(media: viewModel.media, morph: morph)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if settings.showMedia && (settings.showCalendar || settings.showShelf) {
@@ -379,13 +470,16 @@ private struct HeaderRow: View {
                 if settings.showWeather {
                     WeatherPill(weather: viewModel.weather)
                 }
-                BatteryView(battery: viewModel.battery)
+                if settings.showBattery {
+                    BatteryView(battery: viewModel.battery)
+                }
                 Button { viewModel.onOpenSettings?() } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 12))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(.white)
+                        .hoverLift(restOpacity: 0.55)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PressableButtonStyle())
                 .help("Settings")
             }
         }
@@ -420,8 +514,12 @@ private struct WeatherPill: View {
 /// highlighted) — with the next event (or "Nothing for today") beneath it.
 private struct CalendarWeekStrip: View {
     @ObservedObject var calendar: CalendarModel
+    @ObservedObject private var settings = AppSettings.shared
 
-    private let accent = Color(red: 0.28, green: 0.6, blue: 1.0)
+    /// Today's highlight. Was a hardcoded blue; now follows the user's accent,
+    /// which is the one place in the notch that tint applies — the ambient glow
+    /// keeps following the artwork.
+    private var accent: Color { settings.accent }
 
     var body: some View {
         TimelineView(.everyMinute) { context in

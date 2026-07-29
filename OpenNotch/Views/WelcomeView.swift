@@ -1,115 +1,188 @@
 import SwiftUI
+import EventKit
+import CoreLocation
 
-/// One-time first-run welcome.
+/// First-run onboarding: a short, animated, multi-step flow.
 ///
 /// AloeNotch is invisible until you hover the notch — which is the point, but it
 /// also means a brand-new user launches the app and sees nothing happen. This
-/// screen teaches the gesture (with a looping animation), says what's inside,
-/// and lets permissions be requested afterwards, in context.
+/// flow exists to close that gap, and it is also the first thing anyone sees of
+/// the app's quality, so it is built to be looked at rather than skipped.
 ///
-/// Built on Liquid Glass over a frosted, behind-window backdrop, so the actual
-/// desktop shows through rather than a painted background. Cards go through
-/// `panelSurface`, which honours the user's glass preference — offered right
-/// here in the footer, because translucency is a taste call and some desktops
-/// make it hard to read.
+/// Permissions are requested *here*, in context, one screen at a time, with the
+/// reason next to each. The alternative — firing three system prompts at launch
+/// before the user knows what the app is — is how apps get denied by reflex.
 struct WelcomeView: View {
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var a11y = AccessibilityPreferences.shared
     let onDone: () -> Void
 
-    var body: some View {
-        GlassEffectContainer(spacing: 18) {
-            VStack(spacing: 0) {
-                // The cards are taller than any window we'd want to open at, and
-                // this used to be a plain VStack in a fixed frame — so the
-                // overflow was simply clipped and "Get Started" was unreachable.
-                ScrollView {
-                    VStack(spacing: 16) {
-                        hero
-                        features
-                        footer
-                    }
-                    // Top inset clears the traffic lights: the content view now
-                    // runs full-height under the titlebar.
-                    .padding(.top, 28)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                }
-                .scrollContentBackground(.hidden)
+    @State private var step: Step = .welcome
+    /// Direction of travel, so the slide transition leans the right way when
+    /// going back rather than always sliding forward.
+    @State private var goingBack = false
 
-                // Pinned, so the primary action can never scroll out of reach.
-                actionBar
+    enum Step: Int, CaseIterable, Comparable {
+        case welcome, gesture, permissions, finish
+        static func < (a: Step, b: Step) -> Bool { a.rawValue < b.rawValue }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 30)
+                .padding(.top, 40)
+
+            footer
+        }
+        .frame(width: 520, height: 560)
+        .frostedWindowBackground(settings.useGlass)
+        .withAccessibilityPreferences()
+    }
+
+    // MARK: Steps
+
+    @ViewBuilder
+    private var content: some View {
+        ZStack {
+            switch step {
+            case .welcome:     welcomeStep
+            case .gesture:     gestureStep
+            case .permissions: permissionsStep
+            case .finish:      finishStep
             }
         }
-        .frame(width: 480, height: 640)
-        .frostedWindowBackground(settings.useGlass)
+        .transition(stepTransition)
+        .id(step)
     }
 
-    private var actionBar: some View {
-        VStack(spacing: 0) {
-            Divider().opacity(0.35)
-            Button("Get Started", action: onDone)
-                .glassProminentButtonStyle(settings.useGlass)
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
-                .padding(.vertical, 14)
-        }
-        .frame(maxWidth: .infinity)
+    /// Slides in the direction of travel. Under Reduce Motion it degrades to a
+    /// plain cross-fade — the flow still reads as stepping forward because the
+    /// progress dots move, without anything sliding across the screen.
+    private var stepTransition: AnyTransition {
+        if a11y.reduceMotion { return .opacity }
+        let from: Edge = goingBack ? .leading : .trailing
+        let to: Edge = goingBack ? .trailing : .leading
+        return .asymmetric(
+            insertion: .move(edge: from).combined(with: .opacity),
+            removal: .move(edge: to).combined(with: .opacity)
+        )
     }
 
-    // MARK: Hero
-
-    private var hero: some View {
-        VStack(spacing: 12) {
+    private var welcomeStep: some View {
+        VStack(spacing: 18) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: 62, height: 62)
-                .shadow(color: .black.opacity(0.45), radius: 12, y: 4)
+                .frame(width: 84, height: 84)
+                .shadow(color: .black.opacity(0.35), radius: 14, y: 5)
 
-            Text("Welcome to AloeNotch")
-                .font(.system(size: 22, weight: .semibold))
+            VStack(spacing: 8) {
+                Text("Welcome to AloeNotch")
+                    .font(.system(size: 26, weight: .semibold))
+                Text("Your MacBook's notch, turned into something useful.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
 
-            Text("Your notch is awake. Hover it to open — it stays invisible until you do.")
-                .font(.system(size: 12.5))
+            VStack(alignment: .leading, spacing: 13) {
+                highlight("music.note", "Now Playing",
+                          "Whatever your Mac is playing — Music, Spotify, even YouTube.")
+                highlight("tray.full", "Shelf",
+                          "Drop files on the notch to park them, then drag them back out.")
+                highlight("calendar", "Your day",
+                          "Next event, local weather and battery, at a glance.")
+            }
+            .padding(.top, 4)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var gestureStep: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 8) {
+                Text("Hover the notch")
+                    .font(.system(size: 24, weight: .semibold))
+                Text("That's the whole gesture. AloeNotch stays completely invisible until your pointer reaches the top of the screen.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            NotchGestureDemo(scale: 1.0)
+
+            Text("Try it after you finish setting up.")
+                .font(.system(size: 12))
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
 
-            MiniNotchDemo().padding(.top, 4)
+            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 22)
-        .frame(maxWidth: .infinity)
-        .panelSurface(cornerRadius: 26, glass: settings.useGlass)
     }
 
-    // MARK: Features
+    private var permissionsStep: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Text("A few optional permissions")
+                    .font(.system(size: 22, weight: .semibold))
+                Text("Every one of these is optional, and each only switches off a single feature. You can change them any time in Settings.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
-    private var features: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            row("music.note", "Now Playing",
-                "Controls for whatever your Mac is playing — Music, Spotify, even YouTube in a browser.")
-            row("tray.full", "Shelf",
-                "Drag files onto the notch to park them, then drag them back out. They persist across launches.")
-            row("calendar", "Calendar & weather",
-                "Your week and the local conditions, at a glance.")
-            row("gearshape", "Settings",
-                "The gear in the panel — or the menu bar icon — changes what shows up.")
+            OnboardingPermissions()
+
+            Spacer(minLength: 0)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .panelSurface(cornerRadius: 22, glass: settings.useGlass)
     }
 
-    private func row(_ symbol: String, _ title: String, _ detail: String) -> some View {
-        HStack(alignment: .top, spacing: 13) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .medium))
+    private var finishStep: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 54))
                 .foregroundStyle(.tint)
-                .frame(width: 22, height: 22)
+
+            VStack(spacing: 8) {
+                Text("You're set")
+                    .font(.system(size: 24, weight: .semibold))
+                Text("The notch is live. Hover it whenever you want it.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(spacing: 0) {
+                SettingsRow("Open AloeNotch at login", symbol: "power",
+                            description: "It runs quietly in the menu bar.") {
+                    Toggle("", isOn: $settings.launchAtLogin).labelsHidden()
+                }
+                SettingsDivider()
+                SettingsRow("Liquid Glass", symbol: "square.on.square.dashed",
+                            description: "Translucent windows. Turn it off if you'd rather have solid panels.") {
+                    Toggle("", isOn: $settings.useGlass.animation(
+                        Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)))
+                        .labelsHidden()
+                }
+            }
+            .panelSurface(cornerRadius: 12, glass: settings.useGlass)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func highlight(_ symbol: String, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.tint)
+                .frame(width: 24, height: 22)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 12.5, weight: .semibold))
+                Text(title).font(.system(size: 13, weight: .semibold))
                 Text(detail)
-                    .font(.system(size: 11.5))
+                    .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -119,83 +192,111 @@ struct WelcomeView: View {
     // MARK: Footer
 
     private var footer: some View {
-        VStack(spacing: 14) {
-            Toggle("Use Liquid Glass", isOn: $settings.useGlass.animation(.smooth(duration: 0.35)))
-                .toggleStyle(.switch)
-            Text("Translucent panels that pick up what's behind them. Turn it off for solid panels if you'd rather have the contrast.")
-                .font(.system(size: 10.5))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(spacing: 0) {
+            Divider().opacity(0.35)
+            HStack {
+                Button("Back") { go(to: previous) }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .opacity(step == .welcome ? 0 : 1)
+                    .disabled(step == .welcome)
 
-            Divider().opacity(0.4)
+                Spacer()
+                progressDots
+                Spacer()
 
-            Toggle("Open AloeNotch at login", isOn: $settings.launchAtLogin)
-                .toggleStyle(.switch)
-
-            Text("Calendar and weather will ask permission after you continue. Both are optional and can be turned off in Settings.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+                Button(step == .finish ? "Get Started" : "Continue") {
+                    if step == .finish { onDone() } else { go(to: next) }
+                }
+                .glassProminentButtonStyle(settings.useGlass)
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 20)
-        .frame(maxWidth: .infinity)
-        .panelSurface(cornerRadius: 22, glass: settings.useGlass)
+    }
+
+    private var progressDots: some View {
+        HStack(spacing: 7) {
+            ForEach(Step.allCases, id: \.rawValue) { s in
+                Circle()
+                    .fill(s == step ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.35)))
+                    .frame(width: 6, height: 6)
+                    .scaleEffect(s == step && !a11y.reduceMotion ? 1.25 : 1)
+            }
+        }
+        .animation(Motion.resolve(Motion.micro, reduceMotion: a11y.reduceMotion), value: step)
+    }
+
+    private var next: Step { Step(rawValue: step.rawValue + 1) ?? .finish }
+    private var previous: Step { Step(rawValue: step.rawValue - 1) ?? .welcome }
+
+    private func go(to destination: Step) {
+        goingBack = destination < step
+        withAnimation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)) {
+            step = destination
+        }
     }
 }
 
-/// A small looping animation of the notch expanding, so the hover gesture reads
-/// instantly. Reuses the app's real `NotchShape` so it matches what they'll see.
-private struct MiniNotchDemo: View {
-    @State private var open = false
-    @State private var timer: Timer?
+/// The three optional permissions, each requestable inline.
+///
+/// Shares `PermissionRow` with the Settings pane deliberately: the same
+/// permission should not be described two different ways depending on where the
+/// user happens to read about it.
+private struct OnboardingPermissions: View {
+    @ObservedObject private var settings = AppSettings.shared
+
+    @State private var accessibilityTrusted = MediaKeyInterceptor.isTrusted
+    @State private var calendarStatus = EKEventStore.authorizationStatus(for: .event)
+    @State private var locationStatus = CLLocationManager().authorizationStatus
+
+    private let poll = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // A dark plate rather than glass: the notch itself must read as a
-            // true black cutout, and glass behind it would lift the blacks.
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.black.opacity(0.28))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
-                }
-
-            NotchShape(cornerRadius: open ? 14 : 7)
-                .fill(.black)
-                .frame(width: open ? 226 : 94, height: open ? 66 : 18)
-                .overlay(alignment: .bottom) {
-                    if open {
-                        HStack(spacing: 9) {
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(.white.opacity(0.22))
-                                .frame(width: 26, height: 26)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Capsule().fill(.white.opacity(0.30)).frame(width: 58, height: 5)
-                                Capsule().fill(.white.opacity(0.16)).frame(width: 38, height: 5)
-                            }
-                            Spacer(minLength: 0)
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(.white.opacity(0.14))
-                                .frame(width: 40, height: 26)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 11)
-                        .transition(.opacity)
+        VStack(spacing: 0) {
+            PermissionRow(
+                title: "Calendar",
+                symbol: "calendar",
+                rationale: "Shows your next event in the panel. Nothing leaves your Mac.",
+                status: calendarStatus == .fullAccess ? .granted
+                      : (calendarStatus == .denied ? .denied : .notDetermined),
+                action: calendarStatus == .fullAccess ? nil : {
+                    EKEventStore().requestFullAccessToEvents { _, _ in
+                        DispatchQueue.main.async { refresh() }
                     }
                 }
+            )
+            SettingsDivider()
+            PermissionRow(
+                title: "Location",
+                symbol: "location",
+                rationale: "Used at reduced accuracy for local weather — roughly your city, not your address.",
+                status: (locationStatus == .authorized || locationStatus == .authorizedAlways) ? .granted
+                      : (locationStatus == .denied ? .denied : .notDetermined),
+                action: (locationStatus == .authorized || locationStatus == .authorizedAlways) ? nil : {
+                    // Turning weather on is what brings up a live location
+                    // manager, which is what triggers the system prompt.
+                    settings.showWeather = true
+                }
+            )
+            SettingsDivider()
+            PermissionRow(
+                title: "Accessibility",
+                symbol: "hand.raised",
+                rationale: "Lets AloeNotch show volume and brightness in the notch instead of the macOS HUD.",
+                status: accessibilityTrusted ? .granted : .notDetermined,
+                action: accessibilityTrusted ? nil : { MediaKeyInterceptor.requestTrust() }
+            )
         }
-        .frame(width: 262, height: 104)
-        .onAppear {
-            timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-                withAnimation(.snappy(duration: 0.45, extraBounce: 0.12)) { open.toggle() }
-            }
-        }
-        .onDisappear {
-            timer?.invalidate()
-            timer = nil
-        }
+        .panelSurface(cornerRadius: 12, glass: settings.useGlass)
+        .onReceive(poll) { _ in refresh() }
+    }
+
+    private func refresh() {
+        accessibilityTrusted = MediaKeyInterceptor.isTrusted
+        calendarStatus = EKEventStore.authorizationStatus(for: .event)
+        locationStatus = CLLocationManager().authorizationStatus
     }
 }

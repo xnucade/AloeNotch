@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct TrayView: View {
     @ObservedObject var tray: TrayModel
     @State private var isTargeted = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     private let columns = [GridItem(.adaptive(minimum: 44), spacing: 8)]
 
@@ -21,26 +22,39 @@ struct TrayView: View {
                 }
                 if !tray.items.isEmpty {
                     Button { tray.clear() } label: {
-                        Image(systemName: "trash").font(.system(size: 10))
+                        Image(systemName: "trash")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white)
+                            .hoverLift(restOpacity: 0.5)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.white.opacity(0.5))
+                    .buttonStyle(PressableButtonStyle())
                 }
             }
 
             content
                 .frame(maxWidth: .infinity, minHeight: 62)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(
-                            style: StrokeStyle(lineWidth: 1, dash: [4, 4])
-                        )
-                        .foregroundStyle(.white.opacity(isTargeted ? 0.55 : 0.14))
-                        .animation(.smooth(duration: 0.2), value: isTargeted)
-                )
+                .background {
+                    ZStack {
+                        // A fill that only exists while a file is overhead, so
+                        // the well reads as *open* rather than merely outlined.
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(.white.opacity(isTargeted ? 0.10 : 0))
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                            .foregroundStyle(.white.opacity(isTargeted ? 0.55 : 0.14))
+                    }
+                }
+                // Swells very slightly toward the cursor. Small on purpose:
+                // this sits inside a fixed-height panel, so anything bigger
+                // would push the neighbouring columns around mid-drag.
+                .scaleEffect(isTargeted && !reduceMotion ? 1.03 : 1)
+                .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion),
+                           value: isTargeted)
         }
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
-            tray.handleDrop(providers)
+            let accepted = tray.handleDrop(providers)
+            if accepted { Haptics.caught() }
+            return accepted
         }
     }
 
@@ -131,6 +145,7 @@ private struct TrayChip: View {
     let item: TrayItem
     let onRemove: () -> Void
     @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -143,6 +158,10 @@ private struct TrayChip: View {
             }
             .frame(width: 44, height: 44)
             .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            // Lifts toward the cursor so it reads as grabbable — this is the
+            // one control here you are meant to pick up and drag.
+            .scaleEffect(hovering && !reduceMotion ? 1.06 : 1)
+            .shadow(color: .black.opacity(hovering ? 0.35 : 0), radius: 5, y: 2)
             // Drag the staged file back out to Finder / another app.
             .onDrag { NSItemProvider(object: item.url as NSURL) }
 
@@ -152,11 +171,13 @@ private struct TrayChip: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.white, .black.opacity(0.6))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PressableButtonStyle())
                 .offset(x: 4, y: -4)
+                .transition(.scale.combined(with: .opacity))
             }
         }
         .help(item.name)
         .onHover { hovering = $0 }
+        .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion), value: hovering)
     }
 }

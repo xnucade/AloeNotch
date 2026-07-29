@@ -7,6 +7,13 @@ struct NowPlaying: Equatable {
     var artist: String = ""
     var album: String = ""
     var artwork: NSImage? = nil
+    /// Stable identity for whatever is in `artwork`.
+    ///
+    /// `NSImage` is a class, so `NowPlaying`'s synthesised `==` compares it by
+    /// reference — useless for asking "is this a different cover?". Views need
+    /// that question answered to crossfade between tracks, so this carries a
+    /// hash of the source bytes instead. It changes only when the picture does.
+    var artworkToken: Int? = nil
     /// Icon of the app the audio is coming from (Music, Spotify, browser…).
     var sourceIcon: NSImage? = nil
     /// Dominant artwork color, punched up for use as the ambient rim glow.
@@ -35,11 +42,22 @@ final class NowPlayingManager: ObservableObject {
 
     // Stream payloads repeat the same artwork many times per track; decode and
     // color-analyze only when it actually changes.
+    /// Payload string we have most recently *started* decoding — the dedupe guard.
     private var artworkCacheKey: String?
     private var cachedArtwork: NSImage?
     private var cachedAccent: Color?
+    /// Token of the artwork actually in `cachedArtwork`. Trails
+    /// `artworkCacheKey` while a decode is in flight, so the token always
+    /// describes the image currently on screen rather than the one arriving.
+    private var cachedArtworkToken: Int?
     private var cachedSourceBundleID: String?
     private var cachedSourceIcon: NSImage?
+
+    /// Artwork decoding and colour analysis run here, never on main.
+    private let artworkQueue = DispatchQueue(label: "com.kadeslab.AloeNotch.artwork",
+                                             qos: .userInitiated)
+    /// Guards against an older, slower decode landing after a newer one.
+    private var artworkGeneration = 0
 
     // Elapsed-time interpolation: the source reports elapsed only every ~150ms,
     // so we advance it locally between updates from the last known value.
@@ -114,21 +132,20 @@ final class NowPlayingManager: ObservableObject {
         if let base64 = payload["artworkData"] as? String {
             if base64 != artworkCacheKey {
                 artworkCacheKey = base64
-                if let data = Data(base64Encoded: base64),
-                   let image = NSImage(data: data) {
-                    cachedArtwork = image
-                    cachedAccent = Self.accentColor(from: image)
-                } else {
-                    cachedArtwork = nil
-                    cachedAccent = nil
-                }
+                decodeArtwork(base64)
             }
+            // Whatever is decoded *now*. On a track change this is still the
+            // previous cover for a frame or two, which is what makes the
+            // crossfade possible — the old image holds until the new one is
+            // ready, rather than blanking and popping back in.
             np.artwork = cachedArtwork
             np.accent = cachedAccent
+            np.artworkToken = cachedArtworkToken
         } else {
             artworkCacheKey = nil
             cachedArtwork = nil
             cachedAccent = nil
+            cachedArtworkToken = nil
         }
 
         // Source app: browser sources (YouTube etc.) often have a title but no
@@ -160,6 +177,43 @@ final class NowPlayingManager: ObservableObject {
 
         current = np
         isPlaying = playing
+    }
+
+    /// Decode a cover and derive its accent colour off the main thread, then
+    /// publish both together.
+    ///
+    /// This used to happen inline in `apply`, which runs on main: every track
+    /// change did a full image decode plus a Core Image reduction before the
+    /// run loop could draw again. That is precisely the moment the panel wants
+    /// to be animating a crossfade and easing the glow to a new colour, so the
+    /// one frame it most needed was the one being blocked.
+    private func decodeArtwork(_ base64: String) {
+        artworkGeneration &+= 1
+        let generation = artworkGeneration
+        let token = base64.hashValue
+
+        artworkQueue.async { [weak self] in
+            let image = Data(base64Encoded: base64).flatMap { NSImage(data: $0) }
+            let accent = image.flatMap { Self.accentColor(from: $0) }
+
+            DispatchQueue.main.async {
+                guard let self, self.artworkGeneration == generation else {
+                    return   // a newer cover already won
+                }
+                self.cachedArtwork = image
+                self.cachedAccent = accent
+                self.cachedArtworkToken = image == nil ? nil : token
+
+                // Republish so the new cover reaches the UI. Everything else in
+                // `current` is already up to date from the payload that started
+                // this decode.
+                var updated = self.current
+                updated.artwork = image
+                updated.accent = accent
+                updated.artworkToken = self.cachedArtworkToken
+                self.current = updated
+            }
+        }
     }
 
     /// Average color of the artwork via CIAreaAverage, with saturation and
@@ -241,6 +295,7 @@ final class NowPlayingManager: ObservableObject {
                let image = NSImage(data: data) {
                 np.artwork = image
                 np.accent = Self.accentColor(from: image)
+                np.artworkToken = data.hashValue
             }
             np.duration = info["kMRMediaRemoteNowPlayingInfoDuration"] as? Double ?? 0
             self.elapsedBase = info["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? Double ?? 0

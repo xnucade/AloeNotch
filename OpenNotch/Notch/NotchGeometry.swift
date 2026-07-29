@@ -22,23 +22,35 @@ struct NotchMetrics {
     /// icon and a level bar.
     static let hudWingWidth: CGFloat = 84
 
-    /// Collapsed size, grown into "wings" while a HUD or the now-playing glyph
-    /// is showing so they clear the physical notch. Displays without a notch
-    /// already show their whole simulated strip, so they don't grow.
-    func collapsedSize(showingMediaGlyph: Bool, showingHUD: Bool = false) -> CGSize {
-        guard hasHardwareNotch else { return notchSize }
-        if showingHUD {
-            return CGSize(width: notchSize.width + Self.hudWingWidth * 2,
-                          height: notchSize.height)
+    /// On-screen size of the notch surface in a given state.
+    ///
+    /// Single source of truth: the SwiftUI frame and the window's hit-test rect
+    /// both read this, so they cannot disagree about how big the panel is.
+    /// Peek states grow into "wings" either side of the hardware notch so their
+    /// content clears it; displays without a notch already show their whole
+    /// simulated strip, so they don't grow.
+    func size(for state: PanelState) -> CGSize {
+        switch state {
+        case .expanded:
+            return CGSize(width: expandedWidth, height: expandedHeight)
+        case .peek(let kind):
+            guard hasHardwareNotch else { return notchSize }
+            let wing = kind == .hud ? Self.hudWingWidth : Self.mediaWingWidth
+            return CGSize(width: notchSize.width + wing * 2, height: notchSize.height)
+        case .collapsed:
+            return notchSize
         }
-        guard showingMediaGlyph else { return notchSize }
-        return CGSize(width: notchSize.width + Self.mediaWingWidth * 2,
-                      height: notchSize.height)
     }
 
     // Expanded panel dimensions — wide and short, a horizontal three-column
     // layout (media · calendar · shelf).
-    var expandedWidth: CGFloat { max(collapsedSize.width + 40, 616) }
+    //
+    // The floor keeps the panel wider than the collapsed strip no matter how
+    // narrow the user sets it: a panel narrower than the notch it grows out of
+    // would collapse *inward*, which looks broken rather than adjustable.
+    var expandedWidth: CGFloat {
+        max(collapsedSize.width + 40, CGFloat(AppSettings.shared.panelWidth))
+    }
     var expandedHeight: CGFloat { 208 }
 
     /// Transparent margin around the expanded panel (sides and bottom) so the
