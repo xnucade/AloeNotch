@@ -163,9 +163,9 @@
       <div class="dl-panel reveal">
         <img src="assets/icon.png" alt="AloeNotch icon" width="96" height="96">
         <h2>Get AloeNotch</h2>
-        <p class="fineprint">Version 0.7.0 · Apple Silicon · macOS 26 or later ·
+        <p class="fineprint">Version 0.8.0 · Apple Silicon · macOS 26 or later ·
         <a href="/changelog">what’s new</a></p>
-        <a class="btn btn-big" href="assets/AloeNotch-0.7.0.dmg" download>Download .dmg</a>
+        <a class="btn btn-big" href="assets/AloeNotch-0.8.0.dmg" download>Download .dmg</a>
         <details>
           <summary>First launch on macOS</summary>
           <p>AloeNotch is an independent app, so macOS will ask before the first
@@ -174,11 +174,14 @@
           this once.</p>
         </details>
 
-        <!-- Intel / macOS 15 users. 0.7.0 is Apple Silicon and macOS 26 only,
-             so this is the last build they can run — frozen, not maintained. -->
+        <!-- Intel / macOS 15 users. Everything from 0.7.0 on is Apple Silicon
+             and macOS 26 only, so 0.6.0 is the last build they can run —
+             frozen, not maintained. Deliberately worded without a current
+             version number: release.sh rewrites "Version N" and the .dmg link
+             above, but not prose, so a number here would silently go stale. -->
         <details class="dl-legacy">
           <summary>Intel Mac, or macOS 15?</summary>
-          <p>AloeNotch 0.7.0 needs Apple&nbsp;Silicon and macOS&nbsp;26.
+          <p>AloeNotch needs Apple&nbsp;Silicon and macOS&nbsp;26.
           <strong>0.6.0 is the final build for Intel Macs and macOS&nbsp;15</strong>
           — it still works, but it won’t receive new features or fixes.</p>
           <p><a href="assets/AloeNotch-0.6.0-intel-eol.dmg" download>Download 0.6.0 (Intel · final release)</a></p>
