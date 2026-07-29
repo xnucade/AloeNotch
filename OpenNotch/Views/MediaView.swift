@@ -25,10 +25,21 @@ struct MediaView: View {
                     Text(media.isAvailable ? "Nothing playing" : "Now Playing unavailable")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white.opacity(0.7))
-                    if !media.isAvailable {
-                        Text("Not supported on this macOS version")
+                    if media.isAvailable {
+                        Text("Start something in Music, Spotify or a browser.")
                             .font(.system(size: 10))
                             .foregroundStyle(.white.opacity(0.45))
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        // Was "Not supported on this macOS version", which is
+                        // no longer a possible cause — the minimum is macOS 26
+                        // and the adapter covers every version from here on.
+                        // If this shows now, the media helper failed to start,
+                        // and the reason is in Console under "AloeNotch".
+                        Text("The media helper didn't start. Relaunching AloeNotch usually fixes it.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white.opacity(0.45))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

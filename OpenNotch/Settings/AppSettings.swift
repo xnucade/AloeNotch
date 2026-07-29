@@ -71,6 +71,13 @@ final class AppSettings: ObservableObject {
     /// context rather than before the user knows what the app is.
     @Published var hasSeenWelcome: Bool { didSet { defaults.set(hasSeenWelcome, forKey: "hasSeenWelcome") } }
 
+    /// Version whose release notes the user has already seen. Empty on a fresh
+    /// install, which is how the what's-new sheet knows to stay out of the way
+    /// on a first run and let the onboarding flow do the talking.
+    @Published var lastSeenVersion: String {
+        didSet { save(lastSeenVersion, "lastSeenVersion") }
+    }
+
     private let defaults = UserDefaults.standard
 
     private init() {
@@ -111,6 +118,7 @@ final class AppSettings: ObservableObject {
                          Self.panelWidthRange.upperBound)
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
+        lastSeenVersion = defaults.string(forKey: "lastSeenVersion") ?? ""
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

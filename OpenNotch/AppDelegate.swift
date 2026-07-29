@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var sigtermSource: DispatchSourceSignal?
     private var settingsWindow: NSWindow?
     private var welcomeWindow: NSWindow?
+    private var whatsNewWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -40,11 +41,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
         // First launch: the app is invisible until hovered, so introduce it.
-        if !AppSettings.shared.hasSeenWelcome {
+        let settings = AppSettings.shared
+        if !settings.hasSeenWelcome {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.showWelcome()
             }
+        } else if WhatsNew.shouldPresent(lastSeen: settings.lastSeenVersion,
+                                         hasSeenWelcome: settings.hasSeenWelcome) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.showWhatsNew()
+            }
+        } else {
+            // Keep the marker current even when there is nothing to show, so a
+            // release with no notes doesn't cause the *next* one to think the
+            // user has fallen several versions behind.
+            settings.lastSeenVersion = Self.currentVersion
         }
+    }
+
+    static var currentVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -99,19 +115,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func finishWelcome() {
         AppSettings.shared.hasSeenWelcome = true
+        // A brand-new install has, by definition, just seen everything that is
+        // new. Marking it here stops the what's-new sheet appearing on the very
+        // next launch of a version the user has only just met.
+        AppSettings.shared.lastSeenVersion = Self.currentVersion
         welcomeWindow?.close()
+    }
+
+    /// Release notes for a version the user hasn't run before.
+    func showWhatsNew() {
+        guard let entry = WhatsNew.current else { return }
+        if whatsNewWindow == nil {
+            let view = WhatsNewView(entry: entry) { [weak self] in
+                self?.finishWhatsNew()
+            }
+            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+            window.title = "What's New"
+            window.styleMask = [.titled, .closable]
+            window.configureForGlass()
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            window.center()
+            whatsNewWindow = window
+        }
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        whatsNewWindow?.makeKeyAndOrderFront(nil)
+        whatsNewWindow?.orderFrontRegardless()
+    }
+
+    private func finishWhatsNew() {
+        AppSettings.shared.lastSeenVersion = Self.currentVersion
+        whatsNewWindow?.close()
     }
 
     func windowWillClose(_ notification: Notification) {
         // Dismissing with the close button counts as seen — don't nag on relaunch.
-        if (notification.object as? NSWindow) === welcomeWindow {
+        let closing = notification.object as? NSWindow
+        if closing === welcomeWindow {
             AppSettings.shared.hasSeenWelcome = true
+            AppSettings.shared.lastSeenVersion = Self.currentVersion
+        }
+        if closing === whatsNewWindow {
+            AppSettings.shared.lastSeenVersion = Self.currentVersion
         }
         // Drop back to an accessory app once no windows of ours remain. Deferred
         // because the closing window is still visible at willClose time.
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            let anyVisible = [self.settingsWindow, self.welcomeWindow]
+            let anyVisible = [self.settingsWindow, self.welcomeWindow, self.whatsNewWindow]
                 .contains { $0?.isVisible == true }
             if !anyVisible { NSApp.setActivationPolicy(.accessory) }
         }

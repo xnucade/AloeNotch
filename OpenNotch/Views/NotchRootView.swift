@@ -560,8 +560,11 @@ private struct CalendarWeekStrip: View {
         }
     }
 
+    /// Line under the week strip. The dates stay useful even without calendar
+    /// access, so the strip is never hidden — only this line changes, and it
+    /// says where to fix it rather than just reporting that something is off.
     private var subtitle: String {
-        if !calendar.isAuthorized { return "Calendar access off" }
+        if !calendar.isAuthorized { return "Allow Calendar in Settings → Access" }
         if let next = calendar.upcoming.first { return "\(next.timeText) · \(next.title)" }
         return "Nothing for today"
     }

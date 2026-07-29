@@ -32,6 +32,16 @@ struct BatteryView: View {
     }
 
     var body: some View {
+        // Desktop Macs and Macs on a dead battery service report no battery at
+        // all. Previously this dimmed to 40% and showed a full-looking pill,
+        // which is worse than showing nothing: a permanently greyed-out "100%"
+        // reads as a bug rather than as "not applicable".
+        if battery.isPresent {
+            pill
+        }
+    }
+
+    private var pill: some View {
         HStack(spacing: 7) {
             batteryGlyph
             Text("\(percent)%")
@@ -50,7 +60,6 @@ struct BatteryView: View {
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
         .background(.white.opacity(0.08), in: Capsule())
-        .opacity(battery.isPresent ? 1 : 0.4)
     }
 
     private var batteryGlyph: some View {
