@@ -207,6 +207,20 @@ final class NotchViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Permissions granted from Settings or onboarding reach the features
+        // that need them without a relaunch.
+        PermissionRequester.shared.$calendarStatus
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] _ in self?.calendar.reevaluateAccess() }
+            .store(in: &cancellables)
+
+        PermissionRequester.shared.$locationStatus
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] _ in self?.weather.reevaluateAccess() }
+            .store(in: &cancellables)
+
         // The media peek is now an explicit state rather than something the
         // view re-derives, so the two inputs that produce it have to drive the
         // state machine directly.

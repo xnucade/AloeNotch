@@ -27,6 +27,16 @@ final class CalendarModel: ObservableObject {
     private var timer: Timer?
     private var isRunning = false
 
+    /// Pick up access granted elsewhere (the Settings or onboarding panes)
+    /// without waiting for a relaunch. `start()` is guarded on `isRunning`, so
+    /// a model that already ran and was refused would otherwise stay refused
+    /// for the rest of the session even after the user said yes.
+    func reevaluateAccess() {
+        guard isRunning, !isAuthorized else { return }
+        isRunning = false
+        start()
+    }
+
     func start() {
         guard !isRunning else { return }
         isRunning = true

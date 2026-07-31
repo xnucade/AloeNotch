@@ -247,11 +247,10 @@ struct WelcomeView: View {
 /// user happens to read about it.
 private struct OnboardingPermissions: View {
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var permissions = PermissionRequester.shared
 
+    /// Accessibility can only be polled; the other two publish their own changes.
     @State private var accessibilityTrusted = MediaKeyInterceptor.isTrusted
-    @State private var calendarStatus = EKEventStore.authorizationStatus(for: .event)
-    @State private var locationStatus = CLLocationManager().authorizationStatus
-
     private let poll = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -259,27 +258,25 @@ private struct OnboardingPermissions: View {
             PermissionRow(
                 title: "Calendar",
                 symbol: "calendar",
-                rationale: "Shows your next event in the panel. Nothing leaves your Mac.",
-                status: calendarStatus == .fullAccess ? .granted
-                      : (calendarStatus == .denied ? .denied : .notDetermined),
-                action: calendarStatus == .fullAccess ? nil : {
-                    EKEventStore().requestFullAccessToEvents { _, _ in
-                        DispatchQueue.main.async { refresh() }
-                    }
-                }
+                rationale: permissions.calendarStatus == .denied
+                    ? "Denied. You can allow it later in System Settings → Privacy & Security."
+                    : "Shows your next event in the panel. Nothing leaves your Mac.",
+                status: permissions.calendarGranted ? .granted
+                      : (permissions.calendarStatus == .denied ? .denied : .notDetermined),
+                action: (permissions.calendarGranted || permissions.calendarStatus == .denied)
+                    ? nil : { permissions.requestCalendar() }
             )
             SettingsDivider()
             PermissionRow(
                 title: "Location",
                 symbol: "location",
-                rationale: "Used at reduced accuracy for local weather — roughly your city, not your address.",
-                status: (locationStatus == .authorized || locationStatus == .authorizedAlways) ? .granted
-                      : (locationStatus == .denied ? .denied : .notDetermined),
-                action: (locationStatus == .authorized || locationStatus == .authorizedAlways) ? nil : {
-                    // Turning weather on is what brings up a live location
-                    // manager, which is what triggers the system prompt.
-                    settings.showWeather = true
-                }
+                rationale: permissions.locationStatus == .denied
+                    ? "Denied. You can allow it later in System Settings → Privacy & Security."
+                    : "Used at reduced accuracy for local weather — roughly your city, not your address.",
+                status: permissions.locationGranted ? .granted
+                      : (permissions.locationStatus == .denied ? .denied : .notDetermined),
+                action: (permissions.locationGranted || permissions.locationStatus == .denied)
+                    ? nil : { permissions.requestLocation() }
             )
             SettingsDivider()
             PermissionRow(
@@ -291,12 +288,9 @@ private struct OnboardingPermissions: View {
             )
         }
         .panelSurface(cornerRadius: 12, glass: settings.useGlass)
-        .onReceive(poll) { _ in refresh() }
-    }
-
-    private func refresh() {
-        accessibilityTrusted = MediaKeyInterceptor.isTrusted
-        calendarStatus = EKEventStore.authorizationStatus(for: .event)
-        locationStatus = CLLocationManager().authorizationStatus
+        .onReceive(poll) { _ in
+            accessibilityTrusted = MediaKeyInterceptor.isTrusted
+            permissions.refresh()
+        }
     }
 }

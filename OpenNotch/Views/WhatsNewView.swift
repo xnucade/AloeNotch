@@ -45,11 +45,32 @@ enum WhatsNew {
         ),
     ]
 
+    /// The newest entry at or below the running version.
+    ///
+    /// Not an exact match on purpose. A patch release usually has nothing worth
+    /// a full-screen sheet, so it gets no entry of its own — but with exact
+    /// matching, someone upgrading 0.7.0 → 0.8.1 would skip the 0.8.0 notes
+    /// entirely and never learn what changed. Falling back to the most recent
+    /// entry they haven't seen keeps that from happening.
     static var current: Entry? {
-        guard let version = Bundle.main
+        guard let running = Bundle.main
             .object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         else { return nil }
-        return entries.first { $0.version == version }
+        return entries.first { isVersion($0.version, atOrBelow: running) }
+    }
+
+    /// Numeric semver comparison. String comparison would put "0.10.0" below
+    /// "0.9.0", which is exactly the kind of thing that goes unnoticed until
+    /// the tenth minor release.
+    static func isVersion(_ candidate: String, atOrBelow running: String) -> Bool {
+        let a = candidate.split(separator: ".").map { Int($0) ?? 0 }
+        let b = running.split(separator: ".").map { Int($0) ?? 0 }
+        for i in 0..<max(a.count, b.count) {
+            let l = i < a.count ? a[i] : 0
+            let r = i < b.count ? b[i] : 0
+            if l != r { return l < r }
+        }
+        return true   // equal
     }
 
     /// Whether to show the sheet on this launch.

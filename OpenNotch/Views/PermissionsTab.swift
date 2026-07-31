@@ -11,15 +11,12 @@ import EventKit
 /// rationale is shown whether or not the permission has been asked for — the
 /// moment to explain a permission is *before* it is requested.
 struct PermissionsTab: View {
-    @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var permissions = PermissionRequester.shared
 
+    /// Accessibility has no change notification and can only be polled. The
+    /// other two publish through `PermissionRequester`, so this timer exists
+    /// solely for that one value.
     @State private var accessibilityTrusted = MediaKeyInterceptor.isTrusted
-    @State private var calendarStatus = EKEventStore.authorizationStatus(for: .event)
-    @State private var locationStatus = CLLocationManager().authorizationStatus
-
-    /// One timer for the pane rather than one per row. Accessibility in
-    /// particular has no change notification — it can only be polled — and the
-    /// other two are cheap enough to re-read on the same tick.
     private let poll = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -28,7 +25,9 @@ struct PermissionsTab: View {
                 PermissionRow(
                     title: "Accessibility",
                     symbol: "hand.raised",
-                    rationale: accessibilityRationale,
+                    rationale: accessibilityTrusted
+                        ? "Granted. Volume and brightness show in the notch instead of the macOS HUD."
+                        : "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD. Without it, macOS keeps drawing its own and AloeNotch stays out of the way.",
                     status: accessibilityTrusted ? .granted : .notDetermined,
                     action: accessibilityTrusted ? nil : { MediaKeyInterceptor.requestTrust() }
                 )
@@ -39,9 +38,9 @@ struct PermissionsTab: View {
                     title: "Calendar",
                     symbol: "calendar",
                     rationale: calendarRationale,
-                    status: status(for: calendarStatus),
+                    status: status(for: permissions.calendarStatus),
                     action: calendarAction,
-                    actionTitle: calendarStatus == .denied ? "Open Settings…" : "Grant…"
+                    actionTitle: permissions.calendarStatus == .denied ? "Open Settings…" : "Grant…"
                 )
 
                 SettingsDivider()
@@ -50,9 +49,9 @@ struct PermissionsTab: View {
                     title: "Location",
                     symbol: "location",
                     rationale: locationRationale,
-                    status: status(for: locationStatus),
+                    status: status(for: permissions.locationStatus),
                     action: locationAction,
-                    actionTitle: locationStatus == .denied ? "Open Settings…" : "Grant…"
+                    actionTitle: permissions.locationStatus == .denied ? "Open Settings…" : "Grant…"
                 )
             }
 
@@ -70,40 +69,31 @@ struct PermissionsTab: View {
                 .padding(12)
             }
         }
-        .onReceive(poll) { _ in refresh() }
-    }
-
-    private func refresh() {
-        accessibilityTrusted = MediaKeyInterceptor.isTrusted
-        calendarStatus = EKEventStore.authorizationStatus(for: .event)
-        locationStatus = CLLocationManager().authorizationStatus
+        .onReceive(poll) { _ in
+            accessibilityTrusted = MediaKeyInterceptor.isTrusted
+            permissions.refresh()
+        }
     }
 
     // MARK: Rationales
 
-    private var accessibilityRationale: String {
-        accessibilityTrusted
-            ? "Granted. Volume and brightness show in the notch instead of the macOS HUD."
-            : "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD. Without it, macOS keeps drawing its own and AloeNotch stays out of the way."
-    }
-
     private var calendarRationale: String {
-        switch calendarStatus {
+        switch permissions.calendarStatus {
         case .fullAccess:
             "Granted. Your next event shows in the panel."
         case .denied, .restricted:
-            "Denied. The calendar strip will show dates but no events until this is allowed in System Settings."
+            "Denied. macOS won't ask again, so this has to be changed in System Settings → Privacy & Security → Calendars."
         default:
             "Shows your next event in the panel. Nothing leaves your Mac."
         }
     }
 
     private var locationRationale: String {
-        switch locationStatus {
+        switch permissions.locationStatus {
         case .authorized, .authorizedAlways:
             "Granted. Local conditions show in the panel header."
         case .denied, .restricted:
-            "Denied. Weather stays hidden until this is allowed in System Settings."
+            "Denied. macOS won't ask again, so this has to be changed in System Settings → Privacy & Security → Location Services."
         default:
             "Used at reduced accuracy to fetch local weather — roughly your city, not your address."
         }
@@ -111,41 +101,26 @@ struct PermissionsTab: View {
 
     // MARK: Actions
 
-    /// A denied permission cannot be re-prompted — the system only asks once.
-    /// The honest thing is to send the user to the pane that can actually
-    /// change it rather than showing a button that silently does nothing.
     private var calendarAction: (() -> Void)? {
-        switch calendarStatus {
+        switch permissions.calendarStatus {
         case .fullAccess:
-            return nil
+            nil
         case .denied, .restricted:
-            return { openSettings("Privacy_Calendars") }
+            { PermissionRequester.openPrivacySettings("Privacy_Calendars") }
         default:
-            return {
-                EKEventStore().requestFullAccessToEvents { _, _ in
-                    DispatchQueue.main.async { refresh() }
-                }
-            }
+            { permissions.requestCalendar() }
         }
     }
 
     private var locationAction: (() -> Void)? {
-        switch locationStatus {
+        switch permissions.locationStatus {
         case .authorized, .authorizedAlways:
-            return nil
+            nil
         case .denied, .restricted:
-            return { openSettings("Privacy_LocationServices") }
+            { PermissionRequester.openPrivacySettings("Privacy_LocationServices") }
         default:
-            // Requesting needs a live manager; the provider owns one and will
-            // prompt as soon as weather is switched on.
-            return { settings.showWeather = true }
+            { permissions.requestLocation() }
         }
-    }
-
-    private func openSettings(_ anchor: String) {
-        guard let url = URL(string:
-            "x-apple.systempreferences:com.apple.preference.security?\(anchor)") else { return }
-        NSWorkspace.shared.open(url)
     }
 
     // MARK: Status mapping

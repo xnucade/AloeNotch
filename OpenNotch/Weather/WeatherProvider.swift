@@ -49,6 +49,13 @@ final class WeatherProvider: NSObject, ObservableObject {
         current = nil
     }
 
+    /// Fetch as soon as location access is granted from elsewhere, rather than
+    /// waiting up to 20 minutes for the next scheduled refresh.
+    func reevaluateAccess() {
+        guard isRunning else { return }
+        requestLocationIfAuthorized()
+    }
+
     private func requestLocationIfAuthorized() {
         switch manager.authorizationStatus {
         case .authorized, .authorizedAlways:
