@@ -6,5 +6,23 @@
 	     battery reads require access that the sandbox would block. -->
 	<key>com.apple.security.cs.disable-library-validation</key>
 	<true/>
+
+	<!-- Resource access under the hardened runtime.
+	     make-dmg.sh signs with the hardened runtime enabled, which gates these
+	     two behind entitlements even though this app is not sandboxed. Without
+	     them the request is refused SILENTLY: no permission prompt appears, no
+	     error comes back, and the authorization status stays "not determined"
+	     forever, which looks exactly like a broken button. Accessibility is
+	     unaffected because it is granted through a different mechanism, which
+	     is why it was the only one that ever worked.
+
+	     Note for future edits: XML comments may not contain two consecutive
+	     hyphens. Writing the codesign flag literally here made the whole file
+	     unparseable, and codesign responded by signing with NO entitlements at
+	     all rather than failing, so the app looked fine and behaved worse. -->
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+	<key>com.apple.security.personal-information.location</key>
+	<true/>
 </dict>
 </plist>

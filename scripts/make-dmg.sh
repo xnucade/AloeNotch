@@ -112,12 +112,35 @@ APP="$DERIVED/Build/Products/Release/$APP_NAME.app"
 [ -d "$APP" ] || { echo "Build product not found: $APP"; exit 1; }
 
 echo "==> Signing (identity: $SIGN_IDENTITY)"
+ENTITLEMENTS="$PROJECT_DIR/$PROJECT_NAME/$PROJECT_NAME.entitlements"
+
+# Validate before signing. codesign treats an unparseable entitlements file as
+# a warning, not an error — it prints "Failed to parse entitlements" and then
+# signs the app with NO entitlements at all, exit status 0. The result looks
+# perfectly healthy and silently loses every capability the file granted, which
+# is exactly how a stray "--" inside an XML comment cost an afternoon.
+plutil -lint "$ENTITLEMENTS" >/dev/null || {
+    echo "error: $ENTITLEMENTS is not valid XML." >&2
+    echo "       (XML comments may not contain two consecutive hyphens.)" >&2
+    exit 1
+}
+
 # Strip extended attributes (resource forks, Finder info) that break codesign.
 xattr -cr "$APP"
 codesign --force --deep --options runtime \
-    --entitlements "$PROJECT_DIR/$PROJECT_NAME/$PROJECT_NAME.entitlements" \
+    --entitlements "$ENTITLEMENTS" \
     -s "$SIGN_IDENTITY" "$APP"
 codesign --verify --deep --strict "$APP"
+
+# And confirm they actually landed, for the same reason.
+EXPECTED=$(plutil -convert json -o - "$ENTITLEMENTS" | tr ',' '\n' | grep -c 'com\.apple\.security')
+ACTUAL=$(codesign -d --entitlements - --xml "$APP" 2>/dev/null \
+    | plutil -convert json -o - - 2>/dev/null | tr ',' '\n' | grep -c 'com\.apple\.security' || echo 0)
+if [ "$ACTUAL" -lt "$EXPECTED" ]; then
+    echo "error: signed app carries $ACTUAL entitlements, expected $EXPECTED." >&2
+    exit 1
+fi
+echo "    entitlements verified ($ACTUAL)"
 
 echo "==> Creating DMG"
 rm -rf "$STAGING" "$DMG"

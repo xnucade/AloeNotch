@@ -110,17 +110,32 @@ final class MediaAdapterEngine {
         return dir
     }
 
-    /// Runs the adapter's self-test. `nil` means it passed; otherwise a
+    /// Checks the adapter actually works. `nil` means it does; otherwise a
     /// human-readable reason.
     ///
-    /// This is the single point where Now Playing silently switches itself off,
-    /// and it used to discard both the exit status and stderr — so when it
-    /// failed, the UI said "unavailable" forever with nothing anywhere to
-    /// explain why. Whatever perl complained about is worth surfacing.
+    /// Uses `get` — fetch now-playing once and exit — rather than the script's
+    /// `test` function. `test` looks like the obvious choice and is not: per the
+    /// script's own usage,
+    ///
+    ///     mediaremote-adapter.pl FRAMEWORK_PATH [TEST_CLIENT_PATH] [FUNCTION …]
+    ///
+    /// it requires a `MediaRemoteAdapterTestClient` executable that the
+    /// vendored bundle does not ship, so it exits 1 with "Test client path is
+    /// missing" no matter how healthy the adapter is. Now Playing then reported
+    /// itself permanently unavailable while `stream` would have worked fine.
+    ///
+    /// `get` is also the better check on its own merits: it loads the
+    /// framework, resolves a symbol and talks to the now-playing centre — the
+    /// same path `stream` takes. It prints `null` when nothing is playing,
+    /// which is a success, so only the exit status is inspected.
+    ///
+    /// This is the single point where Now Playing switches itself off, and it
+    /// used to discard both the exit status and stderr — so when it failed, the
+    /// UI said "unavailable" forever with nothing anywhere to explain why.
     private func selfTestFailure() -> String? {
         let test = Process()
         test.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        test.arguments = [scriptURL.path, frameworkURL.path, "test"]
+        test.arguments = [scriptURL.path, frameworkURL.path, "get"]
         test.standardOutput = FileHandle.nullDevice
         let errors = Pipe()
         test.standardError = errors
@@ -142,7 +157,7 @@ final class MediaAdapterEngine {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let detail = message.isEmpty ? "no error output" : message
         return """
-            adapter self-test exited \(test.terminationStatus) — \(detail)
+            adapter check exited \(test.terminationStatus) — \(detail)
               script: \(scriptURL.path)
               framework: \(frameworkURL.path)
             """
