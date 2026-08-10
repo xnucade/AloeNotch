@@ -23,6 +23,24 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.8.2",
+            headline: "Permissions that stay put",
+            items: [
+                Item(symbol: "lock.rotation",
+                     title: "You'll grant permissions one last time",
+                     detail: "Every earlier release was signed in a way that made macOS treat each update as a different app, so Calendar, Location and Accessibility were forgotten every time you updated. Grant them once after this update and they'll stick from now on."),
+                Item(symbol: "music.note",
+                     title: "Now Playing works again",
+                     detail: "AloeNotch was testing its media helper with a command that could never succeed, so it disabled itself even when everything was fine."),
+                Item(symbol: "checkmark.shield",
+                     title: "The Grant buttons actually grant",
+                     detail: "Calendar and Location were missing two entitlements needed to request them, and macOS refuses those requests silently — no prompt, no error."),
+                Item(symbol: "bolt.fill",
+                     title: "Plugging in says so",
+                     detail: "Connecting the charger briefly shows a bolt and your charge level in the notch."),
+            ]
+        ),
+        Entry(
             version: "0.8.0",
             headline: "Smoother, and yours to tune",
             items: [

@@ -38,6 +38,27 @@
     <p class="updated">AloeNotch is actively developed. Here's what's changed.</p>
     <!-- new-entry --><!-- release.sh inserts new version entries directly below this line -->
 
+    <h2>0.8.2 — August 10, 2026</h2>
+    <ul>
+      <li><strong>Permissions stay granted from now on.</strong> Every previous
+      release was signed in a way that made macOS treat each update as a
+      brand-new app, so Calendar, Location and Accessibility were quietly
+      forgotten every time you updated. That's fixed.
+      <em>You'll need to grant them once more after installing this version</em>
+      — the last time.</li>
+      <li><strong>Fixed: Now Playing said "unavailable" even when music was
+      playing.</strong> AloeNotch was checking whether its media helper worked
+      using a command that could never succeed, so it disabled itself
+      unnecessarily.</li>
+      <li><strong>Fixed: the Calendar and Location buttons did nothing.</strong>
+      The app was missing two entitlements it needed to ask for those, and
+      macOS refuses such requests silently — no prompt, no error.</li>
+      <li><strong>Plugging in the charger now shows a brief bolt and your
+      charge level</strong> in the notch.</li>
+      <li>Volume and brightness steps tap the trackpad, the shelf opens to
+      catch a dragged file, and the equalizer settles when playback pauses.</li>
+    </ul>
+
     <h2>0.8.1 — July 31, 2026</h2>
     <ul>
       <li><strong>Fixed: the Calendar and Location buttons didn't do anything.</strong>
