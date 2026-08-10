@@ -22,6 +22,11 @@ struct NotchMetrics {
     /// icon and a level bar.
     static let hudWingWidth: CGFloat = 84
 
+    /// Charger-connected acknowledgement: a bolt on one side and the charge
+    /// percentage on the other. Between the two — more than the media glyph
+    /// needs, less than a level bar.
+    static let chargingWingWidth: CGFloat = 64
+
     /// On-screen size of the notch surface in a given state.
     ///
     /// Single source of truth: the SwiftUI frame and the window's hit-test rect
@@ -35,7 +40,11 @@ struct NotchMetrics {
             return CGSize(width: expandedWidth, height: expandedHeight)
         case .peek(let kind):
             guard hasHardwareNotch else { return notchSize }
-            let wing = kind == .hud ? Self.hudWingWidth : Self.mediaWingWidth
+            let wing: CGFloat = switch kind {
+            case .hud:      Self.hudWingWidth
+            case .media:    Self.mediaWingWidth
+            case .charging: Self.chargingWingWidth
+            }
             return CGSize(width: notchSize.width + wing * 2, height: notchSize.height)
         case .collapsed:
             return notchSize

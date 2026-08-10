@@ -27,18 +27,20 @@ struct NowPlaying: Equatable {
 }
 
 /// Publishes the system's current now-playing track and forwards transport
-/// commands. Prefers the perl-based MediaAdapterEngine (works on macOS 15.4+
-/// and covers browsers, so YouTube shows up too); falls back to the direct
-/// MediaRemote bridge on older systems where it still functions. If neither
-/// works the UI shows a friendly placeholder.
+/// commands, via the perl-based MediaAdapterEngine — which covers every app
+/// that publishes to the system now-playing centre, browsers included, so
+/// YouTube shows up too.
+///
+/// There used to be a direct MediaRemote fallback for macOS before 15.4, where
+/// those APIs were still reachable by third parties. It was removed when the
+/// minimum became macOS 26: the branch could no longer be taken, but it still
+/// looked like a live safety net, which is worse than having none.
 final class NowPlayingManager: ObservableObject {
     @Published private(set) var current = NowPlaying()
     @Published private(set) var isPlaying = false
     @Published private(set) var isAvailable = false
 
-    private let bridge = MediaRemoteBridge.shared
     private var adapter: MediaAdapterEngine?
-    private var observers: [NSObjectProtocol] = []
 
     // Stream payloads repeat the same artwork many times per track; decode and
     // color-analyze only when it actually changes.
@@ -68,42 +70,29 @@ final class NowPlayingManager: ObservableObject {
     func start() {
         MediaAdapterEngine.probe { [weak self] engine in
             guard let self else { return }
-            if let engine {
-                self.adapter = engine
-                self.isAvailable = true
-                engine.onUpdate = { [weak self] payload in self?.apply(payload) }
-                engine.startStream()
-            } else {
-                self.startLegacyBridge()
+            guard let engine else {
+                // The adapter is the only path now. If it can't start, the UI
+                // says so and MediaAdapterEngine.probe has already logged why.
+                self.isAvailable = false
+                return
             }
+            self.adapter = engine
+            self.isAvailable = true
+            engine.onUpdate = { [weak self] payload in self?.apply(payload) }
+            engine.startStream()
         }
     }
 
     func stop() {
         adapter?.stop()
         adapter = nil
-        observers.forEach { NotificationCenter.default.removeObserver($0) }
-        observers.removeAll()
     }
 
     // MARK: - Transport
 
-    func togglePlayPause() {
-        if let adapter {
-            adapter.send(.togglePlayPause)
-        } else {
-            bridge.send(.togglePlayPause)
-            refreshPlaying()
-        }
-    }
-
-    func next() {
-        if let adapter { adapter.send(.nextTrack) } else { bridge.send(.nextTrack) }
-    }
-
-    func previous() {
-        if let adapter { adapter.send(.previousTrack) } else { bridge.send(.previousTrack) }
-    }
+    func togglePlayPause() { adapter?.send(.togglePlayPause) }
+    func next()            { adapter?.send(.nextTrack) }
+    func previous()        { adapter?.send(.previousTrack) }
 
     /// Interpolated current playback position, in seconds. Read this from a
     /// TimelineView so the progress bar advances smoothly between updates.
@@ -113,8 +102,8 @@ final class NowPlayingManager: ObservableObject {
         return min(current.duration, max(0, elapsedBase + advance))
     }
 
-    /// Seek to a position in seconds (adapter path only; the legacy bridge has
-    /// no seek). Updates the local estimate immediately for a responsive bar.
+    /// Seek to a position in seconds. Updates the local estimate immediately so
+    /// the bar responds without waiting for the next payload.
     func seek(to seconds: Double) {
         elapsedBase = max(0, seconds)
         elapsedCapturedAt = Date()
@@ -261,54 +250,5 @@ final class NowPlayingManager: ObservableObject {
             return name
         }
         return bundleID
-    }
-
-    // MARK: - Legacy bridge path (pre-15.4 macOS)
-
-    private func startLegacyBridge() {
-        isAvailable = bridge.isAvailable
-        guard isAvailable else { return }
-
-        bridge.registerForNotifications()
-
-        let center = NotificationCenter.default
-        observers.append(center.addObserver(
-            forName: MediaRemoteBridge.infoDidChange, object: nil, queue: .main
-        ) { [weak self] _ in self?.refreshInfo() })
-
-        observers.append(center.addObserver(
-            forName: MediaRemoteBridge.isPlayingDidChange, object: nil, queue: .main
-        ) { [weak self] _ in self?.refreshPlaying() })
-
-        refreshInfo()
-        refreshPlaying()
-    }
-
-    private func refreshInfo() {
-        bridge.fetchNowPlayingInfo { [weak self] info in
-            guard let self else { return }
-            var np = NowPlaying()
-            np.title = info["kMRMediaRemoteNowPlayingInfoTitle"] as? String ?? ""
-            np.artist = info["kMRMediaRemoteNowPlayingInfoArtist"] as? String ?? ""
-            np.album = info["kMRMediaRemoteNowPlayingInfoAlbum"] as? String ?? ""
-            if let data = info["kMRMediaRemoteNowPlayingInfoArtworkData"] as? Data,
-               let image = NSImage(data: data) {
-                np.artwork = image
-                np.accent = Self.accentColor(from: image)
-                np.artworkToken = data.hashValue
-            }
-            np.duration = info["kMRMediaRemoteNowPlayingInfoDuration"] as? Double ?? 0
-            self.elapsedBase = info["kMRMediaRemoteNowPlayingInfoElapsedTime"] as? Double ?? 0
-            self.elapsedCapturedAt = Date()
-            let rate = info["kMRMediaRemoteNowPlayingInfoPlaybackRate"] as? Double ?? 0
-            self.playbackRate = rate
-            self.current = np
-        }
-    }
-
-    private func refreshPlaying() {
-        bridge.fetchIsPlaying { [weak self] playing in
-            self?.isPlaying = playing
-        }
     }
 }

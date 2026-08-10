@@ -56,21 +56,7 @@ enum WhatsNew {
         guard let running = Bundle.main
             .object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         else { return nil }
-        return entries.first { isVersion($0.version, atOrBelow: running) }
-    }
-
-    /// Numeric semver comparison. String comparison would put "0.10.0" below
-    /// "0.9.0", which is exactly the kind of thing that goes unnoticed until
-    /// the tenth minor release.
-    static func isVersion(_ candidate: String, atOrBelow running: String) -> Bool {
-        let a = candidate.split(separator: ".").map { Int($0) ?? 0 }
-        let b = running.split(separator: ".").map { Int($0) ?? 0 }
-        for i in 0..<max(a.count, b.count) {
-            let l = i < a.count ? a[i] : 0
-            let r = i < b.count ? b[i] : 0
-            if l != r { return l < r }
-        }
-        return true   // equal
+        return entries.first { SemanticVersion.isAtOrBelow($0.version, running) }
     }
 
     /// Whether to show the sheet on this launch.

@@ -90,6 +90,14 @@ struct NotchRootView: View {
                         .transition(a11y.reduceMotion
                                     ? .opacity
                                     : .opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                } else if state == .peek(.charging) {
+                    ChargingContent(
+                        battery: viewModel.battery,
+                        deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0
+                    )
+                    .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
+                                                           : Metrics.hudInsetSimulated)
+                    .transition(.opacity)
                 } else if state == .peek(.hud), let hud = viewModel.hud {
                     // A system readout takes over the strip while it's showing.
                     // Keyed on the state, not just `hud != nil`, so the content
@@ -325,6 +333,43 @@ private struct CollapsedContent: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+}
+
+/// Charger-connected acknowledgement: a bolt in one wing, the charge level in
+/// the other. Deliberately the same shape as the HUD readout — the notch has
+/// one visual grammar for "here is a fact about your Mac, briefly".
+private struct ChargingContent: View {
+    @ObservedObject var battery: BatteryMonitor
+    let deadZone: CGFloat
+
+    @State private var arrived = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Image(systemName: "bolt.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.green)
+                // A single arrival beat rather than a loop: this is on screen
+                // for two seconds, and something still pulsing when it vanishes
+                // reads as unfinished.
+                .scaleEffect(arrived || reduceMotion ? 1 : 0.4)
+                .opacity(arrived || reduceMotion ? 1 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: deadZone)
+
+            Text("\(Int((battery.level * 100).rounded()))%")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.9))
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .onAppear {
+            guard !reduceMotion else { arrived = true; return }
+            withAnimation(.snappy(duration: 0.34, extraBounce: 0.35)) { arrived = true }
         }
     }
 }

@@ -5,43 +5,6 @@ import Combine
 /// managers (media, tray, battery, calendar, weather) and the expand/collapse
 /// state.
 
-/// What the notch surface is currently showing.
-///
-/// This used to be a `Bool` plus a peek condition (`showMedia && isPlaying`)
-/// evaluated independently in the view *and* in the window controller's
-/// hit-testing — two places deriving the same truth, free to disagree. Making
-/// it one value means the drawn size and the clickable size are computed from
-/// the same thing, and it gives the collapsed → peek → expanded morph a single
-/// property for one spring to drive.
-enum PanelState: Equatable {
-    /// Bare strip, hugging the hardware notch. The app is invisible here.
-    case collapsed
-    /// Strip grown into "wings" either side of the notch, showing a glanceable
-    /// indicator. The two kinds need different widths, so they are not one case.
-    case peek(Peek)
-    /// Full panel, dropped down below the notch.
-    case expanded
-
-    enum Peek: Equatable {
-        /// Now-playing artwork + equalizer.
-        case media
-        /// Volume / brightness readout, which needs more room than media.
-        case hud
-    }
-
-    var isExpanded: Bool { self == .expanded }
-
-    /// Short name for diagnostics.
-    var debugName: String {
-        switch self {
-        case .collapsed:     "collapsed"
-        case .peek(.media):  "peek(media)"
-        case .peek(.hud):    "peek(hud)"
-        case .expanded:      "expanded"
-        }
-    }
-}
-
 /// A transient system readout shown in the notch (replacing macOS's own HUD).
 enum NotchHUD: Equatable {
     case volume(level: Float, muted: Bool)
@@ -103,6 +66,11 @@ final class NotchViewModel: ObservableObject {
     /// Whether the pointer is inside the active region. An input to the state
     /// machine, not a state itself.
     private var isHovering = false
+
+    /// Set for a couple of seconds when power is connected. Another input, not
+    /// a state — the state machine decides whether it wins.
+    private var showChargingPeek = false
+    private var chargingDismiss: DispatchWorkItem?
 
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
@@ -207,6 +175,23 @@ final class NotchViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Plugging in the charger gets a brief acknowledgement in the notch —
+        // the Dynamic Island's signature moment, and the one time battery state
+        // changes because of something the user physically just did.
+        //
+        // Driven off `isPluggedIn` rather than `isCharging`: a Mac plugged in at
+        // 100% is not charging, but connecting the cable is still the event
+        // worth confirming. `dropFirst` so launching with the charger already
+        // connected doesn't announce itself.
+        battery.$isPluggedIn
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] plugged in
+                guard plugged else { return }
+                self?.flashChargingPeek()
+            }
+            .store(in: &cancellables)
+
         // Permissions granted from Settings or onboarding reach the features
         // that need them without a relaunch.
         PermissionRequester.shared.$calendarStatus
@@ -258,15 +243,19 @@ final class NotchViewModel: ObservableObject {
     /// edge of the content doesn't collapse it.
     private static let hoverGrace: TimeInterval = 0.25
 
-    /// The state the current inputs imply. Pure — it reads, never writes.
+    /// The state the current inputs imply.
     ///
-    /// Order matters: hovering always wins (the user is actively asking for the
-    /// panel), then a HUD, which is transient and time-critical, then media.
+    /// The precedence lives in `PanelStateReducer` rather than here so it can be
+    /// tested without standing up a view model and all seven of its managers.
+    /// This function's only job is gathering the inputs.
     private func targetState() -> PanelState {
-        if isHovering { return .expanded }
-        if hud != nil { return .peek(.hud) }
-        if settings.showMedia && media.isPlaying { return .peek(.media) }
-        return .collapsed
+        PanelStateReducer.state(for: .init(
+            isHovering: isHovering,
+            hasHUD: hud != nil,
+            isCharging: showChargingPeek,
+            mediaPlaying: media.isPlaying,
+            showMedia: settings.showMedia
+        ))
     }
 
     /// Recompute and animate to whatever the inputs now imply.
@@ -367,6 +356,21 @@ final class NotchViewModel: ObservableObject {
                 self.updateHUDPipeline(enabled: self.settings.showHUD)
             }
         }
+    }
+
+    /// Briefly widen the strip to acknowledge the charger being connected.
+    private func flashChargingPeek() {
+        guard settings.showBattery else { return }
+        chargingDismiss?.cancel()
+        showChargingPeek = true
+        refreshState()
+
+        let work = DispatchWorkItem { [weak self] in
+            self?.showChargingPeek = false
+            self?.refreshState()
+        }
+        chargingDismiss = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: work)
     }
 
     /// Flash a system readout in the notch, replacing any HUD already showing.

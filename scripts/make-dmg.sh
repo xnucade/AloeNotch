@@ -62,10 +62,28 @@ VERSION=$(sed -n 's/.*MARKETING_VERSION = \(.*\);/\1/p' \
 DMG="$OUT_DIR/$APP_NAME-$VERSION.dmg"
 
 echo "==> Building $APP_NAME $VERSION (Release)"
-"$XCODEBUILD" -project "$PROJECT_DIR/$PROJECT_NAME.xcodeproj" \
+# Captured rather than streamed so the known `-quiet` artifact can be filtered
+# without hiding a real failure.
+#
+# With `-quiet`, xcodebuild prints
+#   "error: the following command failed with exit code 0 but produced no
+#    further output"
+# on a perfectly successful build — a summariser quirk, not a build problem
+# (note the exit code in its own message). It appeared on two consecutive
+# releases and cost time both times, so: on failure the whole log is dumped and
+# we abort; on success only that one line is suppressed.
+BUILD_LOG="$(mktemp)"
+trap 'rm -f "$BUILD_LOG"' EXIT
+if ! "$XCODEBUILD" -project "$PROJECT_DIR/$PROJECT_NAME.xcodeproj" \
     -scheme "$PROJECT_NAME" -configuration Release build \
     -derivedDataPath "$DERIVED" \
-    CODE_SIGNING_ALLOWED=NO -quiet
+    CODE_SIGNING_ALLOWED=NO -quiet >"$BUILD_LOG" 2>&1
+then
+    cat "$BUILD_LOG" >&2
+    echo "error: build failed." >&2
+    exit 1
+fi
+grep -vF 'failed with exit code 0 but produced no further output' "$BUILD_LOG" >&2 || true
 
 APP="$DERIVED/Build/Products/Release/$APP_NAME.app"
 [ -d "$APP" ] || { echo "Build product not found: $APP"; exit 1; }
