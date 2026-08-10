@@ -34,10 +34,64 @@ as non-notch Macs / external displays (where it renders a simulated strip).
 
 1. Open `OpenNotch.xcodeproj` in Xcode.
 2. Select the **OpenNotch** scheme (already shared) and a **My Mac** run destination.
-3. In **Signing & Capabilities**, pick your Team (a free personal Apple ID is
-   fine for running locally — no paid Developer account needed).
+3. Set a signing identity — see below.
 4. Press **⌘R**. The panel appears at the top-center of your screen; hover it to
    expand. Use the menu-bar icon to reposition or quit.
+
+## Signing
+
+The project is set to sign with a certificate named **AloeNotch Signing**. If
+you don't have it, the build fails with "No signing certificate found" — set
+**Signing & Capabilities → Signing Certificate** to *Sign to Run Locally*, or
+create your own certificate as below.
+
+### Why not just sign ad-hoc?
+
+Because ad-hoc signing makes the app's designated requirement a hash of the
+binary:
+
+```
+designated => cdhash H"6f08e071…"
+```
+
+macOS privacy permissions are keyed to that requirement, so **every rebuild is
+a different app** to the system — Calendar, Location and Accessibility grants
+are silently discarded each time you build, and each time a user installs an
+update. With a stable certificate the requirement becomes:
+
+```
+designated => identifier "com.kadeslab.AloeNotch" and certificate root = H"c90b8b3f…"
+```
+
+which is identical across builds, so permissions persist.
+
+### Creating a signing certificate
+
+Keychain Access → **Certificate Assistant → Create a Certificate…**, name it
+`AloeNotch Signing`, Identity Type *Self Signed Root*, Certificate Type *Code
+Signing*.
+
+**Back it up.** Export it from Keychain Access (including the private key) and
+store it somewhere safe. Signing a future release with a *different* identity
+resets every user's permissions again, so the certificate is effectively part
+of the app's identity — losing it is a one-way door.
+
+A paid Developer ID certificate is strictly better if you have one: same
+stability, plus notarization, which removes the Gatekeeper warning on first
+launch. Set `SIGN_IDENTITY` when building the DMG:
+
+```sh
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/make-dmg.sh
+```
+
+## Tests
+
+```sh
+./scripts/run-tests.sh
+```
+
+Pure logic only (panel-state precedence, version comparison), compiled directly
+without an Xcode target so it runs in about a second.
 
 ## How it works
 

@@ -31,7 +31,30 @@ OUT_DIR="$PROJECT_DIR/build"          # final DMG lands here
 WORK_DIR="${TMPDIR:-/tmp}/AloeNotch-build"
 DERIVED="$WORK_DIR/DerivedData"
 STAGING="$WORK_DIR/dmg-staging"
-SIGN_IDENTITY="${SIGN_IDENTITY:--}"   # "-" = ad-hoc
+# Default to the local self-signed identity, falling back to ad-hoc if it is
+# not in the keychain (a fresh clone, or another machine).
+#
+# This matters more than it looks. Ad-hoc signing makes the designated
+# requirement a hash of the binary itself, so *every build is a different app*
+# as far as macOS privacy is concerned — which means Calendar, Location and
+# Accessibility grants are silently discarded on every rebuild, and on every
+# update a user installs. Signing with a stable certificate makes the
+# requirement `identifier … and certificate root = …`, which does not change
+# between builds, so permissions persist.
+#
+# Keep the certificate backed up: signing future releases with a *different*
+# identity resets everyone's permissions again. Export it from Keychain Access
+# ("AloeNotch Signing", including the private key) and store it somewhere safe.
+DEFAULT_IDENTITY="AloeNotch Signing"
+if [ -z "${SIGN_IDENTITY:-}" ]; then
+    if security find-identity -p codesigning 2>/dev/null | grep -q "$DEFAULT_IDENTITY"; then
+        SIGN_IDENTITY="$DEFAULT_IDENTITY"
+    else
+        echo "warning: '$DEFAULT_IDENTITY' not found in the keychain — falling back to" >&2
+        echo "         ad-hoc signing. Permissions will reset for users on this build." >&2
+        SIGN_IDENTITY="-"
+    fi
+fi
 mkdir -p "$OUT_DIR"
 
 # Find a usable xcodebuild when xcode-select points at bare CommandLineTools.
