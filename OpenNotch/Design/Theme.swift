@@ -62,6 +62,47 @@ enum Motion {
     /// Content that fades rather than travels.
     static var contentFade: Animation { .smooth(duration: scaled(0.30)) }
 
+    /// A transient element announcing itself — the charging bolt, a badge.
+    /// Bouncier than anything else here on purpose: it should feel like it
+    /// landed, and it is on screen too briefly to be annoying.
+    static var arrival: Animation { .snappy(duration: scaled(0.34), extraBounce: 0.35) }
+
+    /// A value ticking inside an already-visible readout (a HUD level bar).
+    /// Short, because the container is not moving and the eye is on the number.
+    static var readout: Animation { .smooth(duration: scaled(0.18)) }
+
+    // Ambient loops. Deliberately *not* scaled by the speed preference: these
+    // are continuous background motion rather than responses to an action, and
+    // speeding them up reads as agitation rather than responsiveness.
+
+    /// The charging bolt breathing.
+    static let ambientPulse = Animation.easeInOut(duration: 0.9)
+
+    /// One equalizer bar's rise and fall. Callers stagger their own phase.
+    static let equalizerBar = Animation.easeInOut(duration: 0.5)
+
+    /// The highlight sweeping across a charging battery fill.
+    static let chargeShimmer = Animation.linear(duration: 1.2)
+
+    // MARK: Choreography
+    //
+    // The container leads and its contents follow. Moving both on the same
+    // beat is what makes a panel read as a picture that resized, rather than a
+    // shape that opened and then filled.
+
+    /// How far behind the container's own motion content should start.
+    static var contentLag: Double { 0.06 / speed }
+
+    /// Gap between successive rows or icons in a staggered reveal. Small
+    /// enough to read as a cascade rather than a queue.
+    static var stagger: Double { 0.03 / speed }
+
+    /// Delay for the `index`-th element of a staggered group, including the lag
+    /// behind the container. Returns 0 under Reduce Motion so nothing waits.
+    static func entranceDelay(_ index: Int, reduceMotion: Bool) -> Double {
+        reduceMotion ? 0 : contentLag + Double(index) * stagger
+    }
+
     /// Reduce Motion replacement: a plain cross-fade with no travel, scale or
     /// bounce. The system asks for *less motion*, not *no feedback*, so state
     /// changes still register — they just stop moving through space.
@@ -70,6 +111,75 @@ enum Motion {
     /// The single gate for Reduce Motion. Pass any token through this.
     static func resolve(_ animation: Animation, reduceMotion: Bool) -> Animation {
         reduceMotion ? reduced : animation
+    }
+}
+
+// MARK: - Transitions
+
+extension AnyTransition {
+    /// How a single element arrives inside the morphing container.
+    ///
+    /// Two things make this read as one object reshaping rather than a panel
+    /// that opened and then filled:
+    ///
+    /// - **The shape leads.** Content starts `Motion.contentLag` behind the
+    ///   container's own motion, so the pill is already growing before anything
+    ///   appears inside it. Moving both on the same beat is what makes a panel
+    ///   look like a picture that resized.
+    /// - **It grows into place.** Scaling up from 0.92 rather than fading at
+    ///   full size means the content shares the container's direction of travel.
+    ///
+    /// Asymmetric on purpose: arrivals cascade, departures leave together.
+    /// A reverse cascade on the way out looks like the panel is struggling to
+    /// close, and the collapse is the faster animation of the two anyway.
+    static func notchEntrance(index: Int = 0, reduceMotion: Bool) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        let delay = Motion.entranceDelay(index, reduceMotion: false)
+        return .asymmetric(
+            insertion: .opacity
+                .combined(with: .scale(scale: 0.92, anchor: .top))
+                .animation(Motion.contentFade.delay(delay)),
+            removal: .opacity.animation(Motion.collapse)
+        )
+    }
+}
+
+/// Staggered arrival for one element inside the expanding panel.
+///
+/// Deliberately *not* built on `.transition`. A parent's transition takes
+/// precedence over its descendants', so putting staggered transitions on rows
+/// inside a container that is itself being inserted does nothing at all — the
+/// subtree simply appears. That is a silent failure: the code reads as though
+/// it staggers and the app looks unchanged.
+///
+/// Driving `opacity` and `scale` from local state flipped in `onAppear`
+/// animates regardless of what the parent is doing, because it is an ordinary
+/// property change on a view that already exists.
+struct NotchEntrance: ViewModifier {
+    let index: Int
+    @State private var shown = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            // Anchored at the top so rows grow downward out of the notch,
+            // following the container rather than blooming from their centres.
+            .scaleEffect(shown || reduceMotion ? 1 : 0.92, anchor: .top)
+            .onAppear {
+                guard !shown else { return }
+                withAnimation(
+                    Motion.resolve(Motion.contentFade, reduceMotion: reduceMotion)
+                        .delay(Motion.entranceDelay(index, reduceMotion: reduceMotion))
+                ) { shown = true }
+            }
+    }
+}
+
+extension View {
+    /// Arrive `index` steps into the cascade. See `NotchEntrance`.
+    func notchEntrance(_ index: Int) -> some View {
+        modifier(NotchEntrance(index: index))
     }
 }
 

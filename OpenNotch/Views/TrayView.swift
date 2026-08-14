@@ -96,7 +96,7 @@ struct TrayView: View {
                 }
             }
             .padding(6)
-            .animation(.snappy(duration: 0.3), value: tray.items)
+            .animation(Motion.contentFade, value: tray.items)
         }
     }
 

@@ -10,7 +10,7 @@ struct BatteryBolt: View {
             .foregroundStyle(.green)
             .opacity(pulse ? 1.0 : 0.4)
             .onAppear {
-                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                withAnimation(Motion.ambientPulse.repeatForever(autoreverses: true)) {
                     pulse = true
                 }
             }
@@ -49,7 +49,7 @@ struct BatteryView: View {
                 .foregroundStyle(.white.opacity(0.85))
                 .monospacedDigit()
                 .contentTransition(.numericText())
-                .animation(.smooth(duration: 0.3), value: percent)
+                .animation(Motion.contentFade, value: percent)
             if battery.isCharging {
                 Image(systemName: "bolt.fill")
                     .font(.system(size: 9, weight: .bold))
@@ -74,7 +74,7 @@ struct BatteryView: View {
                     .frame(width: max(2, (geo.size.width - 4) * battery.level))
                     .padding(2)
                     .overlay(chargingShimmer)
-                    .animation(.easeInOut(duration: 0.4), value: battery.level)
+                    .animation(Motion.contentFade, value: battery.level)
             }
             .frame(width: 28, height: 13)
         }
@@ -96,7 +96,7 @@ struct BatteryView: View {
             .frame(width: 12)
             .offset(x: shimmer ? 24 : -24)
             .onAppear {
-                withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                withAnimation(Motion.chargeShimmer.repeatForever(autoreverses: false)) {
                     shimmer = true
                 }
             }

@@ -83,13 +83,23 @@ struct NotchRootView: View {
                         // Clear the physical notch.
                         .padding(.top, stripHeight + Metrics.contentTopGap)
                         .padding(.bottom, Metrics.panelBottomInset)
-                        // Plain opacity+scale rather than a blur transition:
-                        // blurring every frame is what makes the open/close
-                        // stutter on a high-refresh display. Under Reduce
-                        // Motion the scale goes too, leaving a plain fade.
-                        .transition(a11y.reduceMotion
-                                    ? .opacity
-                                    : .opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                        // Insert as identity so the rows' own staggered
+                        // arrivals are visible (see NotchEntrance).
+                        //
+                        // Leaving, everything goes at once — a reverse cascade
+                        // reads as the panel struggling to close. The scale
+                        // matters more than it looks: with a plain opacity
+                        // removal the content was gone while the pill was still
+                        // at full size, leaving an empty black rectangle to
+                        // shrink on its own. Scaling toward the notch on the
+                        // same curve as the container keeps the contents
+                        // attached to the shape that is carrying them.
+                        .transition(.asymmetric(
+                            insertion: .identity,
+                            removal: .opacity
+                                .combined(with: .scale(scale: 0.94, anchor: .top))
+                                .animation(Motion.collapse)
+                        ))
                 } else if state == .peek(.charging) {
                     ChargingContent(
                         battery: viewModel.battery,
@@ -97,7 +107,7 @@ struct NotchRootView: View {
                     )
                     .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
                                                            : Metrics.hudInsetSimulated)
-                    .transition(.opacity)
+                    .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
                 } else if state == .peek(.hud), let hud = viewModel.hud {
                     // A system readout takes over the strip while it's showing.
                     // Keyed on the state, not just `hud != nil`, so the content
@@ -107,7 +117,7 @@ struct NotchRootView: View {
                                deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0)
                         .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
                                                               : Metrics.hudInsetSimulated)
-                        .transition(.opacity)
+                        .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
                 } else {
                     // On a hardware notch this only draws while media plays (in
                     // the wings that peek out either side); otherwise it renders
@@ -122,7 +132,7 @@ struct NotchRootView: View {
                     )
                     .padding(.horizontal, hasHardwareNotch ? Metrics.stripInsetHardware
                                                            : Metrics.stripInsetSimulated)
-                    .transition(.opacity)
+                    .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
                 }
             }
         }
@@ -178,9 +188,16 @@ struct NotchRootView: View {
                 // Hairline edge on the sides and bottom only. Nothing light may
                 // touch the top region: the fill must stay pure black there so
                 // the hardware notch cutout is indistinguishable from the panel.
+                //
+                // Strokes the *same* NotchShape as the fill and masks the top
+                // strip away, rather than tracing a separately-built outline.
+                // Now that the fill uses continuous corners, a hand-built
+                // circular-arc outline would sit a pixel or two off it around
+                // the bottom curves — exactly where a hairline is most visible.
                 if state.isExpanded {
-                    NotchEdgeShape(cornerRadius: radius)
+                    NotchShape(cornerRadius: radius)
                         .stroke(.white.opacity(0.09), lineWidth: 1)
+                        .mask(alignment: .bottom) { Rectangle().padding(.top, 1) }
                 }
             }
             // Deliberately no .shadow(): its gaussian tail reaches the window
@@ -260,19 +277,29 @@ struct NotchShape: Shape {
         set { cornerRadius = newValue }
     }
 
+    /// Square at the top (it meets the screen edge beside the cutout), rounded
+    /// at the bottom, with **continuous** corners.
+    ///
+    /// This used to build the bottom corners from `addArc` — quarter circles.
+    /// The problem with a circular corner is that curvature jumps from zero
+    /// along the straight edge to `1/r` the instant the arc begins, and the eye
+    /// reads that discontinuity as a pinch where the two meet. A continuous
+    /// corner ramps curvature in, which is what makes Apple's own rounded
+    /// shapes — and the Dynamic Island — look poured rather than cut.
+    ///
+    /// `UnevenRoundedRectangle` gives the real system squircle rather than an
+    /// approximation of it, and still animates, because `animatableData` above
+    /// drives the radius it is built from.
     func path(in rect: CGRect) -> Path {
         let r = min(cornerRadius, rect.height / 2, rect.width / 2)
-        var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
-        p.addArc(center: CGPoint(x: rect.maxX - r, y: rect.maxY - r),
-                 radius: r, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
-        p.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
-        p.addArc(center: CGPoint(x: rect.minX + r, y: rect.maxY - r),
-                 radius: r, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
-        p.closeSubpath()
-        return p
+        return UnevenRoundedRectangle(
+            topLeadingRadius: 0,
+            bottomLeadingRadius: r,
+            bottomTrailingRadius: r,
+            topTrailingRadius: 0,
+            style: .continuous
+        )
+        .path(in: rect)
     }
 }
 
@@ -369,7 +396,7 @@ private struct ChargingContent: View {
         }
         .onAppear {
             guard !reduceMotion else { arrived = true; return }
-            withAnimation(.snappy(duration: 0.34, extraBounce: 0.35)) { arrived = true }
+            withAnimation(Motion.arrival) { arrived = true }
         }
     }
 }
@@ -398,7 +425,7 @@ private struct HUDContent: View {
                     .frame(width: max(3, barWidth * CGFloat(min(1, max(0, hud.level)))))
             }
             .frame(width: barWidth, height: 4)
-            .animation(.smooth(duration: 0.18), value: hud.level)
+            .animation(Motion.readout, value: hud.level)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
@@ -435,7 +462,7 @@ private struct WaveformGlyph: View {
                                  : (reduceMotion && isPlaying ? height : restHeight))
                     .animation(
                         isDancing
-                            ? .easeInOut(duration: 0.5)
+                            ? Motion.equalizerBar
                                 .repeatForever(autoreverses: true)
                                 .delay(Double(index) * 0.11)
                             // Settling on pause is a one-shot, not a loop —
@@ -459,28 +486,39 @@ private struct ExpandedContent: View {
     @ObservedObject private var settings = AppSettings.shared
     let morph: Namespace.ID
 
+    /// Reading order, left to right. The header goes first because it is the
+    /// top edge of the panel and anchors everything below it; the columns then
+    /// cascade the way the eye already travels. Indices are assigned here
+    /// rather than per-view so the order stays obvious in one place.
+    /// (Reduce Motion is handled inside `NotchEntrance`, not here.)
+    private enum Slot: Int { case header, media, calendar, shelf }
+
     var body: some View {
         VStack(spacing: 9) {
             HeaderRow(viewModel: viewModel)
+                .notchEntrance(Slot.header.rawValue)
 
             HStack(alignment: .center, spacing: 14) {
                 if settings.showMedia {
                     MediaView(media: viewModel.media, morph: morph)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .notchEntrance(Slot.media.rawValue)
                 }
                 if settings.showMedia && (settings.showCalendar || settings.showShelf) {
-                    columnDivider
+                    columnDivider.notchEntrance(Slot.media.rawValue)
                 }
                 if settings.showCalendar {
                     CalendarWeekStrip(calendar: viewModel.calendar)
                         .frame(maxWidth: .infinity)
+                        .notchEntrance(Slot.calendar.rawValue)
                 }
                 if settings.showCalendar && settings.showShelf {
-                    columnDivider
+                    columnDivider.notchEntrance(Slot.calendar.rawValue)
                 }
                 if settings.showShelf {
                     TrayView(tray: viewModel.tray)
                         .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 150 : .infinity)
+                        .notchEntrance(Slot.shelf.rawValue)
                 }
             }
             .frame(maxHeight: .infinity)
@@ -601,7 +639,7 @@ private struct CalendarWeekStrip: View {
                 .foregroundStyle(.white.opacity(0.5))
             }
             .frame(maxWidth: .infinity)
-            .animation(.smooth(duration: 0.3), value: calendar.upcoming)
+            .animation(Motion.contentFade, value: calendar.upcoming)
         }
     }
 

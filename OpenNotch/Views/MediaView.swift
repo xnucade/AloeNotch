@@ -45,7 +45,7 @@ struct MediaView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .animation(.smooth(duration: 0.3), value: media.current)
+        .animation(Motion.contentFade, value: media.current)
     }
 
     private var artwork: some View {
@@ -209,6 +209,10 @@ private struct ProgressScrubber: View {
                     )
                 }
                 .frame(height: 9)
+                // Linear, and pinned to the TimelineView's 0.5s tick above rather
+                // than to a Motion token: this is interpolation between two
+                // samples of a real value, not an expressive curve. Easing it
+                // would make playback appear to speed up and slow down.
                 .animation(.linear(duration: dragging ? 0 : 0.5), value: fraction)
 
                 HStack {
