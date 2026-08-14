@@ -23,6 +23,24 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.8.3",
+            headline: "One object, reshaping",
+            items: [
+                Item(symbol: "arrow.up.left.and.arrow.down.right",
+                     title: "The panel opens as one piece",
+                     detail: "The notch grows first and its contents follow a beat behind, cascading in rather than arriving all at once. Closing reverses it, so nothing pops."),
+                Item(symbol: "circle.square",
+                     title: "Softer corners",
+                     detail: "The curves are continuous now, the way macOS draws its own rounded shapes — no pinch where the curve meets the straight edge."),
+                Item(symbol: "textformat.size",
+                     title: "Easier to read",
+                     detail: "A real type scale replaces the dozen slightly-different sizes that had accumulated, with nothing under 10pt, and spacing on a consistent rhythm."),
+                Item(symbol: "arrow.left.and.right",
+                     title: "More room",
+                     detail: "The default panel is wider so the columns aren't fighting for space. If you've set your own width, yours is kept — widen it in Settings → General if things feel tight."),
+            ]
+        ),
+        Entry(
             version: "0.8.2",
             headline: "Permissions that stay put",
             items: [
