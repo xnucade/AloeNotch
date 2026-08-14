@@ -494,11 +494,11 @@ private struct ExpandedContent: View {
     private enum Slot: Int { case header, media, calendar, shelf }
 
     var body: some View {
-        VStack(spacing: 9) {
+        VStack(spacing: Metrics.Spacing.snug) {
             HeaderRow(viewModel: viewModel)
                 .notchEntrance(Slot.header.rawValue)
 
-            HStack(alignment: .center, spacing: 14) {
+            HStack(alignment: .center, spacing: Metrics.Spacing.loose) {
                 if settings.showMedia {
                     MediaView(media: viewModel.media, morph: morph)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -541,7 +541,7 @@ private struct HeaderRow: View {
 
     var body: some View {
         TimelineView(.everyMinute) { context in
-            HStack(spacing: 9) {
+            HStack(spacing: Metrics.Spacing.regular) {
                 Text(context.date, format: .dateTime.hour().minute())
                     .font(Typography.title())
                     .monospacedDigit()
@@ -622,15 +622,15 @@ private struct CalendarWeekStrip: View {
             let cal = Calendar.current
             let days = (-3...3).compactMap { cal.date(byAdding: .day, value: $0, to: today) }
 
-            VStack(spacing: 8) {
-                HStack(alignment: .center, spacing: 10) {
+            VStack(spacing: Metrics.Spacing.snug) {
+                HStack(alignment: .center, spacing: Metrics.Spacing.regular) {
                     Text(today, format: .dateTime.month(.abbreviated))
                         .font(Typography.display())
                         .fixedSize()
                     HStack(spacing: 3) {
                         ForEach(days, id: \.self) { day in
                             let isToday = cal.isDate(day, inSameDayAs: today)
-                            VStack(spacing: 3) {
+                            VStack(spacing: Metrics.Spacing.tight) {
                                 Text(day, format: .dateTime.weekday(.narrow))
                                     .font(Typography.micro(.semibold))
                                     .foregroundStyle(isToday ? accent : .white.opacity(0.3))
@@ -644,7 +644,7 @@ private struct CalendarWeekStrip: View {
                     }
                 }
 
-                HStack(spacing: 5) {
+                HStack(spacing: Metrics.Spacing.tight) {
                     Image(systemName: "calendar").font(Typography.icon(11, .medium))
                     Text(subtitle).font(Typography.caption()).lineLimit(1)
                 }

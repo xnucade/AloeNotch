@@ -208,11 +208,26 @@ enum Metrics {
         max(4, parent - inset)
     }
 
+    /// Spacing rhythm. Everything in the panel picks from this rather than
+    /// choosing a number, so gaps relate to each other instead of merely
+    /// looking acceptable in isolation. Built on 4/8 rather than a pure 8pt
+    /// grid: at this scale an 8pt gap between a title and its subtitle reads
+    /// as two unrelated lines.
+    enum Spacing {
+        /// Between tightly-coupled lines — a title and the artist under it.
+        static let hairline: CGFloat = 2
+        static let tight: CGFloat = 4
+        static let snug: CGFloat = 8
+        static let regular: CGFloat = 12
+        static let loose: CGFloat = 16
+        static let section: CGFloat = 20
+    }
+
     // Expanded panel padding.
-    static let panelHorizontalInset: CGFloat = 18
-    static let panelBottomInset: CGFloat = 13
+    static let panelHorizontalInset: CGFloat = Spacing.section
+    static let panelBottomInset: CGFloat = Spacing.regular
     /// Gap between the bottom of the physical notch and the content below it.
-    static let contentTopGap: CGFloat = 6
+    static let contentTopGap: CGFloat = Spacing.snug
 
     // Collapsed strip padding, which differs by whether there is a real notch
     // to route content around.

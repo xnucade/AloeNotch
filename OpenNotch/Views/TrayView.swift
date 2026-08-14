@@ -9,7 +9,7 @@ struct TrayView: View {
     private let columns = [GridItem(.adaptive(minimum: 44), spacing: 8)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Metrics.Spacing.snug) {
             HStack {
                 Text("Shelf")
                     .font(Typography.micro(.semibold))

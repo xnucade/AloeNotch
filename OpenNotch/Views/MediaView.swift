@@ -6,9 +6,9 @@ struct MediaView: View {
     let morph: Namespace.ID
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: Metrics.Spacing.loose) {
             artwork
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                 if media.isAvailable && media.current.hasContent {
                     Text(media.current.title)
                         .font(Typography.title())
@@ -114,7 +114,7 @@ struct MediaView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Metrics.Spacing.tight) {
             TransportButton(symbol: "backward.fill") { media.previous() }
             TransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill", size: 15) {
                 media.togglePlayPause()

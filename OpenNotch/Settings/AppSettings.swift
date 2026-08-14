@@ -94,7 +94,12 @@ final class AppSettings: ObservableObject {
             "glassIntensity": GlassIntensity.medium.rawValue,
             "windowTheme": WindowTheme.system.rawValue,
             "animationSpeed": 1.0,
-            "panelWidth": 616.0,
+            // Widened from 616. Three columns competing inside 616pt is the
+            // single biggest thing that made the panel read as busy rather than
+            // calm, and the type scale's 10pt floor needs the room. Only
+            // affects installs with no stored width — anyone who has moved the
+            // slider keeps their choice.
+            "panelWidth": 680.0,
         ])
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
