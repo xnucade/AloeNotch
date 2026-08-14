@@ -359,6 +359,15 @@ struct SettingsView: View {
                     .padding(12)
             }
 
+            SettingsSection("Updates") {
+                UpdateRow()
+                SettingsDivider()
+                SettingsRow("Check automatically", symbol: "clock.arrow.circlepath",
+                            description: "Asks GitHub once a day whether a newer release exists. Sends nothing but a version number.") {
+                    Toggle("", isOn: $settings.checkForUpdates).labelsHidden()
+                }
+            }
+
             SettingsSection("Links") {
                 linkRow("Website", "globe", "https://aloenotch.com")
                 SettingsDivider()

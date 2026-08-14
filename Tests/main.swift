@@ -19,6 +19,7 @@ func expect(_ condition: Bool, _ description: String) {
 
 testPanelState()
 testSemanticVersion()
+testUpdateComparison()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

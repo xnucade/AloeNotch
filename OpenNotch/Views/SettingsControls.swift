@@ -159,6 +159,96 @@ struct AccentPicker: View {
     }
 }
 
+// MARK: - Update row
+
+/// Current version, whether a newer one exists, and a way to go get it.
+///
+/// Reports the *result* rather than the mechanism — "up to date" and "0.9.0 is
+/// available" are the only two outcomes anyone cares about. Failures are
+/// deliberately understated: being offline is the usual reason, and it is not
+/// an error the user needs to act on.
+struct UpdateRow: View {
+    @ObservedObject private var updates = UpdateChecker.shared
+    @ObservedObject private var settings = AppSettings.shared
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 13))
+                .foregroundStyle(tint)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 13))
+                Text(detail)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 12)
+
+            if case .available = updates.state {
+                Button("Get It…") { updates.openReleasesPage() }
+                    .controlSize(.small)
+                    .glassProminentButtonStyle(settings.useGlass)
+            } else {
+                Button("Check Now") { updates.checkNow() }
+                    .controlSize(.small)
+                    .glassButtonStyle(settings.useGlass)
+                    .disabled(updates.state == .checking)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+    }
+
+    private var symbol: String {
+        switch updates.state {
+        case .available: "arrow.down.circle.fill"
+        case .upToDate:  "checkmark.circle.fill"
+        case .checking:  "arrow.triangle.2.circlepath"
+        default:         "arrow.down.circle"
+        }
+    }
+
+    private var tint: Color {
+        switch updates.state {
+        case .available: .accentColor
+        case .upToDate:  .green
+        default:         .secondary
+        }
+    }
+
+    private var title: String {
+        if case .available(let v, _) = updates.state { return "Version \(v) is available" }
+        return "AloeNotch \(updates.currentVersion)"
+    }
+
+    private var detail: String {
+        switch updates.state {
+        case .available:
+            "Opens the release page, where you can download the new version."
+        case .upToDate:
+            "You're on the latest release."
+        case .checking:
+            "Checking…"
+        case .failed(let why) where !why.isEmpty:
+            why
+        default:
+            "Last checked \(lastChecked)."
+        }
+    }
+
+    private var lastChecked: String {
+        let d = settings.lastUpdateCheck
+        guard d > .distantPast else { return "never" }
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .full
+        return f.localizedString(for: d, relativeTo: Date())
+    }
+}
+
 // MARK: - Permission row
 
 /// Status of one system permission, with a one-tap way to resolve it.

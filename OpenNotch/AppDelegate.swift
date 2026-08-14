@@ -40,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 controller?.repositionOnActiveScreen()
             }
 
+        // Quiet, at most once a day, never blocking. See UpdateChecker.
+        UpdateChecker.shared.checkIfDue()
+
         // First launch: the app is invisible until hovered, so introduce it.
         let settings = AppSettings.shared
         if !settings.hasSeenWelcome {

@@ -32,3 +32,19 @@ func testSemanticVersion() {
     expect(SemanticVersion.compare("banana", "0.0.0") == 0,
            "unparseable degrades to zero rather than trapping")
 }
+
+/// The comparisons the update checker relies on, using real tag values.
+func testUpdateComparison() {
+    // GitHub tags carry a leading "v"; the bundle version does not. The
+    // checker strips it, and this pins the shapes it has to handle.
+    expect(SemanticVersion.compare("0.8.3", "0.8.2") == 1, "newer release is offered")
+    expect(SemanticVersion.compare("0.8.3", "0.8.3") == 0, "same version is not offered")
+    expect(SemanticVersion.compare("0.8.3", "0.9.0") == -1,
+           "a locally-built version ahead of the release must not be told to downgrade")
+
+    // The trap this whole type exists for, in the update path specifically.
+    expect(SemanticVersion.compare("0.10.0", "0.9.0") == 1,
+           "0.10.0 is an update over 0.9.0")
+    expect(SemanticVersion.compare("1.0.0", "0.10.0") == 1,
+           "1.0.0 is an update over 0.10.0")
+}

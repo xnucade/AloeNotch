@@ -61,7 +61,7 @@ struct PermissionsTab: View {
                     Image(systemName: "lock.shield")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
-                    Text("AloeNotch has no account, no analytics and no network calls except fetching the weather for your approximate location. Everything else stays on this Mac.")
+                    Text("AloeNotch has no account and no analytics. It makes two kinds of network request: fetching the weather for your approximate location, and asking GitHub once a day whether a newer release exists. Both can be switched off. Everything else stays on this Mac.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

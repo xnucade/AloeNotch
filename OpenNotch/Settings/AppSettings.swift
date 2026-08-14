@@ -78,6 +78,18 @@ final class AppSettings: ObservableObject {
         didSet { save(lastSeenVersion, "lastSeenVersion") }
     }
 
+    /// Ask GitHub once a day whether a newer release exists. On by default:
+    /// AloeNotch ships often, and without this a user simply never finds out.
+    /// It is the app's only network call besides the weather, and it sends
+    /// nothing but a version string in the User-Agent.
+    @Published var checkForUpdates: Bool { didSet { save(checkForUpdates, "checkForUpdates") } }
+
+    /// When the last check ran, so a launch-at-login app that starts several
+    /// times a day only asks once.
+    @Published var lastUpdateCheck: Date {
+        didSet { defaults.set(lastUpdateCheck, forKey: "lastUpdateCheck") }
+    }
+
     private let defaults = UserDefaults.standard
 
     private init() {
@@ -90,6 +102,7 @@ final class AppSettings: ObservableObject {
             "showHUD": true,
             "showBattery": true,
             "useGlass": true,
+            "checkForUpdates": true,
             "accentHex": AccentPalette.default,
             "glassIntensity": GlassIntensity.medium.rawValue,
             "windowTheme": WindowTheme.system.rawValue,
@@ -124,6 +137,8 @@ final class AppSettings: ObservableObject {
         positionOffset = defaults.double(forKey: "positionOffset")   // default 0
         hasSeenWelcome = defaults.bool(forKey: "hasSeenWelcome")     // default false
         lastSeenVersion = defaults.string(forKey: "lastSeenVersion") ?? ""
+        checkForUpdates = defaults.bool(forKey: "checkForUpdates")
+        lastUpdateCheck = defaults.object(forKey: "lastUpdateCheck") as? Date ?? .distantPast
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

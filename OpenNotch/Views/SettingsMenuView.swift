@@ -7,6 +7,7 @@ import SwiftUI
 /// backdrop so the desktop shows through, with the cards floating on top.
 struct SettingsMenuView: View {
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var updates = UpdateChecker.shared
     let onReposition: () -> Void
     let onOpenSettings: () -> Void
 
@@ -29,6 +30,16 @@ struct SettingsMenuView: View {
                     VStack(spacing: 6) {
                         toggleRow("power", "Launch at Login", $settings.launchAtLogin)
                         Divider().opacity(0.4)
+                        if let newVersion = updates.availableVersion {
+                            // Only ever shown when there is something to say —
+                            // a permanent "you're up to date" row would be
+                            // noise in a menu this small.
+                            menuButton("arrow.down.circle.fill",
+                                       "Update to \(newVersion)",
+                                       tint: .accentColor) {
+                                updates.openReleasesPage()
+                            }
+                        }
                         menuButton("gearshape", "Settings…", action: onOpenSettings)
                         menuButton("arrow.up.to.line", "Reposition", action: onReposition)
                         menuButton("xmark.circle", "Quit AloeNotch",
