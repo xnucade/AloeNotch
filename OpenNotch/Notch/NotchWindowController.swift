@@ -34,6 +34,15 @@ final class NotchWindowController {
             .removeDuplicates()
             .sink { [weak self] _ in self?.applyFrame(animate: false) }
             .store(in: &cancellables)
+
+        // Layout changes both dimensions, so the window has to follow. Without
+        // this, switching to the focused layout would draw a taller panel
+        // inside a window still sized for the shorter one and clip it.
+        settings.$panelLayout
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.applyFrame(animate: false) }
+            .store(in: &cancellables)
     }
 
     /// The window frame with the user's horizontal offset applied.

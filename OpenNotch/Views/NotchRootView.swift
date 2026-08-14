@@ -78,7 +78,13 @@ struct NotchRootView: View {
 
             Group {
                 if state.isExpanded {
-                    ExpandedContent(viewModel: viewModel, morph: morph)
+                    Group {
+                        if settings.panelLayout == .focused {
+                            FocusedContent(viewModel: viewModel, morph: morph)
+                        } else {
+                            ExpandedContent(viewModel: viewModel, morph: morph)
+                        }
+                    }
                         .padding(.horizontal, Metrics.panelHorizontalInset)
                         // Clear the physical notch.
                         .padding(.top, stripHeight + Metrics.contentTopGap)
@@ -534,8 +540,9 @@ private struct ExpandedContent: View {
 }
 
 /// Slim top strip: live clock on the left; weather, battery, and a settings
-/// gear on the right.
-private struct HeaderRow: View {
+/// gear on the right. Shared by both panel layouts — it is the one part that
+/// does not change between them.
+struct HeaderRow: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
 

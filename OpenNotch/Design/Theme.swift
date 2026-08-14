@@ -376,6 +376,42 @@ extension Color {
     }
 }
 
+/// How the expanded panel arranges its modules.
+///
+/// `columns` is the original: media, calendar and shelf side by side, all
+/// visible at once. It answers "what is going on" in a single glance, at the
+/// cost of every module being small.
+///
+/// `focused` shows one module at a time, large, with a row of pills to switch —
+/// the arrangement the best notch apps use. It is calmer and far more legible,
+/// and it trades the glance for a click.
+///
+/// Genuinely a taste call rather than a right answer, which is why it is a
+/// setting and not a decision.
+enum PanelLayout: String, CaseIterable, Identifiable {
+    case columns, focused
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .columns: "All at once"
+        case .focused: "One at a time"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .columns: "Media, calendar and shelf side by side."
+        case .focused: "One module, larger, with pills to switch between them."
+        }
+    }
+
+    /// Focused mode needs less width (one column) and a little more height
+    /// (the switcher row, and room to let the module breathe).
+    var defaultWidth: Double { self == .focused ? 520 : 680 }
+    var height: CGFloat { self == .focused ? 232 : 208 }
+}
+
 /// Which appearance the app's own windows use. The notch panel is not included
 /// on purpose — it is pure black in every state, which is the whole reason it
 /// disappears into the hardware cutout.

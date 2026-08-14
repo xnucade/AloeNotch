@@ -50,6 +50,17 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(animationSpeed, forKey: "animationSpeed") }
     }
 
+    /// How the expanded panel arranges its modules. Changing it also moves the
+    /// width to that layout's default, because a width chosen for three
+    /// columns is wrong for one — see `applyLayoutWidth`.
+    @Published var panelLayout: PanelLayout {
+        didSet {
+            guard oldValue != panelLayout else { return }
+            save(panelLayout.rawValue, "panelLayout")
+            applyLayoutWidth()
+        }
+    }
+
     /// Width of the expanded panel, in points. Clamped when read so a bad
     /// stored value can't produce a panel wider than the screen.
     @Published var panelWidth: Double { didSet { defaults.set(panelWidth, forKey: "panelWidth") } }
@@ -106,6 +117,7 @@ final class AppSettings: ObservableObject {
             "accentHex": AccentPalette.default,
             "glassIntensity": GlassIntensity.medium.rawValue,
             "windowTheme": WindowTheme.system.rawValue,
+            "panelLayout": PanelLayout.columns.rawValue,
             "animationSpeed": 1.0,
             // Widened from 616. Three columns competing inside 616pt is the
             // single biggest thing that made the panel read as busy rather than
@@ -130,6 +142,7 @@ final class AppSettings: ObservableObject {
         windowTheme = WindowTheme(
             rawValue: defaults.string(forKey: "windowTheme") ?? ""
         ) ?? .system
+        panelLayout = PanelLayout(rawValue: defaults.string(forKey: "panelLayout") ?? "") ?? .columns
         animationSpeed = defaults.double(forKey: "animationSpeed")
         panelWidth = min(max(defaults.double(forKey: "panelWidth"),
                              Self.panelWidthRange.lowerBound),
@@ -141,6 +154,27 @@ final class AppSettings: ObservableObject {
         lastUpdateCheck = defaults.object(forKey: "lastUpdateCheck") as? Date ?? .distantPast
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    /// Snap the width to the new layout's default. Keeping a 680pt width when
+    /// switching to a single column leaves an enormous empty panel, which reads
+    /// as broken rather than spacious — and the user has no way to know the
+    /// number needed changing.
+    ///
+    /// Deferred to the next run loop, and this is not optional. The layout
+    /// picker changes `panelLayout` from inside a SwiftUI view update, and
+    /// `NotchMetrics` reads both `panelLayout` and `panelWidth` while laying the
+    /// panel out. Writing a second published property synchronously from the
+    /// first one's `didSet` therefore feeds a mutation back into the attribute
+    /// graph mid-evaluation, which SwiftUI resolves by aborting the process.
+    private func applyLayoutWidth() {
+        let target = min(max(panelLayout.defaultWidth,
+                             Self.panelWidthRange.lowerBound),
+                         Self.panelWidthRange.upperBound)
+        guard panelWidth != target else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.panelWidth = target
+        }
     }
 
     private func save(_ value: Bool, _ key: String) {

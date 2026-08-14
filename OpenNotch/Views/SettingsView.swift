@@ -248,6 +248,28 @@ struct SettingsView: View {
                 }
             }
 
+            SettingsSection("Layout") {
+                SettingsRow("Panel", symbol: "rectangle.split.3x1",
+                            description: settings.panelLayout.detail) {
+                    // Deliberately not animated. Both layouts contain the
+                    // artwork's matchedGeometryEffect, so animating the swap
+                    // lets the outgoing and incoming panels exist at once with
+                    // duplicate sources for the same id — undefined behaviour,
+                    // and this is a rare, deliberate action that gains nothing
+                    // from a transition.
+                    Picker("", selection: $settings.panelLayout) {
+                        ForEach(PanelLayout.allCases) { Text($0.title).tag($0) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 190)
+                }
+                if settings.panelLayout == .focused {
+                    SettingsDivider()
+                    noteRow("Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with one.")
+                }
+            }
+
             SettingsSection("Accent") {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Tints controls, the selected tab and today's date in the calendar. The glow around album art keeps following the artwork.")

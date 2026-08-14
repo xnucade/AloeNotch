@@ -60,7 +60,7 @@ struct NotchMetrics {
     var expandedWidth: CGFloat {
         max(collapsedSize.width + 40, CGFloat(AppSettings.shared.panelWidth))
     }
-    var expandedHeight: CGFloat { 208 }
+    var expandedHeight: CGFloat { AppSettings.shared.panelLayout.height }
 
     /// Transparent margin around the expanded panel (sides and bottom) so the
     /// drop shadow and ambient glow can fade out fully inside the window.
