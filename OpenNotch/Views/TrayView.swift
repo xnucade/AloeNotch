@@ -12,7 +12,7 @@ struct TrayView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text("Shelf")
-                    .font(.system(size: 9.5, weight: .semibold))
+                    .font(Typography.micro(.semibold))
                     .tracking(0.8)
                     .textCase(.uppercase)
                     .foregroundStyle(.white.opacity(0.5))
@@ -23,7 +23,7 @@ struct TrayView: View {
                 if !tray.items.isEmpty {
                     Button { tray.clear() } label: {
                         Image(systemName: "trash")
-                            .font(.system(size: 10))
+                            .font(Typography.icon(11, .medium))
                             .foregroundStyle(.white)
                             .hoverLift(restOpacity: 0.5)
                     }
@@ -62,8 +62,8 @@ struct TrayView: View {
     private var dragAllHandle: some View {
         ZStack {
             HStack(spacing: 4) {
-                Image(systemName: "square.stack.3d.up.fill").font(.system(size: 9))
-                Text("Drag all").font(.system(size: 9.5, weight: .medium))
+                Image(systemName: "square.stack.3d.up.fill").font(Typography.icon(10, .medium))
+                Text("Drag all").font(Typography.micro())
             }
             .foregroundStyle(.white.opacity(0.65))
             .padding(.horizontal, 8)
@@ -82,9 +82,9 @@ struct TrayView: View {
         if tray.items.isEmpty {
             VStack(spacing: 4) {
                 Image(systemName: "tray.and.arrow.down")
-                    .font(.system(size: 16))
+                    .font(Typography.icon(16, .light))
                 Text("Drop files here")
-                    .font(.system(size: 10))
+                    .font(Typography.caption())
             }
             .foregroundStyle(.white.opacity(0.4))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -168,7 +168,7 @@ private struct TrayChip: View {
             if hovering {
                 Button(action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
+                        .font(Typography.icon(12, .medium))
                         .foregroundStyle(.white, .black.opacity(0.6))
                 }
                 .buttonStyle(PressableButtonStyle())

@@ -11,10 +11,10 @@ struct MediaView: View {
             VStack(alignment: .leading, spacing: 2) {
                 if media.isAvailable && media.current.hasContent {
                     Text(media.current.title)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Typography.title())
                         .lineLimit(1)
                     Text(media.current.artist)
-                        .font(.system(size: 11))
+                        .font(Typography.caption())
                         .foregroundStyle(.white.opacity(0.7))
                         .lineLimit(1)
                     if media.current.duration > 0 {
@@ -23,11 +23,11 @@ struct MediaView: View {
                     controls
                 } else {
                     Text(media.isAvailable ? "Nothing playing" : "Now Playing unavailable")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typography.caption(.medium))
                         .foregroundStyle(.white.opacity(0.7))
                     if media.isAvailable {
                         Text("Start something in Music, Spotify or a browser.")
-                            .font(.system(size: 10))
+                            .font(Typography.micro(.regular))
                             .foregroundStyle(.white.opacity(0.45))
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
@@ -37,7 +37,7 @@ struct MediaView: View {
                         // If this shows now, the media helper failed to start,
                         // and the reason is in Console under "AloeNotch".
                         Text("The media helper didn't start. Relaunching AloeNotch usually fixes it.")
-                            .font(.system(size: 10))
+                            .font(Typography.micro(.regular))
                             .foregroundStyle(.white.opacity(0.45))
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -220,7 +220,7 @@ private struct ProgressScrubber: View {
                     Spacer()
                     Text(timeString(duration))
                 }
-                .font(.system(size: 8.5))
+                .font(Typography.micro(.regular))
                 .monospacedDigit()
                 .foregroundStyle(.white.opacity(0.45))
             }

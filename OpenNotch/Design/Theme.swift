@@ -229,6 +229,49 @@ enum Metrics {
     static let expandedArtworkRadius: CGFloat = 13
 }
 
+// MARK: - Typography
+
+/// The notch's type scale.
+///
+/// There were eleven distinct sizes inside the panel — 8, 8.5, 9, 9.5, 10, 11,
+/// 12, 12.5, 13, 14, 16, 19 — chosen individually as each view was written.
+/// Nothing was wrong with any one of them, but together they read as noise
+/// rather than hierarchy, and that is a large part of what makes a dense
+/// surface feel cheap next to a calm one.
+///
+/// Five roles, and a floor of 10pt. Anything smaller stops being *read* and
+/// becomes texture: at 8pt the calendar's weekday initials were decoration
+/// that happened to be letters.
+enum Typography {
+    /// The month beside the calendar. The one genuinely large thing in the
+    /// panel, and the anchor the rest is judged against.
+    static func display() -> Font { .system(size: 18, weight: .bold, design: .rounded) }
+
+    /// Clock, track title — what you read first.
+    static func title() -> Font { .system(size: 13.5, weight: .semibold) }
+
+    /// Values worth reading at a glance: temperature, charge, day numbers.
+    static func body(_ weight: Font.Weight = .regular) -> Font {
+        .system(size: 12, weight: weight, design: .rounded)
+    }
+
+    /// Supporting text — artist, next event, empty states.
+    static func caption(_ weight: Font.Weight = .regular) -> Font {
+        .system(size: 11, weight: weight)
+    }
+
+    /// The floor. Section labels, elapsed/remaining times, weekday initials.
+    static func micro(_ weight: Font.Weight = .medium) -> Font {
+        .system(size: 10, weight: weight)
+    }
+
+    /// Icons, so glyph weight stays consistent with the text beside them
+    /// rather than each site picking its own.
+    static func icon(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight)
+    }
+}
+
 // MARK: - Appearance
 
 /// How translucent the glass surfaces are.

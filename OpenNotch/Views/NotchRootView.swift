@@ -354,7 +354,7 @@ private struct CollapsedContent: View {
                         BatteryBolt()
                     } else if battery.isPresent && battery.level < 0.2 {
                         Image(systemName: "battery.25percent")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(Typography.icon(11))
                             .foregroundStyle(.red)
                     }
                 }
@@ -377,7 +377,7 @@ private struct ChargingContent: View {
     var body: some View {
         HStack(spacing: 0) {
             Image(systemName: "bolt.fill")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typography.icon(13))
                 .foregroundStyle(.green)
                 // A single arrival beat rather than a loop: this is on screen
                 // for two seconds, and something still pulsing when it vanishes
@@ -389,7 +389,7 @@ private struct ChargingContent: View {
             Spacer(minLength: deadZone)
 
             Text("\(Int((battery.level * 100).rounded()))%")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(Typography.body(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(.white.opacity(0.9))
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -412,7 +412,7 @@ private struct HUDContent: View {
     var body: some View {
         HStack(spacing: 0) {
             Image(systemName: hud.icon)
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typography.icon(13))
                 .foregroundStyle(.white.opacity(0.9))
                 .contentTransition(.symbolEffect(.replace))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -543,9 +543,21 @@ private struct HeaderRow: View {
         TimelineView(.everyMinute) { context in
             HStack(spacing: 9) {
                 Text(context.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(Typography.title())
                     .monospacedDigit()
+                    // `.contentTransition(.numericText())` was already here but
+                    // never did anything: it describes *how* a change should be
+                    // drawn, and something still has to declare that the change
+                    // is animated at all. TimelineView just hands down a new
+                    // date each minute, so the digits swapped instantly.
+                    //
+                    // Keyed on the minute rather than the date: the timeline
+                    // republishes more often than the displayed value changes,
+                    // and animating on every tick would restart the roll
+                    // against an identical string.
                     .contentTransition(.numericText())
+                    .animation(Motion.contentFade,
+                               value: Calendar.current.component(.minute, from: context.date))
                     .foregroundStyle(.white.opacity(0.85))
 
                 Spacer()
@@ -558,7 +570,7 @@ private struct HeaderRow: View {
                 }
                 Button { viewModel.onOpenSettings?() } label: {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 12))
+                        .font(Typography.icon(12, .medium))
                         .foregroundStyle(.white)
                         .hoverLift(restOpacity: 0.55)
                 }
@@ -578,9 +590,9 @@ private struct WeatherPill: View {
             HStack(spacing: 5) {
                 Image(systemName: snapshot.symbolName)
                     .symbolRenderingMode(.multicolor)
-                    .font(.system(size: 12))
+                    .font(Typography.icon(12, .medium))
                 Text(snapshot.temperatureText)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .font(Typography.body(.semibold))
                     .monospacedDigit()
                     .contentTransition(.numericText())
             }
@@ -613,17 +625,17 @@ private struct CalendarWeekStrip: View {
             VStack(spacing: 8) {
                 HStack(alignment: .center, spacing: 10) {
                     Text(today, format: .dateTime.month(.abbreviated))
-                        .font(.system(size: 19, weight: .bold, design: .rounded))
+                        .font(Typography.display())
                         .fixedSize()
                     HStack(spacing: 3) {
                         ForEach(days, id: \.self) { day in
                             let isToday = cal.isDate(day, inSameDayAs: today)
                             VStack(spacing: 3) {
                                 Text(day, format: .dateTime.weekday(.narrow))
-                                    .font(.system(size: 8, weight: .semibold))
+                                    .font(Typography.micro(.semibold))
                                     .foregroundStyle(isToday ? accent : .white.opacity(0.3))
                                 Text(day, format: .dateTime.day())
-                                    .font(.system(size: 13, weight: isToday ? .bold : .regular, design: .rounded))
+                                    .font(Typography.body(isToday ? .bold : .regular))
                                     .monospacedDigit()
                                     .foregroundStyle(isToday ? accent : .white.opacity(0.6))
                             }
@@ -633,8 +645,8 @@ private struct CalendarWeekStrip: View {
                 }
 
                 HStack(spacing: 5) {
-                    Image(systemName: "calendar").font(.system(size: 9.5))
-                    Text(subtitle).font(.system(size: 10)).lineLimit(1)
+                    Image(systemName: "calendar").font(Typography.icon(11, .medium))
+                    Text(subtitle).font(Typography.caption()).lineLimit(1)
                 }
                 .foregroundStyle(.white.opacity(0.5))
             }

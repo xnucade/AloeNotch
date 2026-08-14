@@ -6,7 +6,7 @@ struct BatteryBolt: View {
 
     var body: some View {
         Image(systemName: "bolt.fill")
-            .font(.system(size: 10, weight: .bold))
+            .font(Typography.icon(10, .bold))
             .foregroundStyle(.green)
             .opacity(pulse ? 1.0 : 0.4)
             .onAppear {
@@ -45,14 +45,14 @@ struct BatteryView: View {
         HStack(spacing: 7) {
             batteryGlyph
             Text("\(percent)%")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(Typography.body(.semibold))
                 .foregroundStyle(.white.opacity(0.85))
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .animation(Motion.contentFade, value: percent)
             if battery.isCharging {
                 Image(systemName: "bolt.fill")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(Typography.icon(10, .bold))
                     .foregroundStyle(.green)
                     .transition(.blurReplace)
             }
