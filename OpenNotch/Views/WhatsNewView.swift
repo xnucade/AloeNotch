@@ -23,6 +23,18 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.8.4",
+            headline: "You'll hear about the next one",
+            items: [
+                Item(symbol: "arrow.down.circle",
+                     title: "AloeNotch checks for updates",
+                     detail: "Once a day, quietly. If something newer exists it shows up in the menu bar and in Settings → About. It never interrupts, and you can switch it off."),
+                Item(symbol: "hand.raised",
+                     title: "Nothing about you is sent",
+                     detail: "The check asks GitHub which release is newest and sends only a version number. Settings → Access spells out every network request AloeNotch makes."),
+            ]
+        ),
+        Entry(
             version: "0.8.3",
             headline: "One object, reshaping",
             items: [
