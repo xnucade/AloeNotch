@@ -23,6 +23,18 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.8.5",
+            headline: "One thing, or everything",
+            items: [
+                Item(symbol: "rectangle.split.3x1",
+                     title: "A calmer panel, if you want it",
+                     detail: "Settings → Appearance → Layout now offers \"One at a time\": a single module filling the panel, with pills to switch. Bigger artwork, transport you don't have to aim at, and three upcoming events instead of one truncated line."),
+                Item(symbol: "checkmark.circle",
+                     title: "Nothing changed unless you ask",
+                     detail: "The side-by-side layout is still the default. Seeing everything at once and seeing one thing clearly are both reasonable things to want, so it's a choice rather than a replacement."),
+            ]
+        ),
+        Entry(
             version: "0.8.4",
             headline: "You'll hear about the next one",
             items: [
