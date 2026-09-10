@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AloeNotch — feature clips</title>
+<link rel="stylesheet" href="stage.css">
+</head>
+<body>
+<div id="frame">
+  <div id="backdrop"></div>
+  <div id="menubar"></div>
+
+  <div id="stage">
+    <div id="panelWrap">
+      <div id="glow"></div>
+      <div id="panel">
+        <!-- Collapsed / peek strip. One shape, three fillings. -->
+        <div class="strip" id="strip">
+          <div class="side left" id="stripLeft"></div>
+          <div class="deadzone"></div>
+          <div class="side right" id="stripRight"></div>
+        </div>
+
+        <!-- Expanded panel. -->
+        <div id="expanded">
+          <div class="header">
+            <span class="clock rounded mono-digit" id="hClock">10:54</span>
+            <span class="spacer"></span>
+            <span class="pill" id="wxPill">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="#ffd66b"><circle cx="10" cy="10" r="4.2"/><g stroke="#ffd66b" stroke-width="1.6" stroke-linecap="round"><path d="M10 1.6v2.2M10 16.2v2.2M1.6 10h2.2M16.2 10h2.2M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M15.9 4.1l-1.6 1.6M5.7 14.3l-1.6 1.6"/></g></svg>
+              <span class="temp rounded mono-digit">76&deg;</span>
+            </span>
+            <span class="icon-btn" id="gear">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 6.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zm0 5.2a1.8 1.8 0 1 1 0-3.6 1.8 1.8 0 0 1 0 3.6z"/><path d="M17.3 11.6l-1.2-.7a6.6 6.6 0 0 0 0-1.8l1.2-.7a.8.8 0 0 0 .3-1.1l-1.1-1.9a.8.8 0 0 0-1.1-.3l-1.2.7a6.5 6.5 0 0 0-1.6-.9V3.5a.8.8 0 0 0-.8-.8H9.2a.8.8 0 0 0-.8.8v1.4a6.5 6.5 0 0 0-1.6.9l-1.2-.7a.8.8 0 0 0-1.1.3L3.4 7.3a.8.8 0 0 0 .3 1.1l1.2.7a6.6 6.6 0 0 0 0 1.8l-1.2.7a.8.8 0 0 0-.3 1.1l1.1 1.9a.8.8 0 0 0 1.1.3l1.2-.7c.5.4 1 .7 1.6.9v1.4a.8.8 0 0 0 .8.8h2.2a.8.8 0 0 0 .8-.8v-1.4c.6-.2 1.1-.5 1.6-.9l1.2.7a.8.8 0 0 0 1.1-.3l1.1-1.9a.8.8 0 0 0-.3-1.1z"/></svg>
+            </span>
+          </div>
+
+          <div class="body-row">
+            <div class="media" id="colMedia">
+              <div class="art-stack">
+                <div class="aura" id="artAura"></div>
+                <div class="art" id="artMain"></div>
+              </div>
+              <div class="meta">
+                <div class="title">Neon Arcade</div>
+                <div class="artist">Kade &amp; the Lantern</div>
+                <div class="scrub">
+                  <div class="track"><b id="scrubFill"></b></div>
+                  <div class="times mono-digit"><span id="tElapsed">1:20</span><span>3:24</span></div>
+                </div>
+                <div class="controls">
+                  <span class="btn"><svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M6 4.4a.9.9 0 0 0-.9.9v9.4a.9.9 0 0 0 1.8 0v-3.6l6.7 3.9a.9.9 0 0 0 1.4-.8V6.2a.9.9 0 0 0-1.4-.8L6.9 9.3V5.3a.9.9 0 0 0-.9-.9z"/></svg></span>
+                  <span class="btn"><svg width="19" height="19" viewBox="0 0 20 20" fill="currentColor"><path d="M6.6 4.2h2.2v11.6H6.6zM11.2 4.2h2.2v11.6h-2.2z"/></svg></span>
+                  <span class="btn"><svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M14 4.4a.9.9 0 0 1 .9.9v9.4a.9.9 0 0 1-1.8 0v-3.6l-6.7 3.9a.9.9 0 0 1-1.4-.8V6.2a.9.9 0 0 1 1.4-.8l6.7 3.9V5.3a.9.9 0 0 1 .9-.9z"/></svg></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider" id="div1"></div>
+
+            <div class="cal" id="colCal">
+              <div class="top">
+                <span class="month rounded">Sep</span>
+                <div class="days" id="calDays"></div>
+              </div>
+              <div class="sub">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.4" y="3.6" width="15.2" height="14" rx="2.6"/><path d="M2.4 8h15.2M6.6 1.8v3.2M13.4 1.8v3.2"/></svg>
+                <span id="calSub">2:30 PM &middot; Design review</span>
+              </div>
+            </div>
+
+            <div class="divider" id="div2"></div>
+
+            <div class="tools" id="colTools">
+              <div class="tabs" id="toolTabs"></div>
+              <div id="toolBody"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="edge"></div>
+    </div>
+  </div>
+
+  <div id="keys"></div>
+  <svg id="cursor" viewBox="0 0 24 24">
+    <path d="M5.5 2.6 18.4 13.1l-5.3.5 3 6.2-2.6 1.2-2.9-6.2-3.9 3.4z" fill="#fff" stroke="#000" stroke-width="1.1" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<script src="clips.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+/* =========================================================================
+   Feature-clip stage.
+
+   Card-framed rather than screen-framed: the site's 66-second film shows a
+   whole MacBook with wallpaper and burned-in captions, which is right for a
+   full-width hero and unreadable at the ~280px a feature card gives you. These
+   clips crop tight to the notch, so what reads is the shape and the motion.
+
+   STATIC STYLING ONLY. Every time-varying property is written by clips.js as a
+   pure function of t, so a frame rendered at t is always identical. A
+   `transition:` anywhere in this file would desynchronise the render.
+
+   Metrics are copied from the SwiftUI source — NotchGeometry.swift and
+   Theme.swift — and scaled by --k. Keep them in sync if the app changes.
+   ========================================================================= */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Points → pixels. The panel is 680pt wide in the app; at k=1.9 it lands at
+     1292px inside a 1440px frame, leaving a margin that reads as breathing
+     room rather than a crop. */
+  --k: 2.0;
+  --accent: #4799ff;
+}
+
+html, body {
+  width: 1600px; height: 520px;
+  overflow: hidden;
+  background: #000;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+}
+
+.rounded { font-family: "SF Pro Rounded", ui-rounded, -apple-system, sans-serif; }
+.mono-digit { font-variant-numeric: tabular-nums; }
+
+#frame { position: relative; width: 1600px; height: 520px; overflow: hidden; }
+
+/* A desktop suggestion rather than a wallpaper: enough colour for the glass
+   and the glow to have something to sit against, quiet enough that it never
+   competes with the panel at card size. */
+#backdrop {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #1b2740 0%, #0b0e17 55%, #05070c 100%);
+}
+#backdrop::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(60% 40% at 50% 0%, rgba(90,140,255,0.18), transparent 70%);
+}
+
+/* The menu bar's lower edge, so the notch reads as hanging from the top of a
+   screen rather than floating in space. */
+#menubar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: calc(24px * var(--k));
+  background: rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+#stage {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  transform-origin: 50% 0;
+}
+
+/* ---------- Panel -------------------------------------------------------
+   NotchGeometry.swift: the collapsed strip is the hardware notch's size and
+   grows "wings" either side for a peek. Corners are continuous — the app uses
+   UnevenRoundedRectangle(style: .continuous); CSS has no squircle, so the
+   radius is tuned to read the same at this scale. ---------------------- */
+#panelWrap { position: relative; }
+
+#panel {
+  position: relative;
+  margin: 0 auto;
+  background: #000;
+  overflow: hidden;
+  border-bottom-left-radius: calc(26px * var(--k));
+  border-bottom-right-radius: calc(26px * var(--k));
+}
+
+/* Hairline along the bottom edge only — the top is flush with the bezel. */
+#edge {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.14);
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Ambient glow: the artwork's colour bleeding past the panel edge. */
+#glow {
+  position: absolute;
+  left: 50%; top: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-bottom-left-radius: calc(30px * var(--k));
+  border-bottom-right-radius: calc(30px * var(--k));
+}
+
+/* ---------- Collapsed / peek ------------------------------------------- */
+.strip {
+  position: absolute; inset: 0;
+  display: flex; align-items: center;
+  padding: 0 calc(9px * var(--k));
+}
+.strip .side { flex: 1; display: flex; align-items: center; min-width: 0; }
+.strip .side.right { justify-content: flex-end; }
+/* The hardware cutout. Nothing may be drawn here. */
+.strip .deadzone { flex: 0 0 calc(200px * var(--k)); }
+
+#miniArt {
+  width: calc(20px * var(--k)); height: calc(20px * var(--k));
+  border-radius: calc(5px * var(--k));
+  background-size: cover;
+}
+
+#wave { display: flex; align-items: flex-end; gap: calc(2px * var(--k)); height: calc(13px * var(--k)); }
+#wave i { width: calc(2.2px * var(--k)); border-radius: calc(1.1px * var(--k)); background: #fff; }
+
+/* One activity readout: a glyph on the left, a value on the right. */
+.act { display: flex; align-items: center; gap: calc(5px * var(--k)); }
+.act .glyph { display: flex; color: #fff; }
+.act .label { font-size: calc(10px * var(--k)); font-weight: 600; color: rgba(255,255,255,0.9); white-space: nowrap; }
+.act .value { font-size: calc(12px * var(--k)); font-weight: 600; color: rgba(255,255,255,0.9); white-space: nowrap; }
+.act .bar { position: relative; width: calc(62px * var(--k)); height: calc(4px * var(--k)); border-radius: 999px; background: rgba(255,255,255,0.18); }
+.act .bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: rgba(255,255,255,0.92); }
+
+/* ---------- Expanded panel --------------------------------------------- */
+#expanded {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: calc(34px * var(--k)) calc(20px * var(--k)) calc(16px * var(--k));
+  gap: calc(8px * var(--k));
+}
+
+.header { display: flex; align-items: center; gap: calc(12px * var(--k)); }
+.header .clock { font-size: calc(15px * var(--k)); font-weight: 600; color: rgba(255,255,255,0.85); }
+.header .spacer { flex: 1; }
+.pill {
+  display: inline-flex; align-items: center; gap: calc(5px * var(--k));
+  padding: calc(4px * var(--k)) calc(8px * var(--k));
+  border-radius: 999px; background: rgba(255,255,255,0.08);
+}
+.pill .temp { font-size: calc(12px * var(--k)); font-weight: 600; }
+.icon-btn { color: rgba(255,255,255,0.55); display: flex; }
+
+.body-row { flex: 1; display: flex; align-items: center; gap: calc(14px * var(--k)); min-height: 0; }
+.divider { width: 1px; align-self: stretch; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.14), transparent); }
+
+/* Media column */
+.media { flex: 1; display: flex; align-items: center; gap: calc(14px * var(--k)); min-width: 0; }
+.art-stack { position: relative; width: calc(62px * var(--k)); height: calc(62px * var(--k)); flex: 0 0 auto; }
+.art-stack .aura { position: absolute; inset: 0; transform: scale(1.35); filter: blur(calc(22px * var(--k))); opacity: 0.55; border-radius: calc(13px * var(--k)); }
+.art-stack .art { position: absolute; inset: 0; border-radius: calc(13px * var(--k)); overflow: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.35); background-size: cover; }
+.media .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(2px * var(--k)); }
+.media .meta .title { font-size: calc(13px * var(--k)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media .meta .artist { font-size: calc(11px * var(--k)); color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scrub { margin-top: calc(4px * var(--k)); display: flex; flex-direction: column; gap: calc(3px * var(--k)); }
+.scrub .track { position: relative; height: calc(3px * var(--k)); border-radius: 999px; background: rgba(255,255,255,0.15); }
+.scrub .track b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: rgba(255,255,255,0.85); }
+.scrub .times { display: flex; justify-content: space-between; font-size: calc(8.5px * var(--k)); color: rgba(255,255,255,0.45); }
+.controls { display: flex; align-items: center; gap: calc(6px * var(--k)); padding-top: calc(4px * var(--k)); }
+.controls .btn { display: flex; align-items: center; justify-content: center; width: calc(22px * var(--k)); height: calc(22px * var(--k)); border-radius: 50%; color: #fff; }
+
+/* Calendar column */
+.cal { flex: 1; display: flex; flex-direction: column; align-items: center; gap: calc(8px * var(--k)); }
+.cal .top { display: flex; align-items: center; gap: calc(10px * var(--k)); }
+.cal .month { font-size: calc(19px * var(--k)); font-weight: 700; }
+.cal .days { display: flex; gap: calc(3px * var(--k)); }
+.cal .day { width: calc(21px * var(--k)); display: flex; flex-direction: column; align-items: center; gap: calc(3px * var(--k)); }
+.cal .day .dow { font-size: calc(8px * var(--k)); font-weight: 600; color: rgba(255,255,255,0.3); }
+.cal .day .num { font-size: calc(13px * var(--k)); color: rgba(255,255,255,0.6); }
+.cal .day.today .dow, .cal .day.today .num { color: var(--accent); }
+.cal .day.today .num { font-weight: 700; }
+.cal .sub { display: flex; align-items: center; gap: calc(5px * var(--k)); font-size: calc(10px * var(--k)); color: rgba(255,255,255,0.5); white-space: nowrap; }
+
+/* Tools column — the tabbed shelf / clipboard / timer */
+.tools { flex: 0 0 calc(160px * var(--k)); display: flex; flex-direction: column; gap: calc(8px * var(--k)); align-self: stretch; justify-content: flex-start; padding-top: calc(2px * var(--k)); }
+.tools .tabs { display: flex; align-items: center; gap: calc(8px * var(--k)); height: calc(16px * var(--k)); }
+.tools .tab { display: flex; align-items: center; gap: calc(4px * var(--k)); color: rgba(255,255,255,0.38); }
+.tools .tab.on { color: var(--accent); }
+.tools .tab .name { font-size: calc(9.5px * var(--k)); font-weight: 600; letter-spacing: calc(0.8px * var(--k)); text-transform: uppercase; }
+.tools .sp { flex: 1; }
+
+.drop {
+  flex: 1; min-height: calc(62px * var(--k));
+  border-radius: calc(12px * var(--k));
+  border: 1px dashed rgba(255,255,255,0.14);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.drop .empty { display: flex; flex-direction: column; align-items: center; gap: calc(4px * var(--k)); color: rgba(255,255,255,0.4); font-size: calc(10px * var(--k)); }
+.drop .grid { display: flex; flex-wrap: wrap; gap: calc(8px * var(--k)); padding: calc(6px * var(--k)); width: 100%; }
+.chip { width: calc(44px * var(--k)); height: calc(44px * var(--k)); border-radius: calc(7px * var(--k)); display: flex; align-items: center; justify-content: center; font-size: calc(9px * var(--k)); font-weight: 700; color: #fff; }
+
+/* Clipboard rows */
+.cliplist { display: flex; flex-direction: column; gap: calc(2px * var(--k)); }
+.cliprow {
+  display: flex; align-items: center; gap: calc(8px * var(--k));
+  padding: calc(5px * var(--k)) calc(8px * var(--k));
+  border-radius: calc(8px * var(--k));
+  background: rgba(255,255,255,0.04);
+}
+.cliprow .g { width: calc(16px * var(--k)); display: flex; justify-content: center; color: rgba(255,255,255,0.45); }
+.cliprow .t { flex: 1; font-size: calc(10px * var(--k)); color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Timer ring */
+.timer { display: flex; align-items: center; gap: calc(12px * var(--k)); }
+.ring { position: relative; width: calc(54px * var(--k)); height: calc(54px * var(--k)); }
+.ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring .num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(14px * var(--k)); font-weight: 600; }
+.tbtns { display: flex; gap: calc(6px * var(--k)); }
+.tbtn { width: calc(28px * var(--k)); height: calc(28px * var(--k)); border-radius: 50%; background: rgba(255,255,255,0.13); display: flex; align-items: center; justify-content: center; }
+
+/* A keycap, for the shortcut clip. */
+#keys { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: calc(6px * var(--k)); }
+.cap {
+  min-width: calc(34px * var(--k)); height: calc(34px * var(--k));
+  padding: 0 calc(9px * var(--k));
+  border-radius: calc(8px * var(--k));
+  background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07));
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 calc(3px * var(--k)) calc(10px * var(--k)) rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: calc(15px * var(--k)); font-weight: 600; color: rgba(255,255,255,0.92);
+}
+
+/* Pointer, for clips where a click is the point. */
+/* When a clip shows one column on its own it takes the whole body row and
+   centres, rather than hugging the left edge with 500pt of black beside it. */
+.body-row.solo { justify-content: center; }
+.body-row.solo .tools { flex: 0 0 calc(260px * var(--k)); }
+.body-row.solo .media { flex: 0 0 calc(340px * var(--k)); }
+.body-row.solo .cal { flex: 0 0 calc(300px * var(--k)); }
+
+#cursor { position: absolute; width: calc(20px * var(--k)); height: calc(20px * var(--k)); }

@@ -44,6 +44,48 @@ Outputs land in `out/` and, unless `--no-install`, are copied to
 > here **before** `wrangler deploy`, or the site ships without its demo.
 > (`demo-poster.jpg` is tracked, so the frame at least shows a still.)
 
+## The feature clips (site card grid)
+
+Each card in the site's feature grid leads with a short looping clip of that
+one feature. They are a **separate stage** from the 66-second film, in
+`clips/`:
+
+```sh
+cd clips
+node render-clips.mjs                 # all ten, 60fps
+node render-clips.mjs --only timer    # one
+node render-clips.mjs --fps 30        # quicker draft
+```
+
+Output lands in `site/assets/clips/` as `<name>.mp4`, `.webm` and `.jpg`.
+All ten together are about 1 MB.
+
+Why a separate stage rather than slicing the film:
+
+- The film has burned-in captions, a MacBook bezel and camera moves built for
+  a full-width hero. In a 280px card those are unreadable clutter.
+- The clips are **800x260** — the panel's own 3.3:1 proportions. A 16:10 box
+  around a 680x208pt panel is more than half empty.
+- Every clip starts and ends in the same visual state, so `<video loop>` wraps
+  without a jump.
+
+`clips.js` names a `poster:` moment per clip. Left to a fixed fraction of the
+duration this lands mid-transition — the battery card's poster showed no
+battery at all, which is the one thing that card exists to show.
+
+Clips that never open the panel (`battery`, `invisible`) push the camera in
+with `zoom()`, then pull back if they do open. A 328pt collapsed strip filmed
+in an 800pt frame reads as an empty rectangle at card size.
+
+The site loads **no video at all** on first paint: the markup carries
+`preload="none"` and `main.js` starts a clip on pointer-enter, or when its
+card is in view on a touch device. Under `prefers-reduced-motion` nothing ever
+plays and the poster is the whole experience.
+
+> **The encoded clips are gitignored**, like the film. The posters are tracked,
+> so a fresh clone renders the grid rather than ten empty boxes — but run the
+> renderer before `wrangler deploy` or the cards will never move.
+
 ## The social cut (with sound)
 
 The site's video is **silent on purpose** — it autoplays, browsers only permit

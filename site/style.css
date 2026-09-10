@@ -287,6 +287,39 @@ a { color: inherit; text-decoration: none; }
   transition: transform 0.3s, border-color 0.3s;
 }
 .card:hover { transform: translateY(-4px); border-color: var(--accent-soft); }
+/* ---------- Card clips ----------
+   Each card leads with a short rendered clip of the feature instead of an
+   icon. The poster carries the card at rest; the video only loads and plays
+   when the pointer is on it, which is why `preload="none"` matters — ten
+   autoloading videos would cost more than the rest of the page combined. */
+.card-clip {
+  position: relative;
+  margin: -8px -8px 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #05070c;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  /* The clips are 800x260 — the panel's own proportions. Reserving the box by
+     aspect-ratio means the card never reflows when the poster arrives. */
+  aspect-ratio: 800 / 260;
+}
+.card-clip video {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+/* A hairline of accent while it is playing, so the card you are on is
+   obvious in a grid of ten nearly identical dark rectangles. */
+.card-clip::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: box-shadow 0.3s;
+  pointer-events: none;
+}
+.card:hover .card-clip::after { box-shadow: inset 0 0 0 1px var(--accent-soft); }
+
 .card-icon {
   width: 44px; height: 44px;
   border-radius: 12px;
@@ -588,6 +621,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .faq summary::after, .faq details { transition: none; }
+  .card-clip::after { transition: none; }
   .waveform span { animation: none; height: 8px; }
 }
 

@@ -27,6 +27,12 @@ xcuserdata/
 site/assets/demo.mp4
 site/assets/demo.webm
 
+# Same rule for the per-feature card clips: the encoded video is reproducible
+# (`cd video/clips && node render-clips.mjs`), the posters are small and are
+# tracked so a fresh clone still renders the grid rather than ten empty boxes.
+site/assets/clips/*.mp4
+site/assets/clips/*.webm
+
 # --- Node / Wrangler (site) ---
 node_modules/
 .wrangler/
