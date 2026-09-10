@@ -31,8 +31,8 @@ const ONLY = args.only;
    rather than a 16:10 box that would be half empty. The cards show these around 280px
    wide, so 720 keeps them crisp on a retina display without the file size of
    a full-resolution clip nobody will ever see at full resolution. */
-const W = 1600, H = 520;
-const OUT_W = 800, OUT_H = 260;
+const W = 1600, H = 640;
+const OUT_W = 800, OUT_H = 320;
 
 const browser = await puppeteer.launch({
   headless: true,

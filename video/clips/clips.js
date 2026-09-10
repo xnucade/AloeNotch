@@ -146,6 +146,21 @@ function glow(strength, colour = ART_ACCENT, w = EXP_W, h = EXP_H) {
  * Push the camera in. A clip that never opens the panel is filming a 330pt
  * strip in a 800pt frame, which at card size reads as an empty rectangle.
  */
+const FRAME_W = 1600, FRAME_H = 640;
+
+/**
+ * Zoom so a panel of `widthPt` fills the frame, bounded by height.
+ *
+ * Without this a clip showing one module sat at whatever size 680pt happened
+ * to be, with the content occupying a third of the frame — which is why the
+ * cards were hard to read.
+ */
+function fill(widthPt, headroom = 0.95) {
+  const byWidth = (FRAME_W * headroom) / (widthPt * K);
+  const byHeight = (FRAME_H * 0.90) / (EXP_H * K);
+  zoom(Math.min(byWidth, byHeight));
+}
+
 function zoom(scale) {
   el.stage.style.transform = `translateX(-50%) scale(${scale})`;
   el.stage.style.transformOrigin = '50% 0';
@@ -234,7 +249,8 @@ CLIPS['now-playing'] = { duration: 6.0, poster: 3.4, render(t) {
   const open = springAt(t, 1.0, EXPAND);
   const shut = springAt(t, 4.6, COLLAPSE);
   const p = clamp01(open - shut);
-  morph(p, NOTCH_W + MEDIA_WING * 2);
+  fill(lerp(NOTCH_W + MEDIA_WING * 2, NARROW_W, easeInOut(p)));
+  morph(p, NOTCH_W + MEDIA_WING * 2, NARROW_W);
   strip(`<div id="miniArt" style="background:${ART}"></div>`, waveform(t));
   glow(p * 0.5, ART_ACCENT);
   const played = 0.38 + 0.055 * t;
@@ -247,7 +263,8 @@ CLIPS['now-playing'] = { duration: 6.0, poster: 3.4, render(t) {
 CLIPS['ambient-glow'] = { duration: 6.0, poster: 3.0, render(t) {
   reset();
   columns({ media: true, cal: false, tools: false });
-  morph(1);
+  fill(NARROW_W);
+  morph(1, NOTCH_W, NARROW_W);
   // A slow loop through three album accents, returning to the first.
   const stops = ['#c86bff', '#ff5f8f', '#4bc0ff', '#c86bff'];
   const u = (t / 6) * 3;
@@ -264,6 +281,7 @@ CLIPS['ambient-glow'] = { duration: 6.0, poster: 3.0, render(t) {
 CLIPS['shelf'] = { duration: 6.0, poster: 4.4, render(t) {
   reset();
   columns({ media: false, cal: false, tools: true });
+  fill(NARROW_W);
   morph(1, NOTCH_W, NARROW_W);
   tabs('shelf');
   const files = [['#ff8a5c', 'PDF'], ['#5cc8ff', 'PNG'], ['#b78bff', 'ZIP']];
@@ -285,6 +303,7 @@ CLIPS['shelf'] = { duration: 6.0, poster: 4.4, render(t) {
 CLIPS['at-a-glance'] = { duration: 6.0, poster: 3.0, render(t) {
   reset();
   columns({ media: false, cal: true, tools: false });
+  fill(EXP_W);
   const open = springAt(t, 0.8, EXPAND);
   const shut = springAt(t, 4.8, COLLAPSE);
   morph(clamp01(open - shut));
@@ -304,7 +323,7 @@ CLIPS['battery'] = { duration: 7.0, poster: 4.8, render(t) {
   const p = clamp01(open - shut);
   // In close on the peek, pulling back as the panel opens so it is never
   // cropped. A 328pt strip filmed in an 800pt frame is an empty rectangle.
-  zoom(lerp(2.1, 1.0, easeInOut(p)));
+  zoom(lerp(2.1, Math.min((FRAME_W * 0.95) / (EXP_W * K), (FRAME_H * 0.90) / (EXP_H * K)), easeInOut(p)));
 
   const peek = envelope(t, 1.0, 1.6, 0.3, 0.3) * (1 - p);
   const wing = springAt(t, 1.0, READOUT) - springAt(t, 2.9, READOUT);
@@ -334,6 +353,7 @@ CLIPS['timer'] = { duration: 7.0, poster: 5.0, render(t) {
   const open = springAt(t, 3.2, EXPAND);
   const shut = springAt(t, 5.9, COLLAPSE);
   const p = clamp01(open - shut);
+  fill(NARROW_W);
   morph(p, NOTCH_W + WING.regular * 2, NARROW_W);
   tabs('timer');
 
@@ -371,6 +391,7 @@ CLIPS['timer'] = { duration: 7.0, poster: 5.0, render(t) {
 CLIPS['clipboard'] = { duration: 6.5, poster: 3.2, render(t) {
   reset();
   columns({ media: false, cal: false, tools: true });
+  fill(NARROW_W);
   morph(1, NOTCH_W, NARROW_W);
   tabs('clip');
 
@@ -396,11 +417,12 @@ CLIPS['clipboard'] = { duration: 6.5, poster: 3.2, render(t) {
   }).join('') + '</div>';
 
   // The pointer arrives, presses, and withdraws.
-  const x = lerp(px(NARROW_W) * 0.30, px(NARROW_W) * 0.72, reach) - lerp(0, px(140), leave);
-  const y = lerp(px(EXP_H) * 0.98, px(EXP_H) * 0.60, reach) + lerp(0, px(90), leave);
+  const x = lerp(px(NARROW_W) * 0.32, px(NARROW_W) * 0.62, reach) + lerp(0, px(120), leave);
+  const y = lerp(px(EXP_H) * 1.05, px(EXP_H) * 0.56, reach) + lerp(0, px(70), leave);
   const press = t > 2.0 && t < 2.16 ? 0.88 : 1;
+  // Panel-local coordinates now that the cursor lives inside the panel.
   el.cursor.style.opacity = clamp01(reach * 1.5) * (1 - leave);
-  el.cursor.style.left = `calc(50% - ${px(NARROW_W) / 2}px + ${x}px)`;
+  el.cursor.style.left = x + 'px';
   el.cursor.style.top = y + 'px';
   el.cursor.style.transform = `scale(${press})`;
 }};
@@ -409,6 +431,7 @@ CLIPS['clipboard'] = { duration: 6.5, poster: 3.2, render(t) {
 CLIPS['shortcut'] = { duration: 6.0, poster: 3.0, render(t) {
   reset();
   columns({ media: true, cal: true, tools: false });
+  fill(EXP_W);
   const open = springAt(t, 1.35, EXPAND);
   const shut = springAt(t, 4.3, COLLAPSE);
   morph(clamp01(open - shut));
@@ -432,7 +455,7 @@ CLIPS['shortcut'] = { duration: 6.0, poster: 3.0, render(t) {
 }};
 
 /* 9. Invisible by design — it hugs the cutout, then proves it can open. */
-CLIPS['invisible'] = { duration: 6.0, poster: 3.2, render(t) {
+CLIPS['invisible'] = { duration: 6.0, poster: 1.0, render(t) {
   reset();
   columns({ media: true, cal: true, tools: false });
   // Mostly closed. The one brief opening is what shows the strip really is the
@@ -442,7 +465,7 @@ CLIPS['invisible'] = { duration: 6.0, poster: 3.2, render(t) {
   const p = clamp01(open - shut);
   // Pushed in on the closed strip, pulling back as it opens so the panel is
   // never cropped. The move itself is what shows the strip *is* the cutout.
-  zoom(lerp(1.9, 1.0, easeInOut(p)));
+  zoom(lerp(1.9, Math.min((FRAME_W * 0.95) / (EXP_W * K), (FRAME_H * 0.90) / (EXP_H * K)), easeInOut(p)));
   morph(p);
   strip('', '');
   // A soft sweep of light across the bezel, so a static black strip still
@@ -457,7 +480,8 @@ CLIPS['invisible'] = { duration: 6.0, poster: 3.2, render(t) {
 CLIPS['sound-output'] = { duration: 6.0, poster: 3.8, render(t) {
   reset();
   columns({ media: true, cal: false, tools: false });
-  morph(1);
+  fill(NARROW_W);
+  morph(1, NOTCH_W, NARROW_W);
   const swap = envelope(t, 1.6, 2.6, 0.32, 0.32);
   el.wxPill.style.opacity = 1 - swap;
   el.gear.style.opacity = 1 - swap;
@@ -469,7 +493,7 @@ CLIPS['sound-output'] = { duration: 6.0, poster: 3.8, render(t) {
   if (!row) {
     row = document.createElement('div');
     row.id = 'outRow';
-    row.style.cssText = `position:absolute;left:${px(20)}px;right:${px(20)}px;top:${px(38)}px;display:flex;gap:${px(6)}px;align-items:center`;
+    row.style.cssText = `position:absolute;left:${px(16)}px;right:${px(16)}px;top:${px(38)}px;display:flex;gap:${px(6)}px;align-items:center`;
     el.expanded.appendChild(row);
   }
   row.style.opacity = swap;

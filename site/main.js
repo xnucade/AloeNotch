@@ -91,7 +91,45 @@ document.getElementById("year").textContent = new Date().getFullYear();
       card.addEventListener("pointerenter", () => play(video));
       card.addEventListener("pointerleave", () => stop(video));
     }
+
+    box.addEventListener("click", () => openLightbox(video));
   }
+
+  /* The clip at a size you can actually read. A card is ~520px wide even in
+     two columns; the panel's own 13pt type still lands small there, and this
+     is the one place someone can look properly. */
+  const lb = document.getElementById("lightbox");
+  const lbVideo = document.getElementById("lightbox-video");
+
+  function openLightbox(from) {
+    if (!lb || !lbVideo) return;
+    // Rebuild the sources rather than cloning: a cloned <video> keeps the
+    // original's buffered state and can start mid-clip.
+    lbVideo.innerHTML = "";
+    for (const src of from.querySelectorAll("source")) {
+      const copy = document.createElement("source");
+      copy.src = src.src;
+      copy.type = src.type;
+      lbVideo.appendChild(copy);
+    }
+    lbVideo.poster = from.poster;
+    lbVideo.load();
+    lb.hidden = false;
+    lb.classList.add("open");
+    play(lbVideo);
+  }
+
+  function closeLightbox() {
+    if (!lb) return;
+    lb.classList.remove("open");
+    lb.hidden = true;
+    stop(lbVideo);
+  }
+
+  lb?.addEventListener("click", closeLightbox);
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lb && !lb.hidden) closeLightbox();
+  });
 
   if (!hoverCapable) {
     // One at a time, whichever card is most centred.

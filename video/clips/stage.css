@@ -25,7 +25,7 @@
 }
 
 html, body {
-  width: 1600px; height: 520px;
+  width: 1600px; height: 640px;
   overflow: hidden;
   background: #000;
 }
@@ -39,7 +39,7 @@ body {
 .rounded { font-family: "SF Pro Rounded", ui-rounded, -apple-system, sans-serif; }
 .mono-digit { font-variant-numeric: tabular-nums; }
 
-#frame { position: relative; width: 1600px; height: 520px; overflow: hidden; }
+#frame { position: relative; width: 1600px; height: 640px; overflow: hidden; }
 
 /* A desktop suggestion rather than a wallpaper: enough colour for the glass
    and the glow to have something to sit against, quiet enough that it never
