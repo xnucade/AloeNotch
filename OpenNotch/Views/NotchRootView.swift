@@ -578,22 +578,38 @@ struct HeaderRow: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
 
-    /// The header doubles as the audio output picker. Opening it swaps the row
-    /// rather than dropping a menu: an AppKit menu opens *outside* the panel,
-    /// which takes the pointer out of the hover region and collapses the very
-    /// thing the menu belongs to.
-    @State private var pickingOutput = false
+    /// The header doubles as two pickers. Opening either swaps the row rather
+    /// than dropping a menu or a popover: both open *outside* the panel, which
+    /// takes the pointer out of the hover region and collapses the very thing
+    /// they belong to.
+    ///
+    /// One mode rather than a boolean each, so the two can never both be open.
+    @State private var mode: Mode = .clock
+
+    enum Mode { case clock, output, forecast }
 
     var body: some View {
-        if pickingOutput {
-            AudioOutputRow(audio: viewModel.audioOutput) {
-                withAnimation(Motion.contentFade) { pickingOutput = false }
+        Group {
+            switch mode {
+            case .clock:
+                clockRow.transition(.opacity)
+            case .output:
+                AudioOutputRow(audio: viewModel.audioOutput) { close() }
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+            case .forecast:
+                WeatherForecastRow(weather: viewModel.weather) { close() }
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
-            .transition(.opacity.combined(with: .move(edge: .trailing)))
-        } else {
-            clockRow
-                .transition(.opacity)
         }
+        // Anything that closes the panel has to reset the header, or reopening
+        // it lands on a forecast the user left open ten minutes ago.
+        .onChange(of: viewModel.panelState.isExpanded) { _, expanded in
+            if !expanded { mode = .clock }
+        }
+    }
+
+    private func close() {
+        withAnimation(Motion.contentFade) { mode = .clock }
     }
 
     private var clockRow: some View {
@@ -620,7 +636,9 @@ struct HeaderRow: View {
                 Spacer()
 
                 if settings.showWeather {
-                    WeatherPill(weather: viewModel.weather)
+                    WeatherPill(weather: viewModel.weather) {
+                        withAnimation(Motion.contentFade) { mode = .forecast }
+                    }
                 }
                 if settings.showBattery {
                     BatteryView(battery: viewModel.battery)
@@ -630,7 +648,7 @@ struct HeaderRow: View {
                 // nothing, which is worse than no button.
                 if viewModel.audioOutput.devices.count > 1 {
                     Button {
-                        withAnimation(Motion.contentFade) { pickingOutput = true }
+                        withAnimation(Motion.contentFade) { mode = .output }
                     } label: {
                         Image(systemName: viewModel.audioOutput.current?.symbol ?? "speaker.wave.2")
                             .font(Typography.icon(12, .medium))
@@ -767,25 +785,99 @@ private struct AudioDeviceChip: View {
 }
 
 /// Small capsule with the current conditions; hidden until a snapshot arrives.
+///
+/// Clickable only when a forecast actually came back. A temperature on its own
+/// provokes exactly one question — do I need a jacket, is it going to rain —
+/// and answering it is the only reason to make a readout a target. When the
+/// forecast is missing the pill stays a readout rather than becoming a button
+/// that opens an empty row.
 private struct WeatherPill: View {
     @ObservedObject var weather: WeatherProvider
+    let onOpenForecast: () -> Void
+
+    @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         if let snapshot = weather.current {
-            HStack(spacing: 5) {
-                Image(systemName: snapshot.symbolName)
-                    .symbolRenderingMode(.multicolor)
-                    .font(Typography.icon(12, .medium))
-                Text(snapshot.temperatureText)
-                    .font(Typography.body(.semibold))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
+            let interactive = !snapshot.hourly.isEmpty
+            Button(action: onOpenForecast) {
+                HStack(spacing: 5) {
+                    Image(systemName: snapshot.symbolName)
+                        .symbolRenderingMode(.multicolor)
+                        .font(Typography.icon(12, .medium))
+                    Text(snapshot.temperatureText)
+                        .font(Typography.body(.semibold))
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(.white.opacity(hovering && interactive ? 0.16 : 0.08), in: Capsule())
+                .contentShape(.capsule)
             }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(.white.opacity(0.08), in: Capsule())
-            .help(snapshot.summary)
+            .buttonStyle(PressableButtonStyle())
+            .disabled(!interactive)
+            .help(interactive ? "\(snapshot.summary) — see the next few hours" : snapshot.summary)
+            .onHover { inside in
+                withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                    hovering = inside
+                }
+            }
             .transition(.blurReplace)
+        }
+    }
+}
+
+/// The header, while the forecast is open: the next few hours as columns.
+private struct WeatherForecastRow: View {
+    @ObservedObject var weather: WeatherProvider
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack(spacing: Metrics.Spacing.regular) {
+            if let snapshot = weather.current {
+                HStack(spacing: 5) {
+                    Image(systemName: snapshot.symbolName)
+                        .symbolRenderingMode(.multicolor)
+                        .font(Typography.icon(12, .medium))
+                    Text(snapshot.summary)
+                        .font(Typography.micro(.semibold))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+
+                Spacer(minLength: Metrics.Spacing.tight)
+
+                HStack(spacing: Metrics.Spacing.regular) {
+                    ForEach(snapshot.hourly) { hour in
+                        VStack(spacing: 2) {
+                            Text(hour.hourText)
+                                .font(Typography.micro())
+                                .foregroundStyle(.white.opacity(0.45))
+                            Image(systemName: hour.symbolName)
+                                .symbolRenderingMode(.multicolor)
+                                .font(Typography.icon(11, .medium))
+                            Text(hour.temperatureText)
+                                .font(Typography.micro(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(.white.opacity(0.85))
+                        }
+                        .fixedSize()
+                    }
+                }
+            }
+
+            Spacer(minLength: Metrics.Spacing.tight)
+
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(Typography.icon(11, .medium))
+                    .foregroundStyle(.white)
+                    .hoverLift(restOpacity: 0.5)
+            }
+            .buttonStyle(PressableButtonStyle())
         }
     }
 }

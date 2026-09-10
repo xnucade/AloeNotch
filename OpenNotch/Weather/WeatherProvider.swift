@@ -6,10 +6,32 @@ struct WeatherSnapshot: Equatable {
     var temperatureC: Double
     var symbolName: String
     var summary: String
+    /// The next few hours. Empty if the forecast did not come back — the
+    /// current conditions are still worth showing on their own.
+    var hourly: [Hour] = []
+
+    struct Hour: Equatable, Identifiable {
+        let date: Date
+        let temperatureC: Double
+        let symbolName: String
+        var id: Date { date }
+
+        /// "2 PM" / "14" — hour only, because the strip is 60pt wide per column
+        /// and the minutes are always zero.
+        var hourText: String {
+            date.formatted(.dateTime.hour())
+        }
+
+        var temperatureText: String {
+            WeatherSnapshot.format(temperatureC)
+        }
+    }
 
     /// Localized temperature in the user's preferred unit ("72°" / "22°").
-    var temperatureText: String {
-        Measurement(value: temperatureC, unit: UnitTemperature.celsius)
+    var temperatureText: String { Self.format(temperatureC) }
+
+    static func format(_ celsius: Double) -> String {
+        Measurement(value: celsius, unit: UnitTemperature.celsius)
             .formatted(.measurement(
                 width: .narrow,
                 usage: .weather,
@@ -75,6 +97,14 @@ final class WeatherProvider: NSObject, ObservableObject {
             URLQueryItem(name: "latitude", value: String(format: "%.3f", latitude)),
             URLQueryItem(name: "longitude", value: String(format: "%.3f", longitude)),
             URLQueryItem(name: "current", value: "temperature_2m,weather_code,is_day"),
+            // The forecast rides along on the request already being made — the
+            // same endpoint, no extra key, no second round trip.
+            URLQueryItem(name: "hourly", value: "temperature_2m,weather_code,is_day"),
+            URLQueryItem(name: "forecast_days", value: "2"),
+            // Epoch seconds rather than local wall-clock strings, so there is
+            // no date parsing to get wrong across time zones.
+            URLQueryItem(name: "timeformat", value: "unixtime"),
+            URLQueryItem(name: "timezone", value: "auto"),
         ]
         guard let url = components.url else { return }
 
@@ -88,7 +118,8 @@ final class WeatherProvider: NSObject, ObservableObject {
             let snapshot = WeatherSnapshot(
                 temperatureC: c.temperature_2m,
                 symbolName: symbol,
-                summary: summary
+                summary: summary,
+                hourly: Self.hours(from: response.hourly)
             )
             DispatchQueue.main.async { self?.current = snapshot }
         }.resume()
@@ -100,7 +131,44 @@ final class WeatherProvider: NSObject, ObservableObject {
             let weather_code: Int
             let is_day: Int
         }
+        struct Hourly: Decodable {
+            let time: [Int]
+            let temperature_2m: [Double]
+            let weather_code: [Int]
+            let is_day: [Int]
+        }
         let current: Current
+        let hourly: Hourly?
+    }
+
+    /// The next six hours, starting with the one after this one.
+    ///
+    /// Six because that is what fits across the panel header without shrinking
+    /// the columns below reading size, and because the question a temperature
+    /// readout actually provokes — do I need a jacket, will it rain later — is
+    /// answered inside an afternoon rather than a week.
+    private static func hours(from hourly: OpenMeteoResponse.Hourly?) -> [WeatherSnapshot.Hour] {
+        guard let hourly else { return [] }
+        // Every array is parallel; a short one means a truncated response, and
+        // zipping past its end would crash rather than degrade.
+        let count = min(hourly.time.count, hourly.temperature_2m.count,
+                        hourly.weather_code.count, hourly.is_day.count)
+        guard count > 0 else { return [] }
+
+        let now = Date()
+        return (0..<count).lazy
+            .map { i -> WeatherSnapshot.Hour in
+                let (symbol, _) = condition(for: hourly.weather_code[i],
+                                            isDay: hourly.is_day[i] == 1)
+                return WeatherSnapshot.Hour(
+                    date: Date(timeIntervalSince1970: TimeInterval(hourly.time[i])),
+                    temperatureC: hourly.temperature_2m[i],
+                    symbolName: symbol
+                )
+            }
+            .filter { $0.date > now }
+            .prefix(6)
+            .map { $0 }
     }
 
     /// Maps WMO weather codes to an SF Symbol + short description.
