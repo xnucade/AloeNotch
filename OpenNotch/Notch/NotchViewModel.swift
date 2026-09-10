@@ -264,22 +264,34 @@ final class NotchViewModel: ObservableObject {
 
         // Any announcement appearing or expiring resizes the strip — and so
         // does a resident one starting or ending, which is what a timer does.
+        //
+        // `receive(on:)` on all three, and it is not optional. `@Published`
+        // publishes in `willSet`, so a sink that runs synchronously re-reads
+        // the property and gets the value it had *before* the change.
+        // `targetState()` re-reads every input, so without the hop the whole
+        // state machine runs exactly one step behind: the strip grew its wing
+        // as an announcement disappeared and shrank as one arrived, which is
+        // why volume and brightness readouts could leave a wide empty strip
+        // sitting on screen with nothing drawn in it.
         activities.$current
             .combineLatest(activities.$resident)
             .removeDuplicates { $0 == $1 }
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.refreshState() }
             .store(in: &cancellables)
 
-        // The media peek is now an explicit state rather than something the
-        // view re-derives, so the two inputs that produce it have to drive the
-        // state machine directly.
+        // The media peek is an explicit state rather than something the view
+        // re-derives, so the two inputs that produce it drive the state machine
+        // directly — with the same hop, for the same reason.
         media.$isPlaying
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.refreshState() }
             .store(in: &cancellables)
 
         settings.$showMedia
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.refreshState() }
             .store(in: &cancellables)
     }

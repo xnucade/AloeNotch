@@ -401,7 +401,7 @@ enum PanelLayout: String, CaseIterable, Identifiable {
 
     var detail: String {
         switch self {
-        case .columns: "Media, calendar and shelf side by side."
+        case .columns: "Media, calendar and your tools side by side."
         case .focused: "One module, larger, with pills to switch between them."
         }
     }

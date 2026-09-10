@@ -1,129 +1,14 @@
 import SwiftUI
 
-/// Layout primitives for the preferences window.
+/// Rows with a job of their own — an accent picker, the update check, one
+/// system permission.
 ///
-/// These exist so the five tabs cannot drift apart. Settings panes go wrong in
-/// a very specific way — each pane is written on a different day, and the
-/// spacing, label widths and description styling end up subtly different, which
-/// reads as amateur even when every individual pane looks fine. One set of
-/// primitives makes consistency the default rather than something to remember.
+/// All three used to hand-roll the same `HStack` the plain row already draws,
+/// with different vertical alignments and different gaps, so labels down the
+/// window didn't line up. They compose `SettingsRow` now; the only thing they
+/// own is what goes in the control slot.
 
-// MARK: - Section
-
-/// A titled group of rows on a single surface, mirroring the grouped boxes in
-/// System Settings.
-struct SettingsSection<Content: View>: View {
-    let title: String?
-    @ViewBuilder var content: Content
-
-    @ObservedObject private var settings = AppSettings.shared
-
-    init(_ title: String? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let title {
-                Text(title)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.6)
-                    .padding(.leading, 4)
-            }
-            VStack(spacing: 0) {
-                content
-            }
-            .panelSurface(cornerRadius: 12, glass: settings.useGlass)
-        }
-    }
-}
-
-/// One line in a section: a label, an optional explanation, and a control.
-///
-/// The control is trailing and vertically centred against the *label*, not the
-/// whole row — so a long description growing to three lines doesn't drag the
-/// switch down away from the thing it's labelled by.
-struct SettingsRow<Control: View>: View {
-    let title: String
-    var symbol: String?
-    var description: String?
-    @ViewBuilder var control: Control
-
-    init(_ title: String,
-         symbol: String? = nil,
-         description: String? = nil,
-         @ViewBuilder control: () -> Control) {
-        self.title = title
-        self.symbol = symbol
-        self.description = description
-        self.control = control()
-    }
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            if let symbol {
-                Image(systemName: symbol)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 18)
-            }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 13))
-                if let description {
-                    Text(description)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            Spacer(minLength: 12)
-            control
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-    }
-}
-
-/// An inline caution inside a section — something the user needs to act on,
-/// sitting where the thing it is about is, rather than in an alert that has to
-/// be dismissed before they can fix it.
-struct SettingsNote: View {
-    let text: String
-    var symbol: String = "info.circle"
-
-    init(_ text: String, symbol: String = "info.circle") {
-        self.text = text
-        self.symbol = symbol
-    }
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: symbol)
-                .font(.system(size: 11))
-                .frame(width: 18)
-            Text(text)
-                .font(.system(size: 11))
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-        }
-        .foregroundStyle(.orange)
-        .padding(.horizontal, 12)
-        .padding(.bottom, 10)
-    }
-}
-
-/// Hairline between rows. Inset to match the label column so it reads as a
-/// separator inside a group rather than a full-bleed cut across the card.
-struct SettingsDivider: View {
-    var body: some View {
-        Divider().opacity(0.35).padding(.leading, 12)
-    }
-}
-
-// MARK: - Accent picker
+// MARK: - Accent
 
 /// A row of curated swatches plus a custom well.
 ///
@@ -198,24 +83,10 @@ struct AccentPicker: View {
 struct UpdateRow: View {
     @ObservedObject private var updates = UpdateChecker.shared
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var a11y = AccessibilityPreferences.shared
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: symbol)
-                .font(.system(size: 13))
-                .foregroundStyle(tint)
-                .frame(width: 18)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 13))
-                Text(detail)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 12)
-
+        SettingsRow(title, symbol: symbol, symbolTint: tint, description: detail) {
             if case .available = updates.state {
                 Button("Get It…") { updates.openReleasesPage() }
                     .controlSize(.small)
@@ -227,8 +98,10 @@ struct UpdateRow: View {
                     .disabled(updates.state == .checking)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        // The glyph swaps between four states as a check runs, and a cut
+        // between them makes a two-second network call look like a glitch.
+        .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+                   value: updates.state)
     }
 
     private var symbol: String {
@@ -314,37 +187,24 @@ struct PermissionRow: View {
     var actionTitle: String = "Grant…"
 
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var a11y = AccessibilityPreferences.shared
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: symbol)
-                .font(.system(size: 13))
-                .foregroundStyle(.secondary)
-                .frame(width: 18)
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text(title).font(.system(size: 13))
-                    Image(systemName: status.symbol)
-                        .font(.system(size: 11))
-                        .foregroundStyle(status.tint)
-                }
-                Text(rationale)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 12)
-
+        SettingsRow(title,
+                    symbol: symbol,
+                    description: rationale,
+                    badge: (status.symbol, status.tint)) {
             if status != .granted, let action {
                 Button(actionTitle, action: action)
                     .controlSize(.small)
                     .glassButtonStyle(settings.useGlass)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        // Granting a permission is the one moment in this window where
+        // something changes because of an answer given somewhere else. The tick
+        // arriving on its own, with a beat, is what confirms it landed.
+        .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+                   value: status)
     }
 }
 
