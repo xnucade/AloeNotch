@@ -187,16 +187,6 @@ private final class AudioOutputDetector {
               deviceID != kAudioObjectUnknown
         else { return nil }
 
-        var nameAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioObjectPropertyName,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var name: CFString = "" as CFString
-        var nameSize = UInt32(MemoryLayout<CFString>.size)
-        guard AudioObjectGetPropertyData(deviceID, &nameAddress, 0, nil,
-                                         &nameSize, &name) == noErr
-        else { return nil }
-        return name as String
+        return AudioOutputController.name(of: deviceID)
     }
 }

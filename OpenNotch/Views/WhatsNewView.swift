@@ -23,6 +23,30 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.9.0",
+            headline: "Five things it couldn't do before",
+            items: [
+                Item(symbol: "keyboard",
+                     title: "Open it without the mouse",
+                     detail: "⌃⌥N opens and closes the panel from anywhere, and it stays open until you press it again. Change or switch off the shortcut in Settings → General."),
+                Item(symbol: "timer",
+                     title: "A timer in the notch",
+                     detail: "Start one from the panel and it takes over the collapsed strip while it counts down. Pause it, add a minute, or let it ring."),
+                Item(symbol: "doc.on.clipboard",
+                     title: "The last 24 things you copied",
+                     detail: "Click one to copy it again. History is kept in memory only — never written to disk, cleared when AloeNotch quits, and anything a password manager marks as private is skipped entirely."),
+                Item(symbol: "speaker.wave.2",
+                     title: "Switch where sound goes",
+                     detail: "When more than one output is available, a speaker button appears in the panel header. Pick a device and everything follows."),
+                Item(symbol: "cup.and.saucer",
+                     title: "Keep this Mac awake",
+                     detail: "One tap in the header holds off display sleep, and another lets go. It releases itself if AloeNotch ever stops running."),
+                Item(symbol: "airpods.pro",
+                     title: "It notices more",
+                     detail: "Headphones connecting and drives mounting or ejecting now get the same brief announcement volume and charging already had."),
+            ]
+        ),
+        Entry(
             version: "0.8.5",
             headline: "One thing, or everything",
             items: [

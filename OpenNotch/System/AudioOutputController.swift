@@ -144,16 +144,25 @@ final class AudioOutputController: ObservableObject {
         return size > 0
     }
 
-    private static func name(of id: AudioObjectID) -> String? {
+    /// The human-readable name of an audio device.
+    ///
+    /// Through `Unmanaged`, not a bare `CFString` variable. CoreAudio writes a
+    /// retained pointer into the buffer it is handed; giving it a `CFString`
+    /// directly means ARC also thinks it owns that variable, so the returned
+    /// object is over-released and whatever was there before is leaked. It
+    /// happens to work often enough to look correct, which is what makes it
+    /// worth spelling out.
+    static func name(of id: AudioObjectID) -> String? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioObjectPropertyName,
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
-        var name: CFString = "" as CFString
-        var size = UInt32(MemoryLayout<CFString>.size)
-        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &name) == noErr else { return nil }
-        let s = name as String
+        var name: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &name) == noErr,
+              let value = name?.takeRetainedValue() else { return nil }
+        let s = value as String
         return s.isEmpty ? nil : s
     }
 }
