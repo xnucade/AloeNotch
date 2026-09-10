@@ -15,6 +15,7 @@ cd "$(dirname "$0")/.."
 SOURCES=(
     OpenNotch/Notch/PanelState.swift
     OpenNotch/Design/SemanticVersion.swift
+    OpenNotch/System/ClipboardHistory.swift
 )
 
 TESTS=(Tests/*.swift)

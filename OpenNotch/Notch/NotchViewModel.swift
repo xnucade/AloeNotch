@@ -28,6 +28,19 @@ enum NotchHUD: Equatable {
             return level < 0.5 ? "sun.min.fill" : "sun.max.fill"
         }
     }
+
+    /// As an announcement. `.direct` priority because the user is holding a key
+    /// right now, and nothing arriving in the background may bury it.
+    var activity: LiveActivity {
+        LiveActivity(
+            kind: "system.hud",
+            symbol: icon,
+            trailing: .level(Double(level)),
+            size: .wide,
+            duration: 1.5,
+            priority: LiveActivity.Priority.direct
+        )
+    }
 }
 
 final class NotchViewModel: ObservableObject {
@@ -57,7 +70,13 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var stateAnimation: Animation = Motion.expand
 
     @Published var metrics: NotchMetrics?
-    @Published var hud: NotchHUD?
+
+    /// Everything transient the notch announces. See `LiveActivity`.
+    let activities = LiveActivityCenter()
+    let clipboard = ClipboardManager()
+
+    /// Watches for hardware worth announcing. See `ActivityDetectors`.
+    private lazy var detectors = ActivityDetectors(center: activities)
 
     /// Convenience for the many call sites that only care about the panel being
     /// open. Kept so this refactor doesn't churn every view at once.
@@ -67,10 +86,9 @@ final class NotchViewModel: ObservableObject {
     /// machine, not a state itself.
     private var isHovering = false
 
-    /// Set for a couple of seconds when power is connected. Another input, not
-    /// a state — the state machine decides whether it wins.
-    private var showChargingPeek = false
-    private var chargingDismiss: DispatchWorkItem?
+    /// Held open by the keyboard shortcut, until it is pressed again.
+    @Published private(set) var isPinnedOpen = false
+
 
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
@@ -101,7 +119,6 @@ final class NotchViewModel: ObservableObject {
 
     private var collapseWorkItem: DispatchWorkItem?
     private var hitTestTrail: DispatchWorkItem?
-    private var hudDismiss: DispatchWorkItem?
     private var trustPoll: Timer?
     private var cancellables = Set<AnyCancellable>()
 
@@ -206,6 +223,48 @@ final class NotchViewModel: ObservableObject {
             .sink { [weak self] _ in self?.weather.reevaluateAccess() }
             .store(in: &cancellables)
 
+        // Device announcements follow their toggle, so switching them off
+        // stops the watching rather than just hiding the result.
+        // The shortcut follows its own setting, and re-registers when the
+        // combo changes so a collision can be resolved without relaunching.
+        settings.$hotKeyEnabled
+            .combineLatest(settings.$hotKeyCombo)
+            .removeDuplicates { $0 == $1 }
+            .sink { enabled, combo in
+                if enabled {
+                    HotKeyManager.shared.register(combo)
+                } else {
+                    HotKeyManager.shared.unregister()
+                }
+            }
+            .store(in: &cancellables)
+
+        HotKeyManager.shared.onFire = { [weak self] in self?.toggleFromKeyboard() }
+
+        // Polling only while the module is on. A clipboard watcher that runs
+        // when nothing displays it is pure surveillance with no payoff.
+        settings.$showClipboard
+            .removeDuplicates()
+            .sink { [weak self] on in
+                guard let self else { return }
+                if on { self.clipboard.start() } else { self.clipboard.stop(); self.clipboard.clear() }
+            }
+            .store(in: &cancellables)
+
+        settings.$showDeviceEvents
+            .removeDuplicates()
+            .sink { [weak self] enabled in
+                guard let self else { return }
+                if enabled { self.detectors.start() } else { self.detectors.stop() }
+            }
+            .store(in: &cancellables)
+
+        // Any announcement appearing or expiring resizes the strip.
+        activities.$current
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.refreshState() }
+            .store(in: &cancellables)
+
         // The media peek is now an explicit state rather than something the
         // view re-derives, so the two inputs that produce it have to drive the
         // state machine directly.
@@ -231,8 +290,15 @@ final class NotchViewModel: ObservableObject {
             refreshState()
         } else {
             let work = DispatchWorkItem { [weak self] in
-                self?.isHovering = false
-                self?.refreshState()
+                guard let self else { return }
+                self.isHovering = false
+                // Hovering a keyboard-opened panel and then leaving hands
+                // control back to the pointer. Without this the panel can sit
+                // open across the top of the screen indefinitely because the
+                // user forgot they opened it with a key, and the obvious
+                // gesture for closing it — mousing away — does nothing.
+                self.isPinnedOpen = false
+                self.refreshState()
             }
             collapseWorkItem = work
             DispatchQueue.main.asyncAfter(deadline: .now() + Self.hoverGrace, execute: work)
@@ -251,11 +317,25 @@ final class NotchViewModel: ObservableObject {
     private func targetState() -> PanelState {
         PanelStateReducer.state(for: .init(
             isHovering: isHovering,
-            hasHUD: hud != nil,
-            isCharging: showChargingPeek,
+            isPinned: isPinnedOpen,
+            activity: activities.current?.size,
             mediaPlaying: media.isPlaying,
             showMedia: settings.showMedia
         ))
+    }
+
+    /// Open or close from the keyboard.
+    ///
+    /// Pinning rather than faking a hover: a hover ends when the pointer moves,
+    /// and there is no pointer here. Pressing the shortcut again is the only
+    /// thing that closes it, which is predictable in a way that "closes when
+    /// you happen to mouse over and away" is not.
+    func toggleFromKeyboard() {
+        isPinnedOpen.toggle()
+        // Cancel any pending hover-out collapse, or a stale one could shut a
+        // panel the user has just deliberately opened.
+        collapseWorkItem?.cancel()
+        refreshState()
     }
 
     /// Recompute and animate to whatever the inputs now imply.
@@ -333,8 +413,7 @@ final class NotchViewModel: ObservableObject {
             volume.stop()
             brightness.stop()
             trustPoll?.invalidate(); trustPoll = nil
-            hud = nil
-            refreshState()
+            activities.dismiss(kind: "system.hud")
             return
         }
 
@@ -348,8 +427,7 @@ final class NotchViewModel: ObservableObject {
             canReplaceSystemHUD = false
             volume.stop()
             brightness.stop()
-            hud = nil
-            refreshState()
+            activities.dismiss(kind: "system.hud")
             guard trustPoll == nil else { return }
             trustPoll = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
                 guard let self, MediaKeyInterceptor.isTrusted else { return }
@@ -361,36 +439,24 @@ final class NotchViewModel: ObservableObject {
     /// Briefly widen the strip to acknowledge the charger being connected.
     private func flashChargingPeek() {
         guard settings.showBattery else { return }
-        chargingDismiss?.cancel()
-        showChargingPeek = true
-        refreshState()
-
-        let work = DispatchWorkItem { [weak self] in
-            self?.showChargingPeek = false
-            self?.refreshState()
-        }
-        chargingDismiss = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: work)
+        activities.present(LiveActivity(
+            kind: "system.power",
+            symbol: "bolt.fill",
+            tint: .green,
+            trailing: .text("\(Int((battery.level * 100).rounded()))%"),
+            size: .regular,
+            duration: 2.0,
+            priority: LiveActivity.Priority.action
+        ))
     }
 
-    /// Flash a system readout in the notch, replacing any HUD already showing.
+    /// Flash a system readout in the notch, replacing any already showing.
     private func present(_ readout: NotchHUD) {
-        hudDismiss?.cancel()
-        withAnimation(Self.hudAnimation) { hud = readout }
-        // The HUD is an input to the state machine — raising one widens the
-        // strip into HUD wings unless the panel is already open.
-        refreshState()
-
-        let work = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            withAnimation(Self.hudAnimation) { self.hud = nil }
-            self.refreshState()
-        }
-        hudDismiss = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
+        activities.present(readout.activity)
     }
 
     func tearDown() {
+        detectors.stop()
         media.stop()
         battery.stop()
         calendar.stop()
@@ -402,6 +468,5 @@ final class NotchViewModel: ObservableObject {
         trustPoll = nil
         collapseWorkItem?.cancel()
         hitTestTrail?.cancel()
-        hudDismiss?.cancel()
     }
 }

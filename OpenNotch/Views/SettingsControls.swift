@@ -87,6 +87,34 @@ struct SettingsRow<Control: View>: View {
     }
 }
 
+/// An inline caution inside a section — something the user needs to act on,
+/// sitting where the thing it is about is, rather than in an alert that has to
+/// be dismissed before they can fix it.
+struct SettingsNote: View {
+    let text: String
+    var symbol: String = "info.circle"
+
+    init(_ text: String, symbol: String = "info.circle") {
+        self.text = text
+        self.symbol = symbol
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 11))
+                .frame(width: 18)
+            Text(text)
+                .font(.system(size: 11))
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(.orange)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 10)
+    }
+}
+
 /// Hairline between rows. Inset to match the label column so it reads as a
 /// separator inside a group rather than a full-bleed cut across the card.
 struct SettingsDivider: View {

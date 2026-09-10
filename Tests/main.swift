@@ -20,6 +20,8 @@ func expect(_ condition: Bool, _ description: String) {
 testPanelState()
 testSemanticVersion()
 testUpdateComparison()
+testClipboardHistory()
+testClipItemPresentation()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

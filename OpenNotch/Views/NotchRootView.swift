@@ -106,24 +106,19 @@ struct NotchRootView: View {
                                 .combined(with: .scale(scale: 0.94, anchor: .top))
                                 .animation(Motion.collapse)
                         ))
-                } else if state == .peek(.charging) {
-                    ChargingContent(
-                        battery: viewModel.battery,
+                } else if case .peek(.activity) = state {
+                    // Every transient announcement — volume, brightness,
+                    // charging, a device connecting — draws through here.
+                    // Keyed on the state rather than on the centre having
+                    // something, so the content drawn always matches the width
+                    // the state machine sized the strip for.
+                    ActivityContent(
+                        center: viewModel.activities,
                         deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0
                     )
                     .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
                                                            : Metrics.hudInsetSimulated)
                     .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
-                } else if state == .peek(.hud), let hud = viewModel.hud {
-                    // A system readout takes over the strip while it's showing.
-                    // Keyed on the state, not just `hud != nil`, so the content
-                    // drawn always matches the width the state machine sized
-                    // the strip for.
-                    HUDContent(hud: hud,
-                               deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0)
-                        .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
-                                                              : Metrics.hudInsetSimulated)
-                        .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
                 } else {
                     // On a hardware notch this only draws while media plays (in
                     // the wings that peek out either side); otherwise it renders
@@ -370,69 +365,83 @@ private struct CollapsedContent: View {
     }
 }
 
-/// Charger-connected acknowledgement: a bolt in one wing, the charge level in
-/// the other. Deliberately the same shape as the HUD readout — the notch has
-/// one visual grammar for "here is a fact about your Mac, briefly".
-private struct ChargingContent: View {
-    @ObservedObject var battery: BatteryMonitor
+/// Whatever the notch is announcing right now.
+///
+/// One view for every transient announcement, driven entirely by the
+/// `LiveActivity` value. Volume, brightness, charging and device events used to
+/// be separate views with separate layouts that happened to look alike; the
+/// notch should have one visual grammar for "here is a fact about your Mac,
+/// briefly", and this is it — a symbol on the left wing, a value on the right,
+/// the hardware cutout kept clear between them.
+private struct ActivityContent: View {
+    @ObservedObject var center: LiveActivityCenter
     let deadZone: CGFloat
 
     @State private var arrived = false
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 0) {
-            Image(systemName: "bolt.fill")
-                .font(Typography.icon(13))
-                .foregroundStyle(.green)
+        if let activity = center.current {
+            HStack(spacing: 0) {
+                HStack(spacing: Metrics.Spacing.tight) {
+                    Image(systemName: activity.symbol)
+                        .font(Typography.icon(13))
+                        .foregroundStyle(activity.tint)
+                        // Symbols swap in place when only the glyph changes —
+                        // speaker.wave.1 to .wave.3 as the level climbs.
+                        .contentTransition(.symbolEffect(.replace))
+                    if let title = activity.title {
+                        Text(title)
+                            .font(Typography.micro(.semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineLimit(1)
+                    }
+                }
                 // A single arrival beat rather than a loop: this is on screen
-                // for two seconds, and something still pulsing when it vanishes
-                // reads as unfinished.
+                // for a second or two, and something still moving when it
+                // vanishes reads as unfinished.
                 .scaleEffect(arrived || reduceMotion ? 1 : 0.4)
                 .opacity(arrived || reduceMotion ? 1 : 0)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: deadZone)
+                Spacer(minLength: deadZone)
 
-            Text("\(Int((battery.level * 100).rounded()))%")
-                .font(Typography.body(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-        }
-        .onAppear {
-            guard !reduceMotion else { arrived = true; return }
-            withAnimation(Motion.arrival) { arrived = true }
+                trailing(activity)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            // Keyed on kind, not id: a volume readout replacing a volume
+            // readout should track, not restart its arrival beat. A *different*
+            // kind arriving is genuinely new and gets the beat.
+            .id(activity.kind)
+            .onAppear {
+                guard !reduceMotion else { arrived = true; return }
+                arrived = false
+                withAnimation(Motion.arrival) { arrived = true }
+            }
         }
     }
-}
 
-/// Volume / brightness readout: icon in one wing, level bar in the other, with
-/// the physical notch kept clear between them.
-private struct HUDContent: View {
-    let hud: NotchHUD
-    let deadZone: CGFloat
-
-    private let barWidth: CGFloat = 62
-
-    var body: some View {
-        HStack(spacing: 0) {
-            Image(systemName: hud.icon)
-                .font(Typography.icon(13))
-                .foregroundStyle(.white.opacity(0.9))
-                .contentTransition(.symbolEffect(.replace))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Spacer(minLength: deadZone)
-
+    @ViewBuilder
+    private func trailing(_ activity: LiveActivity) -> some View {
+        switch activity.trailing {
+        case .none:
+            EmptyView()
+        case .level(let value):
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.18))
                 Capsule().fill(.white.opacity(0.92))
-                    .frame(width: max(3, barWidth * CGFloat(min(1, max(0, hud.level)))))
+                    .frame(width: max(3, 62 * CGFloat(min(1, max(0, value)))))
             }
-            .frame(width: barWidth, height: 4)
-            .animation(Motion.readout, value: hud.level)
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            .frame(width: 62, height: 4)
+            .animation(Motion.readout, value: value)
+        case .text(let value):
+            Text(value)
+                .font(Typography.body(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.9))
+                .contentTransition(.numericText())
+                .animation(Motion.readout, value: value)
+                .lineLimit(1)
         }
     }
 }
@@ -499,6 +508,9 @@ private struct ExpandedContent: View {
     /// (Reduce Motion is handled inside `NotchEntrance`, not here.)
     private enum Slot: Int { case header, media, calendar, shelf }
 
+    /// The third column exists if either of the things it holds is enabled.
+    private var hasCollected: Bool { settings.showShelf || settings.showClipboard }
+
     var body: some View {
         VStack(spacing: Metrics.Spacing.snug) {
             HeaderRow(viewModel: viewModel)
@@ -510,7 +522,7 @@ private struct ExpandedContent: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .notchEntrance(Slot.media.rawValue)
                 }
-                if settings.showMedia && (settings.showCalendar || settings.showShelf) {
+                if settings.showMedia && (settings.showCalendar || hasCollected) {
                     columnDivider.notchEntrance(Slot.media.rawValue)
                 }
                 if settings.showCalendar {
@@ -518,12 +530,12 @@ private struct ExpandedContent: View {
                         .frame(maxWidth: .infinity)
                         .notchEntrance(Slot.calendar.rawValue)
                 }
-                if settings.showCalendar && settings.showShelf {
+                if settings.showCalendar && hasCollected {
                     columnDivider.notchEntrance(Slot.calendar.rawValue)
                 }
-                if settings.showShelf {
-                    TrayView(tray: viewModel.tray)
-                        .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 150 : .infinity)
+                if hasCollected {
+                    CollectedColumn(tray: viewModel.tray, clipboard: viewModel.clipboard)
+                        .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 160 : .infinity)
                         .notchEntrance(Slot.shelf.rawValue)
                 }
             }

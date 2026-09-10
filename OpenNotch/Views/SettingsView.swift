@@ -9,6 +9,7 @@ import CoreLocation
 /// cannot drift apart as they are edited.
 struct SettingsView: View {
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var hotKeys = HotKeyManager.shared
     @ObservedObject private var a11y = AccessibilityPreferences.shared
     let onReposition: () -> Void
     let onShowWelcome: () -> Void
@@ -156,6 +157,39 @@ struct SettingsView: View {
                 }
             }
 
+            SettingsSection("Shortcut") {
+                SettingsRow("Open with a key", symbol: "keyboard",
+                            description: "Opens and closes the panel from anywhere, and keeps it open until you press it again.") {
+                    Toggle("", isOn: $settings.hotKeyEnabled).labelsHidden()
+                }
+
+                if settings.hotKeyEnabled {
+                    SettingsDivider()
+
+                    SettingsRow("Combination", symbol: "command",
+                                description: settings.hotKeyCombo.caution) {
+                        Picker("", selection: $settings.hotKeyCombo) {
+                            ForEach(HotKeyCombo.allCases) { combo in
+                                Text(combo.title).tag(combo)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 130)
+                    }
+
+                    // Carbon refuses a combo another process already owns, and
+                    // there is no way to find out which. Saying so beats a
+                    // shortcut that silently does nothing.
+                    if !hotKeys.isRegistered {
+                        SettingsNote(
+                            "Another app is already using \(settings.hotKeyCombo.title). Pick a different combination.",
+                            symbol: "exclamationmark.triangle.fill"
+                        )
+                    }
+                }
+            }
+
             SettingsSection("Onboarding") {
                 SettingsRow("Welcome screen", symbol: "sparkles",
                             description: "The first-run introduction, including the hover demo.") {
@@ -179,6 +213,9 @@ struct SettingsView: View {
                 moduleToggle("Shelf", "tray.full",
                              "Drag files onto the notch to park them.",
                              $settings.showShelf)
+                moduleToggle("Clipboard", "doc.on.clipboard",
+                             "Your last 24 copies, in the notch. Kept in memory only — cleared when AloeNotch quits, and never written to disk. Items marked private by password managers are skipped.",
+                             $settings.showClipboard)
                 SettingsDivider()
                 moduleToggle("Calendar", "calendar",
                              "Your week, and the next event.",
@@ -191,6 +228,10 @@ struct SettingsView: View {
                 moduleToggle("Battery", "battery.100",
                              "Charge level, plus charging and low hints on the collapsed strip.",
                              $settings.showBattery)
+                SettingsDivider()
+                moduleToggle("Device events", "airpods.pro",
+                             "A brief note in the notch when headphones connect or a drive mounts or ejects.",
+                             $settings.showDeviceEvents)
             }
 
             SettingsSection("System") {

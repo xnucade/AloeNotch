@@ -11,6 +11,8 @@ final class AppSettings: ObservableObject {
     @Published var ambientGlow: Bool { didSet { save(ambientGlow, "ambientGlow") } }
     @Published var showMedia: Bool { didSet { save(showMedia, "showMedia") } }
     @Published var showShelf: Bool { didSet { save(showShelf, "showShelf") } }
+    /// Recent clipboard entries. Memory-only — see `ClipboardManager`.
+    @Published var showClipboard: Bool { didSet { save(showClipboard, "showClipboard") } }
     @Published var showCalendar: Bool { didSet { save(showCalendar, "showCalendar") } }
     @Published var showWeather: Bool { didSet { save(showWeather, "showWeather") } }
     /// Volume / brightness readouts in the notch instead of the macOS HUD.
@@ -18,7 +20,22 @@ final class AppSettings: ObservableObject {
     /// Charge level in the expanded header, and the low/charging hints on the
     /// collapsed strip.
     @Published var showBattery: Bool { didSet { save(showBattery, "showBattery") } }
+
+    /// Brief announcements when hardware changes underneath you — headphones
+    /// connecting, a drive mounting or ejecting.
+    @Published var showDeviceEvents: Bool {
+        didSet { save(showDeviceEvents, "showDeviceEvents") }
+    }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
+
+    /// A global shortcut that opens and closes the panel. On by default:
+    /// hovering was the only way in, which made the app unusable for anyone who
+    /// cannot land a pointer on a strip at the top of the screen.
+    @Published var hotKeyEnabled: Bool { didSet { save(hotKeyEnabled, "hotKeyEnabled") } }
+
+    @Published var hotKeyCombo: HotKeyCombo {
+        didSet { save(hotKeyCombo.rawValue, "hotKeyCombo") }
+    }
 
     // MARK: Appearance
 
@@ -108,10 +125,14 @@ final class AppSettings: ObservableObject {
             "ambientGlow": true,
             "showMedia": true,
             "showShelf": true,
+            "showClipboard": true,
             "showCalendar": true,
             "showWeather": true,
             "showHUD": true,
             "showBattery": true,
+            "showDeviceEvents": true,
+            "hotKeyEnabled": true,
+            "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
             "useGlass": true,
             "checkForUpdates": true,
             "accentHex": AccentPalette.default,
@@ -129,10 +150,14 @@ final class AppSettings: ObservableObject {
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
         showShelf = defaults.bool(forKey: "showShelf")
+        showClipboard = defaults.bool(forKey: "showClipboard")
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
         showHUD = defaults.bool(forKey: "showHUD")
         showBattery = defaults.bool(forKey: "showBattery")
+        showDeviceEvents = defaults.bool(forKey: "showDeviceEvents")
+        hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")
+        hotKeyCombo = HotKeyCombo(rawValue: defaults.string(forKey: "hotKeyCombo") ?? "") ?? .controlOptionN
         useGlass = defaults.bool(forKey: "useGlass")
 
         accentHex = defaults.string(forKey: "accentHex") ?? AccentPalette.default

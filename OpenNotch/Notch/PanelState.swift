@@ -15,18 +15,30 @@ enum PanelState: Equatable {
     /// Bare strip, hugging the hardware notch. The app is invisible here.
     case collapsed
     /// Strip grown into "wings" either side of the notch, showing a glanceable
-    /// indicator. The kinds need different widths, so they are not one case.
+    /// indicator.
     case peek(Peek)
     /// Full panel, dropped down below the notch.
     case expanded
 
     enum Peek: Equatable {
-        /// Now-playing artwork + equalizer.
+        /// Now-playing artwork + equalizer. Ambient and long-lived.
         case media
-        /// Volume / brightness readout, which needs more room than media.
-        case hud
-        /// Transient acknowledgement that power was just connected.
-        case charging
+        /// A transient announcement — see `LiveActivity`. Carries only how much
+        /// room it needs, not what it is: the state machine decides *how big*
+        /// the strip should be, and the activity itself decides what goes in it.
+        case activity(ActivitySize)
+    }
+
+    /// How much wing a transient announcement needs. Three steps rather than a
+    /// free measurement so the strip only ever settles at widths that have been
+    /// looked at.
+    enum ActivitySize: Equatable {
+        /// A symbol and nothing else.
+        case compact
+        /// A symbol and a short value — a percentage, a count.
+        case regular
+        /// A symbol and a bar, or a name long enough to need room.
+        case wide
     }
 
     var isExpanded: Bool { self == .expanded }
@@ -34,11 +46,12 @@ enum PanelState: Equatable {
     /// Short name for diagnostics.
     var debugName: String {
         switch self {
-        case .collapsed:        "collapsed"
-        case .peek(.media):     "peek(media)"
-        case .peek(.hud):       "peek(hud)"
-        case .peek(.charging):  "peek(charging)"
-        case .expanded:         "expanded"
+        case .collapsed:                  "collapsed"
+        case .peek(.media):               "peek(media)"
+        case .peek(.activity(.compact)):  "peek(activity/compact)"
+        case .peek(.activity(.regular)):  "peek(activity/regular)"
+        case .peek(.activity(.wide)):     "peek(activity/wide)"
+        case .expanded:                   "expanded"
         }
     }
 }
@@ -55,18 +68,25 @@ enum PanelStateReducer {
     struct Inputs {
         /// Pointer inside the active region.
         var isHovering = false
-        /// A volume/brightness readout is currently up.
-        var hasHUD = false
-        /// Power was connected within the last couple of seconds.
-        var isCharging = false
+        /// Held open by the keyboard shortcut. A pointer leaves on its own; a
+        /// keyboard-opened panel has no pointer to leave, so it stays until it
+        /// is toggled shut.
+        var isPinned = false
+        /// The size of the transient announcement showing, if any. Which
+        /// announcement it is does not matter here — the queue in
+        /// `LiveActivityCenter` has already picked a winner.
+        var activity: PanelState.ActivitySize?
         var mediaPlaying = false
         var showMedia = true
 
-        init(isHovering: Bool = false, hasHUD: Bool = false, isCharging: Bool = false,
-             mediaPlaying: Bool = false, showMedia: Bool = true) {
+        init(isHovering: Bool = false,
+             isPinned: Bool = false,
+             activity: PanelState.ActivitySize? = nil,
+             mediaPlaying: Bool = false,
+             showMedia: Bool = true) {
             self.isHovering = isHovering
-            self.hasHUD = hasHUD
-            self.isCharging = isCharging
+            self.isPinned = isPinned
+            self.activity = activity
             self.mediaPlaying = mediaPlaying
             self.showMedia = showMedia
         }
@@ -74,18 +94,17 @@ enum PanelStateReducer {
 
     /// Highest priority first:
     ///
-    /// 1. **Hovering** — the user is actively asking for the panel, which beats
-    ///    anything the app wants to volunteer.
-    /// 2. **HUD** — transient and time-critical; a volume readout that arrives
-    ///    late is useless.
-    /// 3. **Charging** — also transient, and a direct response to something the
-    ///    user physically just did, so it outranks ambient media.
-    /// 4. **Media** — ambient and long-lived; it can wait, and it comes back on
-    ///    its own once the transient states clear.
+    /// 1. **Hovering, or pinned open by the shortcut** — the user is actively
+    ///    asking for the panel, which beats anything the app wants to
+    ///    volunteer.
+    /// 2. **A live activity** — transient and time-critical. A volume readout
+    ///    that arrives late is useless, and a "device connected" that waits for
+    ///    the track to change has stopped being news.
+    /// 3. **Media** — ambient and long-lived; it can wait, and it comes back on
+    ///    its own once the transient state clears.
     static func state(for i: Inputs) -> PanelState {
-        if i.isHovering { return .expanded }
-        if i.hasHUD { return .peek(.hud) }
-        if i.isCharging { return .peek(.charging) }
+        if i.isHovering || i.isPinned { return .expanded }
+        if let size = i.activity { return .peek(.activity(size)) }
         if i.showMedia && i.mediaPlaying { return .peek(.media) }
         return .collapsed
     }

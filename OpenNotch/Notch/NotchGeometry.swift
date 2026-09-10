@@ -18,14 +18,16 @@ struct NotchMetrics {
     /// now-playing glyph out where it's actually visible.
     static let mediaWingWidth: CGFloat = 46
 
-    /// Wider wings for a volume/brightness readout, which needs room for an
-    /// icon and a level bar.
-    static let hudWingWidth: CGFloat = 84
-
-    /// Charger-connected acknowledgement: a bolt on one side and the charge
-    /// percentage on the other. Between the two — more than the media glyph
-    /// needs, less than a level bar.
-    static let chargingWingWidth: CGFloat = 64
+    /// Wings for a transient announcement, by how much room it asked for.
+    /// `wide` fits a level bar or a device name; `regular` a percentage or a
+    /// count; `compact` just a symbol.
+    static func activityWingWidth(_ size: PanelState.ActivitySize) -> CGFloat {
+        switch size {
+        case .compact: 46
+        case .regular: 64
+        case .wide:    84
+        }
+    }
 
     /// On-screen size of the notch surface in a given state.
     ///
@@ -41,9 +43,8 @@ struct NotchMetrics {
         case .peek(let kind):
             guard hasHardwareNotch else { return notchSize }
             let wing: CGFloat = switch kind {
-            case .hud:      Self.hudWingWidth
-            case .media:    Self.mediaWingWidth
-            case .charging: Self.chargingWingWidth
+            case .media:              Self.mediaWingWidth
+            case .activity(let size): Self.activityWingWidth(size)
             }
             return CGSize(width: notchSize.width + wing * 2, height: notchSize.height)
         case .collapsed:

@@ -3,6 +3,9 @@ import UniformTypeIdentifiers
 
 struct TrayView: View {
     @ObservedObject var tray: TrayModel
+    /// Hidden when the column supplies its own header — the tabbed
+    /// "Collected" column shows the tab pills where this title would be.
+    var showsHeader = true
     @State private var isTargeted = false
     @Environment(\.notchReduceMotion) private var reduceMotion
 
@@ -10,26 +13,7 @@ struct TrayView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Metrics.Spacing.snug) {
-            HStack {
-                Text("Shelf")
-                    .font(Typography.micro(.semibold))
-                    .tracking(0.8)
-                    .textCase(.uppercase)
-                    .foregroundStyle(.white.opacity(0.5))
-                Spacer()
-                if tray.items.count >= 2 {
-                    dragAllHandle
-                }
-                if !tray.items.isEmpty {
-                    Button { tray.clear() } label: {
-                        Image(systemName: "trash")
-                            .font(Typography.icon(11, .medium))
-                            .foregroundStyle(.white)
-                            .hoverLift(restOpacity: 0.5)
-                    }
-                    .buttonStyle(PressableButtonStyle())
-                }
-            }
+            if showsHeader { headerRow }
 
             content
                 .frame(maxWidth: .infinity, minHeight: 62)
@@ -58,8 +42,31 @@ struct TrayView: View {
         }
     }
 
-    /// A small pill that drags every staged file out at once.
-    private var dragAllHandle: some View {
+    private var headerRow: some View {
+        HStack {
+            Text("Shelf")
+                .font(Typography.micro(.semibold))
+                .tracking(0.8)
+                .textCase(.uppercase)
+                .foregroundStyle(.white.opacity(0.5))
+            Spacer()
+            if tray.items.count >= 2 {
+                TrayDragAllPill(urls: tray.items.map(\.url))
+            }
+            if !tray.items.isEmpty {
+                TrayClearButton { tray.clear() }
+            }
+        }
+    }
+
+}
+
+/// A small pill that drags every staged file out at once. Its own type so the
+/// tabbed column can host it in place of the shelf's header.
+struct TrayDragAllPill: View {
+    let urls: [URL]
+
+    var body: some View {
         ZStack {
             HStack(spacing: 4) {
                 Image(systemName: "square.stack.3d.up.fill").font(Typography.icon(10, .medium))
@@ -71,11 +78,30 @@ struct TrayView: View {
             .background(.white.opacity(0.08), in: Capsule())
             // Transparent AppKit drag source sits on top and initiates the
             // multi-item drag session (SwiftUI's .onDrag is single-item only).
-            MultiFileDragHandle(urls: tray.items.map(\.url))
+            MultiFileDragHandle(urls: urls)
         }
         .fixedSize()
-        .help("Drag all \(tray.items.count) files out together")
+        .help("Drag all \(urls.count) files out together")
     }
+}
+
+/// The shelf's trash button, shared with the tabbed column's header.
+struct TrayClearButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "trash")
+                .font(Typography.icon(11, .medium))
+                .foregroundStyle(.white)
+                .hoverLift(restOpacity: 0.5)
+        }
+        .buttonStyle(PressableButtonStyle())
+        .help("Empty the shelf")
+    }
+}
+
+extension TrayView {
 
     @ViewBuilder
     private var content: some View {
