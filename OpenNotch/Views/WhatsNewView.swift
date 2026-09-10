@@ -44,6 +44,12 @@ enum WhatsNew {
                 Item(symbol: "airpods.pro",
                      title: "It notices more",
                      detail: "Headphones connecting and drives mounting or ejecting now get the same brief announcement volume and charging already had."),
+                Item(symbol: "slider.horizontal.3",
+                     title: "Settings, rebuilt",
+                     detail: "Grouped so related things sit together, aligned on one grid, and animated — panes slide in from the side you clicked. Modules is now three named groups instead of one long list."),
+                Item(symbol: "wrench.adjustable",
+                     title: "Fixed: a wide, empty strip",
+                     detail: "After a volume or brightness readout the notch could stay stretched wide with nothing in it, and the playback visualizer would vanish. Every state change was landing one step behind."),
             ]
         ),
         Entry(
