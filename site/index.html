@@ -105,6 +105,20 @@
       </div>
     </section>
 
+    <!-- The first objection to a free menu bar app is that it will be bloated
+         or slow. These are measured on a real machine, not estimated: the DMG
+         and installed sizes from the build, idle CPU sampled over 30 seconds,
+         and phys_footprint rather than RSS (RSS counts shared frameworks and
+         roughly doubles the figure). Re-measure before changing them. -->
+    <section class="stats">
+      <div class="stat-row reveal">
+        <div class="stat"><b>1.6 MB</b><span>to download</span></div>
+        <div class="stat"><b>37 MB</b><span>memory in use</span></div>
+        <div class="stat"><b>&lt;1%</b><span>of one core, idle</span></div>
+        <div class="stat"><b>MIT</b><span>open source</span></div>
+      </div>
+    </section>
+
     <section class="features">
       <h2 class="reveal">Everything the notch<br>should have been.</h2>
       <div class="grid">
@@ -183,6 +197,39 @@
       </div>
     </section>
 
+    <section class="pitch">
+      <div class="pitch-grid">
+        <article class="pitch-card reveal">
+          <h2>Free, without the asterisk.</h2>
+          <p>The other good notch apps are worth their money — they run about
+          $15 to $25. AloeNotch is free in the way that actually matters: no
+          trial that expires, no licence key, no Pro tier holding a feature
+          back, no account to make, and nothing inside the app asking you to
+          upgrade.</p>
+          <p>It's MIT licensed and the whole thing is on
+          <a href="https://github.com/xnucade/AloeNotch">GitHub</a>, so you can
+          read exactly what it does before you run it.</p>
+        </article>
+
+        <article class="pitch-card reveal">
+          <h2>What it doesn't do.</h2>
+          <ul class="plainlist">
+            <li><b>No analytics, no telemetry, no account.</b> Nothing about how
+            you use it leaves your Mac.</li>
+            <li><b>Two network requests, both optional.</b> The weather for your
+            approximate location, and a once-a-day check for a new version.
+            That's the complete list, and either can be switched off.</li>
+            <li><b>Clipboard history never touches the disk.</b> It lives in
+            memory, clears when the app quits, and skips anything a password
+            manager marks private.</li>
+            <li><b>The keyboard shortcut needs no Accessibility permission.</b>
+            Only replacing the volume and brightness HUD does, and that's off
+            until you turn it on.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
     <section class="download" id="download">
       <div class="dl-panel reveal">
         <img src="assets/icon.png" alt="AloeNotch icon" width="96" height="96">
@@ -219,6 +266,51 @@
             Follow @xnucade on X
           </a>
         </div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <h2 class="reveal">Questions</h2>
+      <div class="faq-list reveal">
+        <details>
+          <summary>My Mac doesn't have a notch. Does it still work?</summary>
+          <p>Yes. On a display without a notch, AloeNotch draws its own strip in
+          the same place at the top of the screen, and everything behaves the
+          same way.</p>
+        </details>
+        <details>
+          <summary>What permissions does it need?</summary>
+          <p>None, to start with. Calendar and Location are asked for only when
+          you switch those modules on, and Accessibility only if you want the
+          notch to replace the macOS volume and brightness HUD. Everything else
+          — the shelf, the clipboard, the timer, media controls, sound output —
+          needs nothing at all.</p>
+        </details>
+        <details>
+          <summary>Is it really free? What's the catch?</summary>
+          <p>There isn't one. It's MIT licensed and open source, there's no paid
+          tier, and nothing in the app asks you for money. It's a side project,
+          not a business.</p>
+        </details>
+        <details>
+          <summary>How do I update it?</summary>
+          <p>AloeNotch checks GitHub once a day and tells you in the menu bar
+          when something newer exists. Downloading the new .dmg and replacing
+          the app is the whole process — your settings and permissions carry
+          over.</p>
+        </details>
+        <details>
+          <summary>Does it work on an Intel Mac?</summary>
+          <p>Not the current version. 0.6.0 is the last build for Intel Macs and
+          macOS&nbsp;15, and it still works, but it doesn't get new features or
+          fixes. There's a download link for it above.</p>
+        </details>
+        <details>
+          <summary>Will it slow my Mac down?</summary>
+          <p>It shouldn't. Idle, it sits under one percent of a single core and
+          around 37 MB of memory, and the whole app is about four megabytes on
+          disk.</p>
+        </details>
       </div>
     </section>
 

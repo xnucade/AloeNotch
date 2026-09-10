@@ -307,6 +307,132 @@ a { color: inherit; text-decoration: none; }
 .card h3 { font-size: 18px; margin-bottom: 8px; }
 .card p { font-size: 14.5px; line-height: 1.55; color: var(--muted); }
 
+/* ---------- Numbers ---------- */
+.stats { max-width: 1060px; margin: 0 auto; padding: 0 24px 96px; }
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+/* Hairline separators drawn by the grid gap over a tinted backdrop, so the
+   cells stay flush at every column count the auto-fit produces. */
+.stat {
+  background: var(--bg);
+  padding: 26px 20px;
+  text-align: center;
+}
+.stat b {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.stat span { font-size: 13px; color: var(--faint); }
+
+/* ---------- Pitch ---------- */
+.pitch { max-width: 1060px; margin: 0 auto; padding: 0 24px 110px; }
+.pitch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  /* Each card is its own height. Stretching them to match left 250px of dead
+     space under the shorter one, which reads as something failing to load. */
+  align-items: start;
+}
+.pitch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 34px 32px;
+}
+.pitch-card h2 {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.pitch-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.pitch-card p + p { margin-top: 14px; }
+.pitch-card a { color: var(--accent); }
+.pitch-card a:hover { text-decoration: underline; }
+.plainlist { list-style: none; display: grid; gap: 14px; }
+.plainlist li {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  padding-left: 20px;
+  position: relative;
+}
+/* A dash rather than a tick: these are things the app declines to do, and a
+   row of green checkmarks against "no telemetry" reads as a feature list. */
+.plainlist li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 11px;
+  width: 10px; height: 1.5px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+.plainlist b { color: var(--text); font-weight: 600; }
+
+/* ---------- FAQ ---------- */
+.faq { max-width: 760px; margin: 0 auto; padding: 0 24px 120px; }
+.faq h2 {
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin-bottom: 36px;
+}
+.faq-list { display: grid; gap: 10px; }
+.faq details {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 4px 20px;
+  transition: border-color 0.3s;
+}
+.faq details[open] { border-color: var(--accent-soft); }
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+/* The marker is drawn here rather than left to the browser so it can rotate;
+   Safari and Chrome disagree about the default triangle's size and position. */
+.faq summary::after {
+  content: "";
+  flex: none;
+  width: 8px; height: 8px;
+  border-right: 1.5px solid var(--faint);
+  border-bottom: 1.5px solid var(--faint);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.25s ease;
+}
+.faq details[open] summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+.faq details p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  padding: 0 0 18px;
+}
+
 /* ---------- Download ---------- */
 .download { padding: 0 24px 120px; }
 .dl-panel {
@@ -461,6 +587,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
+  .faq summary::after, .faq details { transition: none; }
   .waveform span { animation: none; height: 8px; }
 }
 
