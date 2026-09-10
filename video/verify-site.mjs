@@ -10,6 +10,14 @@
      node verify-site.mjs      # exits non-zero on failure; writes out/site-check.png
 */
 import puppeteer from 'puppeteer';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+
+// Resolved from this file's own location rather than hard-coded. The absolute
+// path that used to be here only worked on one machine, and published the
+// author's home directory to a public repository along the way.
+const here = path.dirname(fileURLToPath(import.meta.url));
+const indexURL = pathToFileURL(path.join(here, '..', 'site', 'index.html')).href;
 
 const b = await puppeteer.launch({
   headless: true,
@@ -24,8 +32,7 @@ p.on('pageerror', e => problems.push('pageerror: ' + e.message));
 p.on('console', m => { if (m.type() === 'error') problems.push('console: ' + m.text()); });
 p.on('requestfailed', r => problems.push('requestfailed: ' + r.url().split('/').pop()));
 
-await p.goto('file:///Users/cadeg/Desktop/Open%20Notch/site/index.html',
-             { waitUntil: 'networkidle0' });
+await p.goto(indexURL, { waitUntil: 'networkidle0' });
 
 // Give the video a moment to fetch metadata and start.
 await p.evaluate(() => new Promise(res => {
