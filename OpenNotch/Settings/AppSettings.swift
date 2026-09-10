@@ -11,6 +11,8 @@ final class AppSettings: ObservableObject {
     @Published var ambientGlow: Bool { didSet { save(ambientGlow, "ambientGlow") } }
     @Published var showMedia: Bool { didSet { save(showMedia, "showMedia") } }
     @Published var showShelf: Bool { didSet { save(showShelf, "showShelf") } }
+    /// A countdown that takes over the collapsed strip while it runs.
+    @Published var showTimer: Bool { didSet { save(showTimer, "showTimer") } }
     /// Recent clipboard entries. Memory-only — see `ClipboardManager`.
     @Published var showClipboard: Bool { didSet { save(showClipboard, "showClipboard") } }
     @Published var showCalendar: Bool { didSet { save(showCalendar, "showCalendar") } }
@@ -126,6 +128,7 @@ final class AppSettings: ObservableObject {
             "showMedia": true,
             "showShelf": true,
             "showClipboard": true,
+            "showTimer": true,
             "showCalendar": true,
             "showWeather": true,
             "showHUD": true,
@@ -151,6 +154,7 @@ final class AppSettings: ObservableObject {
         showMedia = defaults.bool(forKey: "showMedia")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")
+        showTimer = defaults.bool(forKey: "showTimer")
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")
         showHUD = defaults.bool(forKey: "showHUD")

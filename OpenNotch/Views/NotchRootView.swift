@@ -381,7 +381,7 @@ private struct ActivityContent: View {
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
-        if let activity = center.current {
+        if let activity = center.showing {
             HStack(spacing: 0) {
                 HStack(spacing: Metrics.Spacing.tight) {
                     Image(systemName: activity.symbol)
@@ -442,6 +442,22 @@ private struct ActivityContent: View {
                 .contentTransition(.numericText())
                 .animation(Motion.readout, value: value)
                 .lineLimit(1)
+        case .countdown(let deadline):
+            // A quarter-second timeline rather than SwiftUI's own
+            // `Text(timerInterval:)`, which always renders to the second: at
+            // 0.25s the digit flips within a frame or two of the real second
+            // boundary, so a glance at the notch and a glance at a wall clock
+            // agree.
+            TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                Text(CountdownState.clock(deadline.timeIntervalSince(context.date)))
+                    .font(Typography.body(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.9))
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(Motion.readout,
+                               value: Int(deadline.timeIntervalSince(context.date).rounded(.up)))
+                    .lineLimit(1)
+            }
         }
     }
 }
@@ -509,7 +525,9 @@ private struct ExpandedContent: View {
     private enum Slot: Int { case header, media, calendar, shelf }
 
     /// The third column exists if either of the things it holds is enabled.
-    private var hasCollected: Bool { settings.showShelf || settings.showClipboard }
+    private var hasUtilities: Bool {
+        settings.showShelf || settings.showClipboard || settings.showTimer
+    }
 
     var body: some View {
         VStack(spacing: Metrics.Spacing.snug) {
@@ -522,7 +540,7 @@ private struct ExpandedContent: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .notchEntrance(Slot.media.rawValue)
                 }
-                if settings.showMedia && (settings.showCalendar || hasCollected) {
+                if settings.showMedia && (settings.showCalendar || hasUtilities) {
                     columnDivider.notchEntrance(Slot.media.rawValue)
                 }
                 if settings.showCalendar {
@@ -530,11 +548,13 @@ private struct ExpandedContent: View {
                         .frame(maxWidth: .infinity)
                         .notchEntrance(Slot.calendar.rawValue)
                 }
-                if settings.showCalendar && hasCollected {
+                if settings.showCalendar && hasUtilities {
                     columnDivider.notchEntrance(Slot.calendar.rawValue)
                 }
-                if hasCollected {
-                    CollectedColumn(tray: viewModel.tray, clipboard: viewModel.clipboard)
+                if hasUtilities {
+                    UtilityColumn(tray: viewModel.tray,
+                                  clipboard: viewModel.clipboard,
+                                  timer: viewModel.timer)
                         .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 160 : .infinity)
                         .notchEntrance(Slot.shelf.rawValue)
                 }

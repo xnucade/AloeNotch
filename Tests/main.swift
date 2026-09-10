@@ -22,6 +22,8 @@ testSemanticVersion()
 testUpdateComparison()
 testClipboardHistory()
 testClipItemPresentation()
+testCountdown()
+testCountdownFormatting()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

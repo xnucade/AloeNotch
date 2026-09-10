@@ -213,6 +213,10 @@ struct SettingsView: View {
                 moduleToggle("Shelf", "tray.full",
                              "Drag files onto the notch to park them.",
                              $settings.showShelf)
+                moduleToggle("Timer", "timer",
+                             "A countdown that takes over the collapsed notch while it runs.",
+                             $settings.showTimer)
+                SettingsDivider()
                 moduleToggle("Clipboard", "doc.on.clipboard",
                              "Your last 24 copies, in the notch. Kept in memory only — cleared when AloeNotch quits, and never written to disk. Items marked private by password managers are skipped.",
                              $settings.showClipboard)

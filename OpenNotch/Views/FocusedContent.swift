@@ -21,7 +21,7 @@ struct FocusedContent: View {
     @State private var focus: Module?
 
     enum Module: String, CaseIterable, Identifiable {
-        case media, calendar, shelf, clipboard
+        case media, calendar, shelf, clipboard, timer
         var id: String { rawValue }
 
         var symbol: String {
@@ -30,6 +30,7 @@ struct FocusedContent: View {
             case .calendar: "calendar"
             case .shelf:    "tray.full"
             case .clipboard: "doc.on.clipboard"
+            case .timer:    "timer"
             }
         }
         var label: String {
@@ -38,6 +39,7 @@ struct FocusedContent: View {
             case .calendar: "Calendar"
             case .shelf:    "Shelf"
             case .clipboard: "Clipboard"
+            case .timer:    "Timer"
             }
         }
     }
@@ -50,6 +52,7 @@ struct FocusedContent: View {
             case .calendar: settings.showCalendar
             case .shelf:    settings.showShelf
             case .clipboard: settings.showClipboard
+            case .timer:    settings.showTimer
             }
         }
     }
@@ -73,6 +76,7 @@ struct FocusedContent: View {
                 case .calendar: FocusedCalendar(calendar: viewModel.calendar)
                 case .shelf:    TrayView(tray: viewModel.tray)
                 case .clipboard: ClipboardList(clipboard: viewModel.clipboard, compact: false)
+                case .timer:    TimerView(timer: viewModel.timer, compact: false)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

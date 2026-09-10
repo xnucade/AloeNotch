@@ -74,6 +74,7 @@ final class NotchViewModel: ObservableObject {
     /// Everything transient the notch announces. See `LiveActivity`.
     let activities = LiveActivityCenter()
     let clipboard = ClipboardManager()
+    lazy var timer = TimerModel(center: activities)
 
     /// Watches for hardware worth announcing. See `ActivityDetectors`.
     private lazy var detectors = ActivityDetectors(center: activities)
@@ -259,9 +260,11 @@ final class NotchViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Any announcement appearing or expiring resizes the strip.
+        // Any announcement appearing or expiring resizes the strip — and so
+        // does a resident one starting or ending, which is what a timer does.
         activities.$current
-            .removeDuplicates()
+            .combineLatest(activities.$resident)
+            .removeDuplicates { $0 == $1 }
             .sink { [weak self] _ in self?.refreshState() }
             .store(in: &cancellables)
 
@@ -318,7 +321,7 @@ final class NotchViewModel: ObservableObject {
         PanelStateReducer.state(for: .init(
             isHovering: isHovering,
             isPinned: isPinnedOpen,
-            activity: activities.current?.size,
+            activity: activities.showing?.size,
             mediaPlaying: media.isPlaying,
             showMedia: settings.showMedia
         ))

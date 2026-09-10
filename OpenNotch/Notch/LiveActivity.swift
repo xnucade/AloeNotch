@@ -18,6 +18,10 @@ struct LiveActivity: Identifiable, Equatable {
         case level(Double)
         /// A short string: a percentage, a device name, a file count.
         case text(String)
+        /// Counts down to a date, rendered live by SwiftUI rather than by
+        /// anyone re-presenting the activity every second — a running timer
+        /// would otherwise restart its arrival beat sixty times a minute.
+        case countdown(Date)
     }
 
     let id = UUID()
@@ -33,7 +37,13 @@ struct LiveActivity: Identifiable, Equatable {
     var title: String?
     var trailing: Trailing = .none
     var size: PanelState.ActivitySize = .regular
+
+    /// How long it stays up. `.infinity` marks a *resident* activity — one that
+    /// is true until something stops being true (a timer running, a screen
+    /// being shared) rather than one that announces and goes.
     var duration: TimeInterval = 2.0
+
+    var isResident: Bool { duration.isInfinite }
 
     /// Higher wins. A volume readout you are actively driving must not be
     /// buried by a Bluetooth device connecting in the background.
@@ -77,11 +87,27 @@ extension LiveActivity {
 /// through an `await` for no benefit. Detectors that observe background
 /// notifications must hop to main before presenting.
 final class LiveActivityCenter: ObservableObject {
+    /// The transient announcement showing right now, if any.
     @Published private(set) var current: LiveActivity?
+
+    /// A standing condition — a timer counting down, say. Transients display
+    /// over it and it comes back when they expire.
+    ///
+    /// Without a second slot a running timer would be evicted the first time
+    /// the user touched a volume key and never return, because the center
+    /// deliberately keeps no queue. The two are different in kind, not in
+    /// priority: one announces that something happened, the other reports that
+    /// something still is.
+    @Published private(set) var resident: LiveActivity?
+
+    /// What the notch should actually draw.
+    var showing: LiveActivity? { current ?? resident }
 
     private var expiry: DispatchWorkItem?
 
     func present(_ activity: LiveActivity) {
+        guard !activity.isResident else { return setResident(activity) }
+
         if let current, activity.priority < current.priority, activity.kind != current.kind {
             return
         }
@@ -94,6 +120,14 @@ final class LiveActivityCenter: ObservableObject {
         }
         expiry = work
         DispatchQueue.main.asyncAfter(deadline: .now() + activity.duration, execute: work)
+    }
+
+    func setResident(_ activity: LiveActivity?) {
+        resident = activity
+    }
+
+    func clearResident(kind: String) {
+        if resident?.kind == kind { resident = nil }
     }
 
     /// Clear immediately — used when the thing being announced stops being true
