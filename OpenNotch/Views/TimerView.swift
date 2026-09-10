@@ -111,10 +111,10 @@ struct TimerView: View {
                         }
                         TimerControl(symbol: "goforward.60") { timer.extend(by: 60) }
                             .help("Add a minute")
-                        if !showsHeader {
-                            TimerControl(symbol: "xmark") { timer.cancel() }
-                                .help("Cancel")
-                        }
+                        // No cancel here. Whoever draws the header draws it —
+                        // this view when it owns the header, the tabbed column
+                        // when it doesn't — so there is exactly one X on screen
+                        // either way.
                     }
                 }
                 .fixedSize(horizontal: !compact, vertical: false)

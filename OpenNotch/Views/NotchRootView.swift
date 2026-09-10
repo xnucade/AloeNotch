@@ -578,7 +578,25 @@ struct HeaderRow: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject private var settings = AppSettings.shared
 
+    /// The header doubles as the audio output picker. Opening it swaps the row
+    /// rather than dropping a menu: an AppKit menu opens *outside* the panel,
+    /// which takes the pointer out of the hover region and collapses the very
+    /// thing the menu belongs to.
+    @State private var pickingOutput = false
+
     var body: some View {
+        if pickingOutput {
+            AudioOutputRow(audio: viewModel.audioOutput) {
+                withAnimation(Motion.contentFade) { pickingOutput = false }
+            }
+            .transition(.opacity.combined(with: .move(edge: .trailing)))
+        } else {
+            clockRow
+                .transition(.opacity)
+        }
+    }
+
+    private var clockRow: some View {
         TimelineView(.everyMinute) { context in
             HStack(spacing: Metrics.Spacing.regular) {
                 Text(context.date, format: .dateTime.hour().minute())
@@ -607,6 +625,24 @@ struct HeaderRow: View {
                 if settings.showBattery {
                     BatteryView(battery: viewModel.battery)
                 }
+                // Only when there is somewhere else for the sound to go. With
+                // one output device the control would be a button that does
+                // nothing, which is worse than no button.
+                if viewModel.audioOutput.devices.count > 1 {
+                    Button {
+                        withAnimation(Motion.contentFade) { pickingOutput = true }
+                    } label: {
+                        Image(systemName: viewModel.audioOutput.current?.symbol ?? "speaker.wave.2")
+                            .font(Typography.icon(12, .medium))
+                            .foregroundStyle(.white)
+                            .hoverLift(restOpacity: 0.55)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                    .buttonStyle(PressableButtonStyle())
+                    .help("Sound output: \(viewModel.audioOutput.current?.name ?? "unknown")")
+                }
+                CaffeineButton(caffeine: viewModel.caffeine, accent: settings.accent)
+
                 Button { viewModel.onOpenSettings?() } label: {
                     Image(systemName: "gearshape.fill")
                         .font(Typography.icon(12, .medium))
@@ -615,6 +651,116 @@ struct HeaderRow: View {
                 }
                 .buttonStyle(PressableButtonStyle())
                 .help("Settings")
+            }
+        }
+    }
+}
+
+/// Keep-awake, as one glyph. Lit in the accent colour while it is holding the
+/// Mac open, because a switch whose only state is "the icon looks slightly
+/// different" is a switch people leave on by accident.
+private struct CaffeineButton: View {
+    @ObservedObject var caffeine: CaffeineController
+    let accent: Color
+
+    @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button { caffeine.toggle() } label: {
+            Image(systemName: caffeine.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                .font(Typography.icon(12, .medium))
+                .foregroundStyle(caffeine.isActive ? accent : .white.opacity(hovering ? 1 : 0.55))
+                .contentTransition(.symbolEffect(.replace))
+                .scaleEffect(reduceMotion ? 1 : (hovering ? 1.12 : 1))
+        }
+        .buttonStyle(PressableButtonStyle())
+        .help(caffeine.isActive ? "Let this Mac sleep again" : "Keep this Mac awake")
+        .onHover { inside in
+            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                hovering = inside
+            }
+        }
+    }
+}
+
+/// The header, while the output picker is open: every output device as a chip.
+///
+/// Chips rather than a list because the header is 680pt of unused horizontal
+/// space and a Mac rarely has more than four outputs — a vertical list would
+/// need somewhere to live, and the only room is on top of the content the user
+/// opened the panel to see.
+private struct AudioOutputRow: View {
+    @ObservedObject var audio: AudioOutputController
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack(spacing: Metrics.Spacing.tight) {
+            Image(systemName: "speaker.wave.2")
+                .font(Typography.icon(11, .medium))
+                .foregroundStyle(.white.opacity(0.45))
+
+            // Scrolls rather than truncating: an aggregate device or a Mac with
+            // several displays attached can list more than fits, and a chip cut
+            // in half is unidentifiable.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Metrics.Spacing.tight) {
+                    ForEach(audio.devices) { device in
+                        AudioDeviceChip(device: device,
+                                        isActive: device.id == audio.currentID) {
+                            audio.select(device)
+                            onClose()
+                        }
+                    }
+                }
+            }
+
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(Typography.icon(11, .medium))
+                    .foregroundStyle(.white)
+                    .hoverLift(restOpacity: 0.5)
+            }
+            .buttonStyle(PressableButtonStyle())
+        }
+        .onAppear { audio.refresh() }
+    }
+}
+
+private struct AudioDeviceChip: View {
+    let device: AudioOutputController.Device
+    let isActive: Bool
+    let action: () -> Void
+
+    @ObservedObject private var settings = AppSettings.shared
+    @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: device.symbol)
+                    .font(Typography.icon(11, .medium))
+                Text(device.name)
+                    .font(Typography.micro(.semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isActive ? settings.accent : .white.opacity(hovering ? 1 : 0.7))
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background {
+                Capsule().fill(isActive
+                               ? settings.accent.opacity(0.18)
+                               : .white.opacity(hovering ? 0.12 : 0.06))
+            }
+            .fixedSize()
+            .contentShape(.capsule)
+        }
+        .buttonStyle(PressableButtonStyle())
+        .help(isActive ? "\(device.name) — currently playing here" : "Send sound to \(device.name)")
+        .onHover { inside in
+            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                hovering = inside
             }
         }
     }

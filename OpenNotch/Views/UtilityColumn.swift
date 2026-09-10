@@ -15,7 +15,9 @@ struct UtilityColumn: View {
     @ObservedObject var timer: TimerModel
     @ObservedObject private var settings = AppSettings.shared
 
-    @State private var tab: Tool = .shelf
+    /// Nil until the user picks one, so the column can open on whatever is
+    /// actually happening rather than always on the shelf.
+    @State private var tab: Tool?
 
     enum Tool: String, CaseIterable, Identifiable {
         case shelf, clipboard, timer
@@ -47,9 +49,18 @@ struct UtilityColumn: View {
         }
     }
 
-    /// Falls back to whichever tool still exists, so turning one off in
-    /// Settings while the panel is open doesn't leave an empty column.
-    private var active: Tool { tools.contains(tab) ? tab : (tools.first ?? .shelf) }
+    /// What to show. The user's choice if they made one and it still exists,
+    /// otherwise a running timer, otherwise the first tool.
+    ///
+    /// Opening the panel onto the shelf while a countdown is ticking would put
+    /// the one live thing behind a click — and the fallback also covers a tool
+    /// being switched off in Settings while the panel is open, which would
+    /// otherwise leave an empty column.
+    private var active: Tool {
+        if let tab, tools.contains(tab) { return tab }
+        if timer.isActive && tools.contains(.timer) { return .timer }
+        return tools.first ?? .shelf
+    }
 
     var body: some View {
         if tools.count <= 1 {
@@ -59,10 +70,10 @@ struct UtilityColumn: View {
                 switcher
                 pane(active, showsHeader: false)
             }
-            // A running timer pulls its own tab forward, once, when it starts.
-            // Anything you started is the thing you want to look at.
-            .onChange(of: timer.isActive) { _, active in
-                guard active, settings.showTimer else { return }
+            // A timer started while you are looking at another tab pulls its
+            // own forward. Anything you just started is the thing you want.
+            .onChange(of: timer.isActive) { _, running in
+                guard running, settings.showTimer else { return }
                 withAnimation(Motion.contentFade) { tab = .timer }
             }
         }

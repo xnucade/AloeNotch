@@ -62,6 +62,8 @@ struct FocusedContent: View {
     /// is minutes away would be the wrong default.
     private var resolvedFocus: Module {
         if let focus, available.contains(focus) { return focus }
+        // A countdown outranks playback: it ends, and playback doesn't.
+        if settings.showTimer && viewModel.timer.isActive { return .timer }
         if settings.showMedia && viewModel.media.isPlaying { return .media }
         return available.first ?? .media
     }

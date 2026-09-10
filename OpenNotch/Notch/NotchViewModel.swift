@@ -74,6 +74,8 @@ final class NotchViewModel: ObservableObject {
     /// Everything transient the notch announces. See `LiveActivity`.
     let activities = LiveActivityCenter()
     let clipboard = ClipboardManager()
+    let audioOutput = AudioOutputController()
+    let caffeine = CaffeineController()
     lazy var timer = TimerModel(center: activities)
 
     /// Watches for hardware worth announcing. See `ActivityDetectors`.
