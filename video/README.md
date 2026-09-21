@@ -1,5 +1,13 @@
 # AloeNotch demo video
 
+> **The site's demo is now the 45-second film in
+> `../brag-output-2026-09-21-155542/composition-site/`**, not the 66-second cut
+> this document describes. The new one is built the same way — rendered, not
+> captured — but the notch is drawn from the app's constants and driven by a
+> per-frame director, so the camera can push and pull against vector-crisp
+> type. The old pipeline below still builds and is kept for the social cut.
+
+
 The 66-second product video on the site is **rendered, not screen-recorded**.
 The notch UI is rebuilt in HTML/CSS from the real SwiftUI source, animated on a
 deterministic timeline, rasterised frame-by-frame in headless Chromium, and

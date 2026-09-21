@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html, body {
+        width: 1920px; height: 1080px;
+        overflow: hidden;
+        background: #050507;                 /* site --bg */
+      }
+
+      #root {
+        width: 100%; height: 100%;
+        position: relative;
+        /* The product is a macOS app; the system face is the honest one, and it
+           needs no webfont. */
+        font-family: system-ui, sans-serif;
+        color: #f5f5f7;                      /* site --text */
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* The site's own radial wash at the top of the page. */
+      #bg {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(70% 55% at 50% 0%, rgba(115,191,255,0.13), transparent 72%),
+          linear-gradient(180deg, #0b0b12 0%, #050507 62%);
+      }
+
+      /* Sits behind the plate and breathes with the music. */
+      #glow {
+        position: absolute;
+        top: -60px; left: 50%;
+        width: 1500px; height: 620px;
+        margin-left: -750px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(115,191,255,0.30), transparent 72%);
+        filter: blur(40px);
+        opacity: 0;
+      }
+
+      /* The footage sits on a screen plate rather than bleeding to the canvas
+         edges. These clips were framed to stay legible at ~515px in a website
+         card, so the panel fills its own frame; blown up to full-bleed 1920 it
+         overwhelms the shot and the notch stops reading as a notch. On a plate
+         it reads as the top of a Mac screen, which is what it is. */
+      /* The wrapper only positions. Every painted property lives on the thing
+         that is actually timed — four wrappers carrying a drop shadow sat on
+         the canvas for the whole video, including behind the closing type. */
+      .plate {
+        position: absolute;
+        top: 96px; left: 204px;
+        width: 1512px; height: 605px;
+      }
+
+      .shot {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 18px;
+        box-shadow: 0 40px 90px rgba(0,0,0,0.55);
+        opacity: 0;
+      }
+
+      /* Scene 1's inert plate: the same geometry, with a dead strip hanging
+         from its top edge and nothing else on it. */
+      #plate1 {
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 40px 90px rgba(0,0,0,0.55);
+        background: radial-gradient(120% 90% at 50% -10%, #1b2740 0%, #0b0e17 55%, #05070c 100%);
+        opacity: 0;
+      }
+      #plate1 .menubar {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 45px;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+      }
+      #plate1 .strip {
+        position: absolute;
+        top: 0; left: 50%;
+        width: 540px; height: 86px;
+        margin-left: -270px;
+        background: #000;
+        border-bottom-left-radius: 26px;
+        border-bottom-right-radius: 26px;
+      }
+
+      .line {
+        position: absolute;
+        left: 0; width: 100%;
+        text-align: center;
+        opacity: 0;
+      }
+
+      .hook   { top: 790px; font-size: 62px; font-weight: 300; letter-spacing: -0.01em; color: rgba(245,245,247,0.86); }
+      .hook.b { top: 884px; color: rgba(245,245,247,0.55); }
+
+      .hero {
+        top: 806px;
+        font-size: 74px; font-weight: 600; letter-spacing: -0.025em;
+        background: linear-gradient(90deg, #73bfff, #b58cff 70%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .label  { top: 818px; font-size: 46px; font-weight: 400; letter-spacing: -0.005em; color: rgba(245,245,247,0.92); }
+      .sub    { top: 892px; font-size: 30px; font-weight: 400; letter-spacing: 0.01em; color: rgba(245,245,247,0.52); }
+
+      .price  { top: 452px; font-size: 66px; font-weight: 300; letter-spacing: -0.015em; color: rgba(245,245,247,0.72); }
+      .payoff { top: 452px; font-size: 92px; font-weight: 600; letter-spacing: -0.03em; color: #f5f5f7; }
+
+      #mark {
+        position: absolute;
+        top: 606px; left: 0; width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 22px;
+        opacity: 0;
+      }
+      #mark img { width: 84px; height: 84px; display: block; }
+      #mark .name { font-size: 58px; font-weight: 600; letter-spacing: -0.02em; }
+
+      #url {
+        position: absolute;
+        top: 716px; left: 0; width: 100%;
+        text-align: center;
+        font-size: 28px; letter-spacing: 0.06em;
+        color: #73bfff;                      /* site --accent */
+        opacity: 0;
+      }
+
+      #stats {
+        position: absolute;
+        top: 812px; left: 0; width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 30px;
+      }
+      #stats span {
+        font-size: 26px; letter-spacing: 0.02em;
+        color: rgba(245,245,247,0.42);
+        opacity: 0;
+      }
+      #stats i { font-style: normal; color: rgba(245,245,247,0.18); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="22.3"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="bg"></div>
+      <div id="glow"></div>
+
+      <!-- Scene 1 — dead weight -->
+      <div id="plate1" class="plate clip" data-start="0" data-duration="3.7" data-track-index="1">
+        <div class="menubar"></div>
+        <div class="strip"></div>
+      </div>
+      <div id="hook1" class="line hook clip" data-start="0.4" data-duration="2.0" data-track-index="2">Your&nbsp;Mac has a notch.</div>
+      <div id="hook2" class="line hook b clip" data-start="1.95" data-duration="1.55" data-track-index="2">It has never done anything.</div>
+
+      <!-- Scenes 2-5 — real product footage -->
+      <div class="plate">
+        <video id="shot-wake"  class="shot clip" data-start="3.3"  data-duration="4.7" data-track-index="1" src="assets/video/now-playing.mp4" muted></video>
+      </div>
+      <div class="plate">
+        <video id="shot-timer" class="shot clip" data-start="8.0"  data-duration="3.2" data-track-index="1" src="assets/video/timer.mp4" muted></video>
+      </div>
+      <div class="plate">
+        <video id="shot-clip"  class="shot clip" data-start="11.2" data-duration="3.1" data-track-index="1" src="assets/video/clipboard.mp4" muted></video>
+      </div>
+      <div class="plate">
+        <video id="shot-key"   class="shot clip" data-start="14.3" data-duration="3.1" data-track-index="1" src="assets/video/shortcut.mp4" muted></video>
+      </div>
+
+      <div id="hero"    class="line hero clip"  data-start="4.3"   data-duration="3.7" data-track-index="2">Your notch just woke up.</div>
+      <div id="l-timer" class="line label clip" data-start="8.6"   data-duration="2.6" data-track-index="2">A timer that lives in the notch.</div>
+      <div id="l-clip"  class="line label clip" data-start="11.35" data-duration="2.95" data-track-index="2">Your last 24 copies.</div>
+      <div id="l-clip2" class="line sub clip"   data-start="13.0"  data-duration="1.3" data-track-index="3">Never written to disk.</div>
+      <div id="l-key"   class="line label clip" data-start="14.6"  data-duration="2.8" data-track-index="2">Open it without the mouse.</div>
+
+      <!-- Scene 6 — the price -->
+      <div id="price"  class="line price clip"  data-start="17.35" data-duration="1.3"  data-track-index="2">The good ones cost $15 to $25.</div>
+      <div id="payoff" class="line payoff clip" data-start="18.45" data-duration="3.85" data-track-index="2">This one doesn&rsquo;t.</div>
+
+      <div id="mark" class="clip" data-start="19.0" data-duration="3.3" data-track-index="3">
+        <img src="assets/img/icon.png" alt="" />
+        <span class="name">AloeNotch</span>
+      </div>
+      <div id="url" class="clip" data-start="19.2" data-duration="3.1" data-track-index="3">aloenotch.com</div>
+
+      <div id="stats" class="clip" data-start="19.5" data-duration="2.8" data-track-index="3">
+        <span id="s1">1.6 MB</span><i class="d">&middot;</i>
+        <span id="s2">37 MB</span><i class="d">&middot;</i>
+        <span id="s3">&lt;1% of a core</span><i class="d">&middot;</i>
+        <span id="s4">MIT</span>
+      </div>
+
+      <!-- Audio. The bed's envelope lifts on the wake, ducks so the price line
+           can be heard plainly, returns for the logo, and fades out. -->
+      <audio
+        id="bed"
+        src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"
+        data-start="0"
+        data-duration="22.3"
+        data-track-index="8"
+        data-volume="1"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[
+          {"t":0,"v":0.20},{"t":3.2,"v":0.20},{"t":3.6,"v":0.42},
+          {"t":17.2,"v":0.42},{"t":17.45,"v":0.22},{"t":19.0,"v":0.22},
+          {"t":19.3,"v":0.40},{"t":21.5,"v":0.40},{"t":22.3,"v":0}]}]}'
+      ></audio>
+
+      <!-- One track each. Sharing a track makes every pair overlap, because an
+           <audio> without a duration is treated as running to the end. -->
+      <audio id="sfx-morph" src="assets/sfx/morph-swell.ogg" data-start="3.75"  data-duration="0.19" data-track-index="9"  data-volume="0.35"></audio>
+      <audio id="sfx-click" src="assets/sfx/click.ogg"       data-start="12.0"  data-duration="0.07" data-track-index="10" data-volume="0.30"></audio>
+      <audio id="sfx-key"   src="assets/sfx/keypress.wav"    data-start="14.7"  data-duration="0.25" data-track-index="11" data-volume="0.28"></audio>
+      <audio id="sfx-pay"   src="assets/sfx/payoff.ogg"      data-start="18.52" data-duration="0.13" data-track-index="12" data-volume="0.40"></audio>
+    </div>
+
+    <script src="assets/music/audio-data.js"></script>
+    <script>
+      var tl = gsap.timeline({ paused: true });
+
+      var IN = 0.45;                                   // entrance, kept snappy
+      var OUT = 0.35;
+
+      // Fade a timed line up, hold, and fade it out inside its own window.
+      function line(sel, at, hold, rise) {
+        rise = rise === undefined ? 26 : rise;
+        tl.fromTo(sel, { opacity: 0, y: rise }, { opacity: 1, y: 0, duration: IN, ease: "power2.out" }, at);
+        tl.to(sel, { opacity: 0, duration: OUT, ease: "power1.in" }, at + hold);
+      }
+
+      /* ---- Scene 1 — dead weight ------------------------------------- */
+      // Nothing moves but the strip's arrival and a very slow wash drift.
+      tl.fromTo("#plate1", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+      tl.fromTo("#bg", { scale: 1 }, { scale: 1.04, duration: 22.3, ease: "none" }, 0);
+      line("#hook1", 0.4, 1.35);
+      line("#hook2", 1.95, 1.05);
+      // The strip hands off to the footage rather than cutting.
+      tl.to("#plate1", { opacity: 0, duration: 0.35, ease: "power1.in" }, 3.3);
+
+      /* ---- Scenes 2-5 — the footage ---------------------------------- */
+      function shot(sel, at, dur) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, at);
+        tl.to(sel, { opacity: 0, duration: 0.3, ease: "power1.in" }, at + dur - 0.3);
+      }
+      shot("#shot-wake", 3.3, 4.7);
+      shot("#shot-timer", 8.0, 3.2);
+      shot("#shot-clip", 11.2, 3.1);
+      shot("#shot-key", 14.3, 3.1);
+
+      line("#hero", 4.3, 3.0, 30);
+      line("#l-timer", 8.6, 2.1);          // beat-locked: 8.74s strong cue (entrance settles on it)
+      line("#l-clip", 11.35, 2.4);         // beat-grid: 11.46s
+      line("#l-clip2", 13.0, 0.85);        // beat-locked: 13.11s strong cue
+      line("#l-key", 14.6, 2.3);           // beat-grid: 14.73s
+
+      /* ---- Scene 6 — the price --------------------------------------- */
+      line("#price", 17.35, 0.85, 20);     // beat-locked: 17.47s strong cue
+      // The payoff lands on the strongest cue in the window and is allowed to
+      // sit still — no scale bounce, no slide. Plainness is the joke.
+      tl.fromTo("#payoff", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, 18.45); // beat-locked: 18.56s
+      tl.to("#payoff", { opacity: 0, duration: 0.45, ease: "power1.in" }, 20.9);
+
+      tl.fromTo("#mark", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 19.0);
+      tl.fromTo("#url", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 19.25);
+
+      // beat-grid: 19.66 / 20.19 / 20.75 / 21.28 — short tokens, so beat
+      // spacing is comfortable, and the last holds a full second past its beat.
+      var STAT_BEATS = [19.66, 20.19, 20.75, 21.28];
+      ["#s1", "#s2", "#s3", "#s4"].forEach(function (sel, i) {
+        tl.fromTo(sel, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, STAT_BEATS[i]);
+      });
+      gsap.utils.toArray("#stats i").forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, STAT_BEATS[i] + 0.22);
+      });
+
+      // Everything leaves together under the fade.
+      tl.to(["#mark", "#url", "#stats"], { opacity: 0, duration: 0.5, ease: "power1.in" }, 21.8);
+
+      /* ---- Audio-reactive glow ---------------------------------------
+         Per-frame sampling, not a single tween. Bass swells the glow, overall
+         energy sets its presence. Bounded so it only ever breathes: this is a
+         product film, not a visualiser. */
+      var glow = document.getElementById("glow");
+      function glowFrame(frame, gate) {
+        var bass = frame ? frame.bands[0] : 0;
+        var overall = frame ? frame.bands[1] : 0;
+        glow.style.opacity = (gate * (0.34 + 0.46 * overall)).toFixed(3);
+        glow.style.transform = "scale(" + (1 + 0.09 * bass).toFixed(3) + ")";
+      }
+      for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+        var t = f / AUDIO_DATA.fps;
+        // The glow belongs to the panel, so it is only present while the panel
+        // is: off under the dead-weight hook, off again once the type takes over.
+        var gate = t < 3.3 ? 0 : t < 3.9 ? (t - 3.3) / 0.6 : t < 17.0 ? 1 : t < 17.6 ? 1 - (t - 17.0) / 0.6 : 0;
+        tl.call(
+          (function (fr, g) { return function () { glowFrame(fr, g); }; })(AUDIO_DATA.frames[f], gate),
+          [],
+          t
+        );
+      }
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

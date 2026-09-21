@@ -1,0 +1,7 @@
+Your Mac has a notch. It has never done anything.
+
+AloeNotch turns it into a Dynamic Island — now playing, a drop shelf, a timer,
+clipboard history that never touches the disk, and a keyboard shortcut so you
+never have to aim at it. The good ones cost $15 to $25. This one doesn't.
+
+Free, open source, 1.6 MB → aloenotch.com

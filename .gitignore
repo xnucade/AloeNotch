@@ -33,6 +33,16 @@ site/assets/demo.webm
 site/assets/clips/*.mp4
 site/assets/clips/*.webm
 
+# --- /brag output (regenerate with the brag skill) ---
+# Same rule again: the render and the Hyperframes scratch are reproducible
+# binaries. The plan, the brief, the composition source and the poster are
+# small and worth keeping; release.sh does `git add -A`, so without this the
+# next ship would commit several MB of video to a public repo by accident.
+brag-output*/brag.mp4
+brag-output*/composition/snapshots/
+brag-output*/composition/node_modules/
+brag-output*/composition/.frames/
+
 # --- Node / Wrangler (site) ---
 node_modules/
 .wrangler/

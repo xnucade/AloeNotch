@@ -201,19 +201,21 @@ a { color: inherit; text-decoration: none; }
 }
 .fineprint { font-size: 13px; color: var(--faint); }
 
-/* ---------- Demo (MacBook frame) ---------- */
+/* ---------- Demo ----------
+   No MacBook bezel any more. The film is not a screen recording — it is a
+   directed piece with its own framing and full-width type, and a picture of a
+   Mac screen around it read as a screen inside a screen. */
 .demo { padding: 20px 24px 110px; }
-.macbook { max-width: 860px; margin: 0 auto; }
+.macbook { max-width: 960px; margin: 0 auto; }
 .screen {
   position: relative;
-  /* Matches the demo render (1920x1080). A 16/10 frame here would let
+  /* Matches the render (1920x1080). A 16/10 frame here would let
      `object-fit: cover` crop ~5% off each side of the video, clipping the
      notch panel in the wide shots. */
   aspect-ratio: 16 / 9;
-  background: #0a0a0c;
-  border: 2px solid #26262a;
-  border-bottom: none;
-  border-radius: 18px 18px 0 0;
+  background: #050507;
+  border: 1px solid var(--border);
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8),
               0 0 60px -30px var(--accent-soft);
@@ -246,23 +248,6 @@ a { color: inherit; text-decoration: none; }
   background: #000;
   border-radius: 0 0 9px 9px;
   box-shadow: 0 0 12px 1px var(--accent-soft);
-}
-.macbook-base {
-  height: 16px;
-  background: linear-gradient(180deg, #3a3a40, #232327 60%, #1a1a1e);
-  border-radius: 0 0 14px 14px;
-  position: relative;
-}
-.macbook-base::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 7px;
-  background: #17171a;
-  border-radius: 0 0 8px 8px;
 }
 
 /* ---------- Features ---------- */

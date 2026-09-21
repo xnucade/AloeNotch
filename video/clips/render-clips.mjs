@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const run = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(here, '../../site/assets/clips');
+const OUT_DEFAULT = path.resolve(here, '../../site/assets/clips');
 const SCRATCH = path.resolve(here, '.frames');
 
 const args = Object.fromEntries(
@@ -26,13 +26,16 @@ const args = Object.fromEntries(
 );
 const FPS = Number(args.fps ?? 60);
 const ONLY = args.only;
+// Overridable so the same stage can produce the site's small card clips and a
+// full-resolution cut for a video, without two renderers drifting apart.
+const OUT = args.out ? path.resolve(process.cwd(), args.out) : OUT_DEFAULT;
 
 /* 1600x680 rendered, delivered at 800x340 — the panel's own 3.3:1 proportions
    rather than a 16:10 box that would be half empty. The cards show these around 280px
    wide, so 720 keeps them crisp on a retina display without the file size of
    a full-resolution clip nobody will ever see at full resolution. */
 const W = 1600, H = 640;
-const OUT_W = 800, OUT_H = 320;
+const OUT_W = Number(args.width ?? 800), OUT_H = Number(args.height ?? 320);
 
 const browser = await puppeteer.launch({
   headless: true,
