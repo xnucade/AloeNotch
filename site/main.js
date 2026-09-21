@@ -146,3 +146,27 @@ document.getElementById("year").textContent = new Date().getFullYear();
     cards.forEach((c) => io.observe(c));
   }
 })();
+
+
+/* ---------- Demo sound ----------
+   The film has a soundtrack, but autoplay is only permitted while muted, so it
+   starts silent. This button is the only thing telling anyone the audio is
+   there; it goes away the moment the video is unmuted by any route, including
+   the native controls. */
+(() => {
+  const video = document.getElementById("demoVideo");
+  const button = document.getElementById("soundOn");
+  if (!video || !button) return;
+
+  const sync = () => { button.hidden = !video.muted; };
+
+  button.addEventListener("click", () => {
+    video.muted = false;
+    // A muted autoplay that the user unmutes needs a fresh play() in Safari.
+    const p = video.play();
+    if (p) p.catch(() => {});
+    sync();
+  });
+  video.addEventListener("volumechange", sync);
+  sync();
+})();

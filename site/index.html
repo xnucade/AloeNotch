@@ -96,6 +96,13 @@
             <source src="assets/demo.webm" type="video/webm">
             <source src="assets/demo.mp4" type="video/mp4">
           </video>
+          <!-- Autoplay only works muted, so the film starts silent and this
+               says so. Without it a muted video with a soundtrack just looks
+               like a video with no soundtrack. -->
+          <button class="soundon" id="soundOn" type="button">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.4 3.2 5.6 6.4H2.8v7.2h2.8l3.8 3.2z"/><path d="M12.4 7a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14.8 4.6a7.2 7.2 0 0 1 0 10.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+            Turn sound on
+          </button>
           <div class="demo-placeholder" id="demoPlaceholder">
             <div class="ph-notch"></div>
             <p>Demo video coming soon</p>

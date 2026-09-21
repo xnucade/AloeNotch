@@ -96,10 +96,15 @@ plays and the poster is the whole experience.
 
 ## The social cut (with sound)
 
-The site's video is **silent on purpose** — it autoplays, browsers only permit
-that when muted, so audio there would never be heard and would only cost
-bandwidth. For YouTube, X, and Reddit, where sound actually plays, there is a
-separate cut:
+~~The site's video is silent on purpose.~~ **No longer true.** The reasoning
+was half right: autoplay does require muted, but the player has controls, so
+audio is not "never heard" — it is *not heard unless someone asks*. The site
+film now ships its soundtrack (AAC in the MP4, Opus in the WebM) and a "Turn
+sound on" button sits over the video, because a muted video with a soundtrack
+is indistinguishable from one without. The extra cost is about 1 MB.
+
+For YouTube, X, and Reddit, where sound plays without asking, there is still a
+separate cut with the sparse UI sound design:
 
 ```sh
 ./social.sh              # → out/demo-social-kenney.mp4  (H.264 + AAC)
