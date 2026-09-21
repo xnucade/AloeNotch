@@ -43,6 +43,7 @@ site/assets/clips/*.webm
 # public repo — 18.9 MB of reproducible binary. Match by kind, not by name.
 brag-output*/*.mp4
 brag-output*/*.webm
+brag-output*/composition*/assets/video/
 brag-output*/composition*/snapshots/
 brag-output*/composition*/node_modules/
 brag-output*/composition*/.frames/
