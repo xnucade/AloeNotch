@@ -82,6 +82,43 @@ struct AppearanceTab: View {
             .animation(motion, value: settings.panelLayout)
 
             SettingsSection("Motion", index: 4) {
+                SettingsRow("Personality", symbol: "wand.and.rays",
+                            description: personalityDetail) {
+                    Picker("", selection: personalityBinding) {
+                        ForEach(MotionPersonality.allCases) { Text($0.title).tag(Optional($0)) }
+                        if MotionPersonality.matching(settings.motionBounce) == nil {
+                            Text("Custom").tag(Optional<MotionPersonality>.none)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 210)
+                    .disabled(a11y.reduceMotion)
+                }
+
+                // Closing is deliberately excluded from all of this, and saying
+                // so here is cheaper than fielding the bug report.
+                SettingsNote("Closing never bounces — the collapsed strip has to land on the hardware notch exactly.")
+
+                DisclosureGroup("Custom amount") {
+                    SettingsSliderRow(
+                        title: "Bounce",
+                        symbol: "arrow.up.and.down",
+                        description: nil,
+                        value: $settings.motionBounce,
+                        range: MotionPersonality.range,
+                        step: 0.01,
+                        valueLabel: String(format: "%.2f", settings.motionBounce),
+                        isDisabled: a11y.reduceMotion
+                    )
+                }
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
+
+                SettingsDivider()
+
                 SettingsRow("Ambient glow", symbol: "sparkles",
                             description: "A thin line of the artwork's colour hugging the panel edge.") {
                     Toggle("", isOn: $settings.ambientGlow).labelsHidden()
@@ -101,6 +138,54 @@ struct AppearanceTab: View {
                     SettingsNote("Reduce Motion is on in System Settings, so animations are shortened to plain fades regardless of this setting.")
                 }
             }
+
+            SettingsSection("Readouts", index: 5) {
+                SettingsRow("Colour", symbol: "slider.horizontal.below.square.filled.and.square",
+                            description: settings.hudTintMode.detail) {
+                    Picker("", selection: $settings.hudTintMode) {
+                        ForEach(HUDTintMode.allCases) { Text($0.title).tag($0) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 270)
+                }
+
+                if settings.hudTintMode == .perKind {
+                    SettingsDivider()
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Volume")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        AccentPicker(hex: $settings.hudVolumeHex)
+                        Text("Brightness")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 4)
+                        AccentPicker(hex: $settings.hudBrightnessHex)
+                    }
+                    .padding(12)
+                }
+
+                if settings.hudTintMode == .artwork {
+                    SettingsNote("Nothing playing means no artwork colour, so the readouts stay white until something is.")
+                }
+            }
         }
+    }
+
+    /// The description under the personality picker: the chosen preset's own
+    /// line, or the raw number when the user has dialled something between two.
+    private var personalityDetail: String {
+        MotionPersonality.matching(settings.motionBounce)?.detail
+            ?? String(format: "A custom amount of overshoot (%.2f).", settings.motionBounce)
+    }
+
+    /// The segmented control writes a preset's scalar; a custom value shows as
+    /// no selection rather than silently snapping to the nearest preset.
+    private var personalityBinding: Binding<MotionPersonality?> {
+        Binding(
+            get: { MotionPersonality.matching(settings.motionBounce) },
+            set: { if let p = $0 { settings.motionBounce = p.bounce } }
+        )
     }
 }

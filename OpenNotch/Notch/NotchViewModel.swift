@@ -31,10 +31,15 @@ enum NotchHUD: Equatable {
 
     /// As an announcement. `.direct` priority because the user is holding a key
     /// right now, and nothing arriving in the background may bury it.
-    var activity: LiveActivity {
-        LiveActivity(
+    /// As an announcement. The artwork colour is passed in rather than read
+    /// here, because `NotchHUD` is a value type that knows nothing about what
+    /// is playing.
+    func activity(artwork: Color? = nil) -> LiveActivity {
+        let isVolume = if case .volume = self { true } else { false }
+        return LiveActivity(
             kind: "system.hud",
             symbol: icon,
+            tint: AppSettings.shared.hudTint(volume: isVolume, artwork: artwork),
             trailing: .level(Double(level)),
             size: .wide,
             duration: 1.5,
@@ -468,8 +473,13 @@ final class NotchViewModel: ObservableObject {
     }
 
     /// Flash a system readout in the notch, replacing any already showing.
+    ///
+    /// The artwork accent is handed over here because this is the one place
+    /// that can see both the readout and what is playing. It is nil when
+    /// nothing is, which is what makes the `artwork` tint mode fall back to
+    /// white on its own rather than needing a special case.
     private func present(_ readout: NotchHUD) {
-        activities.present(readout.activity)
+        activities.present(readout.activity(artwork: media.current.accent))
     }
 
     func tearDown() {

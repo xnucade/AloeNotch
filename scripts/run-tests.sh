@@ -17,6 +17,7 @@ SOURCES=(
     OpenNotch/Design/SemanticVersion.swift
     OpenNotch/System/ClipboardHistory.swift
     OpenNotch/Timer/CountdownState.swift
+    OpenNotch/Design/MotionPersonality.swift
 )
 
 TESTS=(Tests/*.swift)

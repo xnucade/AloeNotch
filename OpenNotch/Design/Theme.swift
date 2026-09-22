@@ -39,13 +39,28 @@ enum Motion {
 
     private static func scaled(_ duration: Double) -> Double { duration / speed }
 
+    /// How much the panel overshoots on the way open. 0 lands flat, 0.40 is
+    /// about as lively as the category gets.
+    ///
+    /// Reduce Motion wins over the preference rather than being merged with
+    /// it: a system-level request for less movement is not a taste setting the
+    /// app gets to outvote.
+    private static var bounce: Double {
+        if AccessibilityPreferences.shared.reduceMotion { return 0 }
+        return MotionPersonality.clamp(AppSettings.shared.motionBounce)
+    }
+
     /// Opening: a little overshoot, so the panel arrives with momentum rather
     /// than easing politely into place.
-    static var expand: Animation { .smooth(duration: scaled(0.40), extraBounce: 0.10) }
+    static var expand: Animation { .smooth(duration: scaled(0.40), extraBounce: bounce) }
 
-    /// Closing: no bounce. A panel that overshoots on the way out reads as
-    /// unstable, and it is retreating to a shape that must land exactly on the
-    /// hardware notch.
+    /// Closing: no bounce, and **not configurable**. A spring with overshoot
+    /// undershoots its target before settling, so on the way *in* the strip
+    /// would briefly be narrower and shorter than the physical cutout — for a
+    /// few frames you would see wallpaper around a shape that is supposed to be
+    /// invisible. Expanding overshoots outward, into space the app already
+    /// owns, which is why `expand` can carry any bounce the user likes and this
+    /// cannot carry any at all.
     static var collapse: Animation { .smooth(duration: scaled(0.32)) }
 
     /// Transient readouts and the collapsed strip's width changes (wings
@@ -65,7 +80,12 @@ enum Motion {
     /// A transient element announcing itself — the charging bolt, a badge.
     /// Bouncier than anything else here on purpose: it should feel like it
     /// landed, and it is on screen too briefly to be annoying.
-    static var arrival: Animation { .snappy(duration: scaled(0.34), extraBounce: 0.35) }
+    /// Offset from the container's bounce rather than fixed, so the two move
+    /// together: a transient should always read as livelier than the panel it
+    /// arrives in, whatever the panel is set to.
+    static var arrival: Animation {
+        .snappy(duration: scaled(0.34), extraBounce: min(0.5, bounce + 0.25))
+    }
 
     /// A value ticking inside an already-visible readout (a HUD level bar).
     /// Short, because the container is not moving and the eye is on the number.

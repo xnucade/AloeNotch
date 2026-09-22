@@ -427,9 +427,11 @@ private struct ActivityContent: View {
         case .none:
             EmptyView()
         case .level(let value):
+            // The track takes the same hue as the fill so a tinted readout
+            // reads as one object rather than a coloured bar in a grey slot.
             ZStack(alignment: .leading) {
-                Capsule().fill(.white.opacity(0.18))
-                Capsule().fill(.white.opacity(0.92))
+                Capsule().fill(activity.tint.opacity(0.18))
+                Capsule().fill(activity.tint.opacity(0.92))
                     .frame(width: max(3, 62 * CGFloat(min(1, max(0, value)))))
             }
             .frame(width: 62, height: 4)

@@ -64,6 +64,18 @@ final class AppSettings: ObservableObject {
         didSet { save(windowTheme.rawValue, "windowTheme") }
     }
 
+    /// How far the panel overshoots when it opens, 0…0.40. Stored as the raw
+    /// scalar rather than the preset name so a custom value survives — the
+    /// preset row resolves back to a name when one matches.
+    @Published var motionBounce: Double {
+        didSet { defaults.set(motionBounce, forKey: "motionBounce") }
+    }
+
+    /// Where the volume and brightness bars get their colour.
+    @Published var hudTintMode: HUDTintMode { didSet { save(hudTintMode.rawValue, "hudTintMode") } }
+    @Published var hudVolumeHex: String     { didSet { save(hudVolumeHex, "hudVolumeHex") } }
+    @Published var hudBrightnessHex: String { didSet { save(hudBrightnessHex, "hudBrightnessHex") } }
+
     /// Multiplier on every animation duration: >1 faster, <1 slower.
     @Published var animationSpeed: Double {
         didSet { defaults.set(animationSpeed, forKey: "animationSpeed") }
@@ -143,6 +155,11 @@ final class AppSettings: ObservableObject {
             "windowTheme": WindowTheme.system.rawValue,
             "panelLayout": PanelLayout.columns.rawValue,
             "animationSpeed": 1.0,
+            // Today's behaviour, so nobody's notch changes under them on update.
+            "motionBounce": MotionPersonality.standard.bounce,
+            "hudTintMode": HUDTintMode.monochrome.rawValue,
+            "hudVolumeHex": AccentPalette.default,
+            "hudBrightnessHex": "#FFC857",
             // Widened from 616. Three columns competing inside 616pt is the
             // single biggest thing that made the panel read as busy rather than
             // calm, and the type scale's 10pt floor needs the room. Only
@@ -173,6 +190,10 @@ final class AppSettings: ObservableObject {
         ) ?? .system
         panelLayout = PanelLayout(rawValue: defaults.string(forKey: "panelLayout") ?? "") ?? .columns
         animationSpeed = defaults.double(forKey: "animationSpeed")
+        motionBounce = MotionPersonality.clamp(defaults.double(forKey: "motionBounce"))
+        hudTintMode = HUDTintMode(rawValue: defaults.string(forKey: "hudTintMode") ?? "") ?? .monochrome
+        hudVolumeHex = defaults.string(forKey: "hudVolumeHex") ?? AccentPalette.default
+        hudBrightnessHex = defaults.string(forKey: "hudBrightnessHex") ?? "#FFC857"
         panelWidth = min(max(defaults.double(forKey: "panelWidth"),
                              Self.panelWidthRange.lowerBound),
                          Self.panelWidthRange.upperBound)
@@ -183,6 +204,23 @@ final class AppSettings: ObservableObject {
         lastUpdateCheck = defaults.object(forKey: "lastUpdateCheck") as? Date ?? .distantPast
         // Login-item state lives with the system, not in defaults.
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    /// Resolve the tint for one readout.
+    ///
+    /// `artwork` needs a colour the settings object cannot see, so callers
+    /// that have one pass it in; when nothing is playing there is none, and
+    /// every mode falls back to white rather than to a colour the user did
+    /// not choose.
+    func hudTint(volume: Bool, artwork: Color? = nil) -> Color {
+        let chosen: Color? = switch hudTintMode {
+        case .monochrome: nil
+        case .accent:     accent
+        case .perKind:    Color(hex: volume ? hudVolumeHex : hudBrightnessHex)
+        case .artwork:    artwork
+        }
+        guard let chosen else { return .white }
+        return HUDContrast.legible(chosen)
     }
 
     /// Snap the width to the new layout's default. Keeping a 680pt width when

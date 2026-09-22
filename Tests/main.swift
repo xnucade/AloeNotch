@@ -24,6 +24,8 @@ testClipboardHistory()
 testClipItemPresentation()
 testCountdown()
 testCountdownFormatting()
+testMotionPersonality()
+testHUDContrast()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")
