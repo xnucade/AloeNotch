@@ -23,6 +23,21 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.9.2",
+            headline: "Motion you can dial",
+            items: [
+                Item(symbol: "wand.and.rays",
+                     title: "Choose how much it bounces",
+                     detail: "Settings → Appearance → Motion. Calm lands flat, Lively overshoots the way the paid apps do, and Standard is exactly what you had. There's a custom slider if you want the value in between."),
+                Item(symbol: "arrow.down.to.line",
+                     title: "Closing never bounces",
+                     detail: "On purpose. A spring that overshoots also undershoots, which would briefly make the collapsed strip smaller than the hardware notch and show wallpaper around it. Opening overshoots outward, where there's room."),
+                Item(symbol: "slider.horizontal.below.square.filled.and.square",
+                     title: "Colour the volume and brightness bars",
+                     detail: "White as before, or follow your accent, or pick each one, or let them take the colour of whatever's playing — the same colour the glow is already using."),
+            ]
+        ),
+        Entry(
             version: "0.9.0",
             headline: "Five things it couldn't do before",
             items: [
