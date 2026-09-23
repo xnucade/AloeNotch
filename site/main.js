@@ -1,15 +1,3 @@
-// Interactive notch: expand on hover (desktop) or tap (touch).
-const notch = document.getElementById("notch");
-let collapseTimer;
-notch.addEventListener("mouseenter", () => {
-  clearTimeout(collapseTimer);
-  notch.classList.add("open");
-});
-notch.addEventListener("mouseleave", () => {
-  collapseTimer = setTimeout(() => notch.classList.remove("open"), 250);
-});
-notch.addEventListener("click", () => notch.classList.toggle("open"));
-
 // Demo video: if none of the sources can play, show the placeholder. Listen on
 // the LAST source only — the browser walks the list in order, so an error on
 // the first (WebM) just means it is moving on to the MP4 fallback.

@@ -21,6 +21,10 @@ const indexURL = pathToFileURL(path.join(here, '..', 'site', 'index.html')).href
 
 const b = await puppeteer.launch({
   headless: true,
+  // The page runs a looping hero animation and a playing film; the default
+  // 30s protocol timeout made the final screenshot fail after every
+  // assertion had already passed.
+  protocolTimeout: 120000,
   args: ['--allow-file-access-from-files', '--hide-scrollbars',
          '--autoplay-policy=no-user-gesture-required'],
 });
@@ -75,7 +79,10 @@ if (Math.abs(r.screenAspect - r.videoAspect) > 0.005) {
   fail.push(`aspect mismatch: frame ${r.screenAspect} vs video ${r.videoAspect} → cropping`);
 }
 // Frame the demo section itself, not the hero, so the screenshot is evidence.
-await p.evaluate(() => document.querySelector('.demo').scrollIntoView({ block: 'center' }));
+await p.evaluate(() => {
+  const r = document.querySelector('.demo').getBoundingClientRect();
+  window.scrollTo({ top: r.top + scrollY - (innerHeight - r.height) / 2, behavior: 'instant' });
+});
 await new Promise(r => setTimeout(r, 900));   // let the reveal animation settle
 await p.screenshot({ path: 'out/site-check.png' });
 await b.close();

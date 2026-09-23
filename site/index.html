@@ -22,35 +22,11 @@
   <meta name="twitter:description" content="Turn your MacBook's notch into a Dynamic Island. Free and open source.">
   <meta name="twitter:image" content="https://aloenotch.com/assets/demo-poster.jpg">
 
+  <meta name="theme-color" content="#050507">
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-  <!-- Interactive notch: the site's own hoverable notch, mimicking the app -->
-  <div class="notch" id="notch" aria-hidden="true">
-    <div class="notch-glow"></div>
-    <div class="notch-body">
-      <div class="notch-collapsed">
-        <div class="waveform"><span></span><span></span><span></span><span></span></div>
-      </div>
-      <div class="notch-expanded">
-        <div class="np">
-          <div class="np-art"></div>
-          <div class="np-meta">
-            <div class="np-title">Try hovering the real one</div>
-            <div class="np-artist">AloeNotch</div>
-            <div class="np-controls">
-              <svg viewBox="0 0 24 24"><path d="M18 6v12L9 12l9-6zM7 6h2v12H7z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M8 5h3v14H8zM13 5h3v14h-3z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M6 6v12l9-6-9-6zM15 6h2v12h-2z"/></svg>
-            </div>
-          </div>
-        </div>
-        <div class="notch-shelf">Drop files here</div>
-      </div>
-    </div>
-  </div>
+<body class="home">
 
   <header class="nav">
     <div class="nav-inner">
@@ -58,57 +34,143 @@
         <img src="assets/icon.png" alt="" width="28" height="28">
         <span>AloeNotch</span>
       </a>
-      <div class="nav-actions">
-        <a class="nav-link" href="/support">Support</a>
+      <nav class="nav-actions" aria-label="Primary">
+        <a class="nav-link nav-wide" href="#features">Features</a>
+        <a class="nav-link nav-wide" href="#tour">Tour</a>
+        <a class="nav-link nav-wide" href="#faq">FAQ</a>
+        <a class="nav-link" href="/changelog">Changelog</a>
         <a class="btn btn-small" href="#download">Download</a>
-      </div>
+      </nav>
     </div>
   </header>
 
   <main id="top">
 
+    <!-- ================================================================
+         Hero. The product is the hero: every other notch app's site opens
+         on a notch you can touch, and ours opened on a paragraph. The stage
+         below is the panel rebuilt in HTML from the same metrics the feature
+         clips use (NotchGeometry.swift / Theme.swift), and its springs are
+         the app's own presets. hero.js drives it; without JS it shows the
+         expanded panel as a still.
+         ================================================================ -->
     <section class="hero">
-      <h1>Your notch<br><em>just woke up.</em></h1>
-      <p class="lede">
-        AloeNotch turns the MacBook notch into a Dynamic Island — now playing
-        from any app, a drop shelf for files, and your day at a glance.
-        Invisible until you hover.
-      </p>
-      <div class="hero-cta">
-        <a class="btn" href="#download">Download for macOS</a>
-        <span class="fineprint">Free · Apple Silicon · macOS 26+</span>
-      </div>
-    </section>
+      <div class="stage-wrap">
+        <div class="stage" id="stage" data-mode="panel" data-col="all">
+          <div class="wall" aria-hidden="true"></div>
 
-    <!-- Demo video in a MacBook-style display frame. Rebuild it with
-         `cd video && ./build.sh`, which re-renders and drops the encoded files
-         straight into assets/. See video/README.md. -->
-    <section class="demo reveal">
-      <div class="macbook">
-        <div class="screen">
-          <!-- No fake notch overlay here: the video draws its own. -->
-          <!-- WebM first: browsers pick the first source they can play, and it
-               is a quarter the size of the H.264 fallback. The film is silent,
-               so `muted` costs nothing and permits autoplay. Controls are on
-               because a 45s tour is long enough to want to scrub. -->
-          <video id="demoVideo" autoplay loop muted playsinline controls
-                 preload="metadata" poster="assets/demo-poster.jpg">
-            <source src="assets/demo.webm" type="video/webm">
-            <source src="assets/demo.mp4" type="video/mp4">
-          </video>
-          <!-- Autoplay only works muted, so the film starts silent and this
-               says so. Without it a muted video with a soundtrack just looks
-               like a video with no soundtrack. -->
-          <button class="soundon" id="soundOn" type="button">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.4 3.2 5.6 6.4H2.8v7.2h2.8l3.8 3.2z"/><path d="M12.4 7a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14.8 4.6a7.2 7.2 0 0 1 0 10.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
-            Turn sound on
-          </button>
-          <div class="demo-placeholder" id="demoPlaceholder">
-            <div class="ph-notch"></div>
-            <p>Demo video coming soon</p>
+          <div class="menubar" aria-hidden="true">
+            <div class="mb-side">
+              <b>Finder</b><span class="mb-item">File</span><span class="mb-item">Edit</span><span class="mb-item">View</span><span class="mb-item">Go</span>
+            </div>
+            <div class="mb-side mb-right">
+              <svg class="mb-item" width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M10 15.6a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2zM10 10.6a6 6 0 0 0-4.3 1.8l1.3 1.3a4.2 4.2 0 0 1 6 0l1.3-1.3A6 6 0 0 0 10 10.6zm0-4.6a10.5 10.5 0 0 0-7.5 3.1l1.3 1.3a8.7 8.7 0 0 1 12.4 0l1.3-1.3A10.5 10.5 0 0 0 10 6z"/></svg>
+              <svg width="24" height="13" viewBox="0 0 26 13" fill="none"><rect x=".6" y=".6" width="21.8" height="11.8" rx="3.4" stroke="currentColor" stroke-opacity=".5" stroke-width="1.2"/><rect x="2.4" y="2.4" width="14.6" height="8.2" rx="1.8" fill="currentColor"/><path d="M24 4.4v4.2a2.1 2.1 0 0 0 0-4.2z" fill="currentColor" fill-opacity=".5"/></svg>
+              <span id="mbClock">Wed 23 Sep 9:41</span>
+            </div>
+          </div>
+
+          <!-- The panel. One shape the whole way, like the app: it grows from
+               the hardware notch rather than swapping one view for another. -->
+          <div class="hn" id="hn" role="img" aria-label="An animated AloeNotch panel cycling through now playing, the shelf, clipboard history, the volume readout and a timer.">
+            <div class="hn-glow"></div>
+            <div class="hn-panel">
+              <div class="hn-strip">
+                <div class="side left" id="hnLeft"></div>
+                <div class="dead"></div>
+                <div class="side right" id="hnRight"></div>
+              </div>
+
+              <div class="hn-exp">
+                <div class="hn-head">
+                  <span class="clock" id="hnClock">9:41</span>
+                  <span class="sp"></span>
+                  <span class="pill">
+                    <svg width="15" height="15" viewBox="0 0 20 20" fill="#ffd66b"><circle cx="10" cy="10" r="4.2"/><g stroke="#ffd66b" stroke-width="1.6" stroke-linecap="round"><path d="M10 1.6v2.2M10 16.2v2.2M1.6 10h2.2M16.2 10h2.2M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M15.9 4.1l-1.6 1.6M5.7 14.3l-1.6 1.6"/></g></svg>
+                    <span>72°</span>
+                  </span>
+                  <svg class="gear" width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M10 6.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zm0 5.2a1.8 1.8 0 1 1 0-3.6 1.8 1.8 0 0 1 0 3.6z"/><path d="M17.3 11.6l-1.2-.7a6.6 6.6 0 0 0 0-1.8l1.2-.7a.8.8 0 0 0 .3-1.1l-1.1-1.9a.8.8 0 0 0-1.1-.3l-1.2.7a6.5 6.5 0 0 0-1.6-.9V3.5a.8.8 0 0 0-.8-.8H9.2a.8.8 0 0 0-.8.8v1.4a6.5 6.5 0 0 0-1.6.9l-1.2-.7a.8.8 0 0 0-1.1.3L3.4 7.3a.8.8 0 0 0 .3 1.1l1.2.7a6.6 6.6 0 0 0 0 1.8l-1.2.7a.8.8 0 0 0-.3 1.1l1.1 1.9a.8.8 0 0 0 1.1.3l1.2-.7c.5.4 1 .7 1.6.9v1.4a.8.8 0 0 0 .8.8h2.2a.8.8 0 0 0 .8-.8v-1.4c.6-.2 1.1-.5 1.6-.9l1.2.7a.8.8 0 0 0 1.1-.3l1.1-1.9a.8.8 0 0 0-.3-1.1z"/></svg>
+                </div>
+
+                <div class="hn-body">
+                  <div class="col col-media">
+                    <div class="art-stack"><div class="aura"></div><div class="art"></div></div>
+                    <div class="meta">
+                      <div class="title" id="hnTitle">Neon Arcade</div>
+                      <div class="artist" id="hnArtist">Kade &amp; the Lantern</div>
+                      <div class="scrub"><div class="track"><b id="hnScrub"></b></div>
+                        <div class="times"><span id="hnElapsed">1:20</span><span id="hnLength">3:24</span></div></div>
+                      <div class="controls">
+                        <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M6 4.4a.9.9 0 0 0-.9.9v9.4a.9.9 0 0 0 1.8 0v-3.6l6.7 3.9a.9.9 0 0 0 1.4-.8V6.2a.9.9 0 0 0-1.4-.8L6.9 9.3V5.3a.9.9 0 0 0-.9-.9z"/></svg>
+                        <svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M6.6 4.2h2.2v11.6H6.6zM11.2 4.2h2.2v11.6h-2.2z"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M14 4.4a.9.9 0 0 1 .9.9v9.4a.9.9 0 0 1-1.8 0v-3.6l-6.7 3.9a.9.9 0 0 1-1.4-.8V6.2a.9.9 0 0 1 1.4-.8l6.7 3.9V5.3a.9.9 0 0 1 .9-.9z"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="divider"></div>
+
+                  <div class="col col-cal">
+                    <div class="cal-top"><span class="month" id="hnMonth">Sep</span><div class="days" id="hnDays"></div></div>
+                    <div class="cal-sub">
+                      <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.4" y="3.6" width="15.2" height="14" rx="2.6"/><path d="M2.4 8h15.2M6.6 1.8v3.2M13.4 1.8v3.2"/></svg>
+                      <span>2:30 PM · Design review</span>
+                    </div>
+                  </div>
+
+                  <div class="divider d2"></div>
+
+                  <div class="col col-tools">
+                    <div class="tabs" id="hnTabs"></div>
+                    <div class="tool-body" id="hnTool">
+                      <div class="drop"><span>Drop files here</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="stage-hint" id="stageHint" aria-hidden="true">
+            <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.2 3.6 10h4.2v6.8h4.4V10h4.2z"/></svg>
+            It’s live — hover the notch
+          </p>
+          <div class="hero-copy">
+            <!-- "Version N" on purpose: release.sh rewrites that exact string. -->
+            <a class="eyebrow" href="/changelog"><span class="tag">New</span>Version 0.9.2 — see what’s new
+              <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 4l6 6-6 6"/></svg></a>
+            <h1>Your notch<br><em>just woke up.</em></h1>
+            <p class="lede">
+              AloeNotch turns the MacBook notch into a Dynamic Island — now playing
+              from any app, a drop shelf for files, and your day at a glance.
+              Invisible until you hover.
+            </p>
+            <div class="hero-cta">
+              <a class="btn" href="#download">Download for macOS</a>
+              <a class="btn-ghost" href="#tour">Watch the tour
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 4.2v11.6L15.6 10z"/></svg>
+              </a>
+            </div>
+            <p class="fineprint">Apple Silicon · macOS 26 or later · 1.6 MB</p>
           </div>
         </div>
 
+        <div class="stage-bar" role="group" aria-label="Demo controls">
+          <div class="chips">
+            <button type="button" class="chip-btn" data-go="music"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M16 2.4 7.4 4.2v8.5a3 3 0 1 0 1.6 2.6V7.2l5.4-1.1v5a3 3 0 1 0 1.6 2.6V2.4z"/></svg>Now Playing<i></i></button>
+            <button type="button" class="chip-btn" data-go="shelf"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2.4 12h4l1.2 2.2h4.8L13.6 12h4M2.4 12l2.2-7.4h10.8L17.6 12v4.2a1.4 1.4 0 0 1-1.4 1.4H3.8a1.4 1.4 0 0 1-1.4-1.4z"/></svg>Shelf<i></i></button>
+            <button type="button" class="chip-btn" data-go="clipboard"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2.6" width="10.4" height="13.6" rx="2.2"/><path d="M13.6 16.2v1.2H2.6V5.6h1.4"/></svg>Clipboard<i></i></button>
+            <button type="button" class="chip-btn" data-go="volume"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.4 3.2 5.6 6.4H2.8v7.2h2.8l3.8 3.2z"/><path d="M12.4 7a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>Volume<i></i></button>
+            <button type="button" class="chip-btn" data-go="timer"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="11.4" r="6.6"/><path d="M10 8.2v3.4l2.2 1.5M7.6 1.8h4.8"/></svg>Timer<i></i></button>
+          </div>
+          <span class="bar-sep" aria-hidden="true"></span>
+          <div class="seg" role="radiogroup" aria-label="Bounce">
+            <span class="seg-label">Bounce</span>
+            <button type="button" role="radio" data-bounce="calm">Calm</button>
+            <button type="button" role="radio" data-bounce="standard">Standard</button>
+            <button type="button" role="radio" data-bounce="lively">Lively</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -126,10 +188,16 @@
       </div>
     </section>
 
-    <section class="features">
+    <!-- ================================================================
+         Features as a bento, not eleven equal tiles. Two leads up top at
+         7/5, then pairs, then one wide closer. Clip cards never go three
+         across: the clips were already hard to read at two, and that is the
+         floor.
+         ================================================================ -->
+    <section class="features" id="features">
       <h2 class="reveal">Everything the notch<br>should have been.</h2>
-      <div class="grid">
-        <article class="card reveal">
+      <div class="bento">
+        <article class="card reveal span-7">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/now-playing.jpg"
@@ -146,33 +214,30 @@
           <p>Apple Music, Spotify — even YouTube in your browser. Title, artwork
           and transport controls for whatever your Mac is playing.</p>
         </article>
-        <article class="card reveal">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/ambient-glow.jpg"
-                   aria-label="Ambient Glow, demonstrated">
-              <source src="assets/clips/ambient-glow.webm" type="video/webm">
-              <source src="assets/clips/ambient-glow.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Ambient Glow</h3>
-          <p>The artwork's color traces the panel's edge — a thin line of light
-          that hugs the notch, like the music is leaking out of the screen.</p>
-        </article>
-        <article class="card reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24"><path d="M3 12h3l2-7 4 14 3-9 2 2h4"/></svg>
+
+        <!-- The one card without a clip: a spring you can flick. The curve
+             drawn behind the notch is the real one for the chosen preset. -->
+        <article class="card reveal span-5 toy-card">
+          <div class="toy" id="toy" role="img" aria-label="A small notch opening and closing with the selected bounce">
+            <svg class="toy-curve" id="toyCurve" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true">
+              <path class="target" d="M0 60H400"/>
+              <path class="line" id="toyPath" d=""/>
+            </svg>
+            <div class="toy-notch" id="toyNotch"></div>
+            <span class="toy-read">Overshoot on open <b id="toyOver">0.15%</b></span>
           </div>
           <h3>Motion you can dial</h3>
           <p>Calm, Standard or Lively — decide how much the panel overshoots
           when it opens. Closing never bounces, because the collapsed strip has
           to land on the notch exactly.</p>
+          <div class="seg seg-card" role="radiogroup" aria-label="Bounce">
+            <button type="button" role="radio" data-bounce="calm">Calm</button>
+            <button type="button" role="radio" data-bounce="standard">Standard</button>
+            <button type="button" role="radio" data-bounce="lively">Lively</button>
+          </div>
         </article>
-        <article class="card reveal">
+
+        <article class="card reveal span-5">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/shelf.jpg"
@@ -189,7 +254,25 @@
           <p>Drag a file onto the notch and it opens to catch it. Park
           screenshots and downloads, then drag them back out anywhere.</p>
         </article>
-        <article class="card reveal">
+        <article class="card reveal span-7">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/ambient-glow.jpg"
+                   aria-label="Ambient Glow, demonstrated">
+              <source src="assets/clips/ambient-glow.webm" type="video/webm">
+              <source src="assets/clips/ambient-glow.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>Ambient Glow</h3>
+          <p>The artwork's color traces the panel's edge — a thin line of light
+          that hugs the notch, like the music is leaking out of the screen.</p>
+        </article>
+
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/at-a-glance.jpg"
@@ -206,7 +289,7 @@
           <p>The next 24 hours of your calendar, local weather and a live clock
           in the expanded panel's header. No widgets, no Mission Control.</p>
         </article>
-        <article class="card reveal">
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/battery.jpg"
@@ -223,7 +306,8 @@
           <p>Charge level with a charging shimmer, a bolt while plugged in and
           a quiet red warning when you're running low.</p>
         </article>
-        <article class="card reveal">
+
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/timer.jpg"
@@ -240,7 +324,7 @@
           <p>Start one from the panel and it takes over the collapsed strip
           while it counts down. Pause it, add a minute, or let it ring.</p>
         </article>
-        <article class="card reveal">
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/clipboard.jpg"
@@ -257,7 +341,8 @@
           <p>Click one to copy it again. Kept in memory only — never written to
           disk, and anything a password manager marks private is skipped.</p>
         </article>
-        <article class="card reveal">
+
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/shortcut.jpg"
@@ -274,7 +359,7 @@
           <p>⌃⌥N opens and closes the panel from anywhere, and holds it open
           until you press it again. No Accessibility permission needed.</p>
         </article>
-        <article class="card reveal">
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/sound-output.jpg"
@@ -291,7 +376,8 @@
           <p>The header turns into a device picker when there's more than one
           output. Pick AirPods or your speakers and everything follows.</p>
         </article>
-        <article class="card reveal">
+
+        <article class="card reveal span-12 card-wide">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/invisible.jpg"
@@ -304,10 +390,44 @@
               Enlarge
             </span>
           </div>
-          <h3>Invisible by design</h3>
-          <p>Collapsed, it hugs the hardware notch to the pixel — pure black,
-          nothing added. Settings live in a small menu bar switchboard.</p>
+          <div class="card-text">
+            <h3>Invisible by design</h3>
+            <p>Collapsed, it hugs the hardware notch to the pixel — pure black,
+            nothing added. Settings live in a small menu bar switchboard.</p>
+          </div>
         </article>
+      </div>
+    </section>
+
+    <!-- The film. Rebuild it with `cd video && ./build.sh`, which re-renders
+         and drops the encoded files straight into assets/. See
+         video/README.md. The .demo / .screen / #demoVideo names are what
+         video/verify-site.mjs checks — keep them. -->
+    <section class="demo" id="tour">
+      <div class="section-head reveal">
+        <h2>The whole tour,<br>in forty-five seconds.</h2>
+        <p>Every feature, the redesigned settings and the new motion — with a
+        soundtrack, if you turn it on.</p>
+      </div>
+      <div class="macbook reveal">
+        <div class="screen">
+          <!-- WebM first: browsers pick the first source they can play, and it
+               is a quarter the size of the H.264 fallback. Autoplay is only
+               permitted muted; the button below says the sound is there. -->
+          <video id="demoVideo" autoplay loop muted playsinline controls
+                 preload="metadata" poster="assets/demo-poster.jpg">
+            <source src="assets/demo.webm" type="video/webm">
+            <source src="assets/demo.mp4" type="video/mp4">
+          </video>
+          <button class="soundon" id="soundOn" type="button">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.4 3.2 5.6 6.4H2.8v7.2h2.8l3.8 3.2z"/><path d="M12.4 7a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14.8 4.6a7.2 7.2 0 0 1 0 10.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+            Turn sound on
+          </button>
+          <div class="demo-placeholder" id="demoPlaceholder">
+            <div class="ph-notch"></div>
+            <p>Demo video coming soon</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -346,6 +466,8 @@
 
     <section class="download" id="download">
       <div class="dl-panel reveal">
+        <!-- A notch at the top edge of the panel, lit the way the icon is. -->
+        <span class="dl-notch" aria-hidden="true"></span>
         <img src="assets/icon.png" alt="AloeNotch icon" width="96" height="96">
         <h2>Get AloeNotch</h2>
         <p class="fineprint">Version 0.9.2 · Apple Silicon · macOS 26 or later ·
@@ -383,7 +505,7 @@
       </div>
     </section>
 
-    <section class="faq">
+    <section class="faq" id="faq">
       <h2 class="reveal">Questions</h2>
       <div class="faq-list reveal">
         <details>
@@ -435,6 +557,10 @@
 
   </main>
 
+  <!-- The name, huge and nearly not there, lit from above by the same line of
+       light the notch has. Decorative only. -->
+  <div class="wordmark" aria-hidden="true"><span>AloeNotch</span></div>
+
   <footer>
     <div class="footer-links">
       <a href="/support">Support</a>
@@ -453,6 +579,7 @@
   </footer>
 
   <script src="main.js"></script>
+  <script src="hero.js"></script>
   <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="xnucade" data-description="Support me on Buy me a coffee!" data-message="If you're feeling up to it I would appreciate the support. Thanks for Visiting! " data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 </body>
 </html>
