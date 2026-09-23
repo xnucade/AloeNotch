@@ -5,13 +5,21 @@
 # Usage:
 #   ./scripts/release.sh 0.3.0            # prep: bump, build DMG, update site,
 #                                         #   scaffold a changelog entry — then stop
-#   ./scripts/release.sh 0.3.0 --ship     # same, then commit + push + deploy
+#   ./scripts/release.sh 0.3.0 --ship     # same, then commit + push + deploy,
+#                                         #   and publish the GitHub Release
 #
 # Typical flow: run without --ship, fill in the new changelog entry in
 # site/changelog.html (replace the "TODO" line), then re-run with --ship.
 #
 # Signing/notarization pass through to make-dmg.sh via SIGN_IDENTITY /
 # NOTARY_PROFILE env vars (see that script).
+#
+# The GitHub Release is not optional bookkeeping: the app's update checker
+# reads releases/latest, so a version that only reaches the site is invisible
+# to everyone already running AloeNotch. 0.9.0–0.9.2 shipped that way and
+# nobody on 0.8.5 was told. Its notes come from the changelog entry (see
+# release-notes.py) and its title from that entry's first bold line, unless
+# RELEASE_TITLE is set.
 set -euo pipefail
 
 NEW="${1:-}"
@@ -84,6 +92,16 @@ fi
 grep -q "TODO: describe this release." "$CHANGELOG" && \
     fail "changelog still has a TODO placeholder — fill in the $NEW entry before shipping"
 
+# Everything the GitHub Release needs is checked before anything is pushed, so
+# a missing `gh` can't leave the site on a version the app never hears about.
+command -v gh >/dev/null || fail "gh (GitHub CLI) is needed to publish the release — brew install gh"
+gh auth status >/dev/null 2>&1 || fail "gh is not signed in — run: gh auth login"
+NOTES=$(mktemp)
+"$PROJECT_DIR/scripts/release-notes.py" "$NEW" > "$NOTES" || fail "could not build release notes for $NEW"
+TITLE="$NEW — ${RELEASE_TITLE:-$("$PROJECT_DIR/scripts/release-notes.py" "$NEW" --headline)}"
+DMG="$PROJECT_DIR/build/AloeNotch-$NEW.dmg"
+[ -f "$DMG" ] || fail "missing $DMG"
+
 echo "==> Committing, pushing, and deploying"
 cd "$PROJECT_DIR"
 git add -A
@@ -96,5 +114,20 @@ fi
 git push origin main
 
 ( cd "$PROJECT_DIR/site" && npx wrangler deploy )
+
+echo "==> Publishing the GitHub Release (what the in-app update check reads)"
+if gh release view "v$NEW" >/dev/null 2>&1; then
+    echo "    v$NEW already exists — replacing its DMG"
+    gh release upload "v$NEW" "$DMG" --clobber
+else
+    gh release create "v$NEW" "$DMG" \
+        --title "$TITLE" \
+        --notes-file "$NOTES" \
+        --target "$(git rev-parse HEAD)" \
+        --latest \
+    || fail "site is live but the GitHub Release failed — re-run:
+    gh release create v$NEW \"$DMG\" --title \"$TITLE\" --notes-file <(./scripts/release-notes.py $NEW) --target $(git rev-parse HEAD) --latest"
+fi
+rm -f "$NOTES"
 
 echo "==> Shipped $NEW 🎉  (https://aloenotch-site.xnucade.workers.dev)"
