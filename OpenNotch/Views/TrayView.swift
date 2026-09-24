@@ -139,7 +139,15 @@ extension TrayView {
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(tray.items) { item in
                     TrayChip(item: item, all: tray.items.map(\.url)) { tray.remove(item) }
-                        .transition(.scale(scale: 0.6).combined(with: .opacity))
+                        // Arrives a size too big and settles into its slot on
+                        // the arrival spring, as if shrinking in from the
+                        // dragged icon; leaves the quiet way.
+                        .transition(.asymmetric(
+                            insertion: reduceMotion ? .opacity : .scale(scale: 1.5)
+                                .combined(with: .opacity)
+                                .animation(Motion.arrival),
+                            removal: .scale(scale: 0.6).combined(with: .opacity)
+                        ))
                 }
             }
             .padding(6)

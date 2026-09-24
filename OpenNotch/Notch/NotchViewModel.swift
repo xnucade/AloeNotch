@@ -383,6 +383,39 @@ final class NotchViewModel: ObservableObject {
         refreshState()
     }
 
+    // MARK: File drags
+
+    /// Where a file being dragged over the surface is, from −1 (its left
+    /// edge) to 1 (its right), or nil when there's no drag. The surface
+    /// leans a few points toward it — see `NotchRootView.reach`.
+    @Published private(set) var dragReach: CGFloat?
+    /// The small swallow when a drop lands.
+    @Published private(set) var gulping = false
+
+    func dragMoved(_ bias: CGFloat?) {
+        let was = dragReach
+        dragReach = bias
+        // A drag is never an accident: open at once, skipping the intent
+        // delay, and let go the moment it leaves.
+        if bias != nil, was == nil { hoverChanged(true, immediate: true) }
+        if bias == nil, was != nil {
+            if landing { landing = false } else { hoverChanged(false) }
+        }
+    }
+
+    /// Set around a drop so the release in `dragMoved(nil)` doesn't read as
+    /// the drag leaving: the pointer is still over the panel, where the file
+    /// just landed.
+    private var landing = false
+
+    func dropLanded(_ accepted: Bool) {
+        landing = true
+        guard accepted, !AccessibilityPreferences.shared.reduceMotion else { return }
+        withAnimation(.easeOut(duration: 0.07)) { gulping = true } completion: {
+            withAnimation(Motion.arrival) { self.gulping = false }
+        }
+    }
+
     // MARK: Gestures
 
     private var swipeTracker = SwipeTracker()

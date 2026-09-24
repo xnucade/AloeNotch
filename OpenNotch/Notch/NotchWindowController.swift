@@ -75,6 +75,26 @@ final class NotchWindowController {
         let host = PassthroughHostingView(rootView: root)
         host.activeRectProvider = { [weak self] in self?.activeRect() ?? .zero }
         host.onScroll = { [weak viewModel] event in viewModel?.handleScroll(event) ?? false }
+        host.registerForDraggedTypes([.fileURL])
+        host.onDragMoved = { [weak self] point in
+            guard let self else { return }
+            guard let point else { return self.viewModel.dragMoved(nil) }
+            // −1 at the surface's left edge, 1 at its right.
+            let rect = self.activeRect()
+            let bias = rect.width > 0 ? (point.x - rect.midX) / (rect.width / 2) : 0
+            self.viewModel.dragMoved(min(1, max(-1, bias)))
+        }
+        host.onDropped = { [weak self] accepted in
+            self?.viewModel.dropLanded(accepted)
+            // Pointer tracking is suspended for the length of a drag, so the
+            // hover exit may never come. Check where the pointer is once the
+            // drop has settled rather than trusting it.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                guard let self, let panel = self.panel, let host = panel.contentView else { return }
+                let local = host.convert(panel.convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
+                if !self.activeRect().contains(local) { self.viewModel.hoverChanged(false) }
+            }
+        }
         host.frame = CGRect(origin: .zero, size: frame.size)
         host.autoresizingMask = [.width, .height]
 

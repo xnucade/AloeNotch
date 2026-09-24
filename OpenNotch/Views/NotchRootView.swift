@@ -57,7 +57,7 @@ struct NotchRootView: View {
     /// The surface's current on-screen size, straight from the one function
     /// that decides it (`NotchMetrics.size(for:)`).
     private var surfaceSize: CGSize {
-        let base = metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize
+        let base = reached(metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize)
         guard !state.isExpanded else { return base }
         // A two-finger pull stretches it down, following the fingers.
         let pulled = CGSize(width: base.width, height: base.height + viewModel.pull)
@@ -66,6 +66,25 @@ struct NotchRootView: View {
         guard viewModel.isAnticipating else { return pulled }
         return CGSize(width: pulled.width + Metrics.swell.width,
                       height: pulled.height + Metrics.swell.height)
+    }
+
+    /// How far the surface reaches toward a file dragged over it: a few
+    /// points down, and a few sideways on the cursor's side only. The far
+    /// edge holds still (see `reachOffset`), so the shape leans toward the
+    /// file rather than growing at it, and never uncovers the notch.
+    static let reachDown: CGFloat = 4
+    static let reachSide: CGFloat = 8
+
+    private func reached(_ size: CGSize) -> CGSize {
+        guard let bias = viewModel.dragReach, !a11y.reduceMotion else { return size }
+        return CGSize(width: size.width + Self.reachSide * abs(bias),
+                      height: size.height + Self.reachDown)
+    }
+
+    /// Recentres the widened surface so only the cursor's side moved.
+    private var reachOffset: CGFloat {
+        guard let bias = viewModel.dragReach, !a11y.reduceMotion else { return 0 }
+        return Self.reachSide * bias / 2
     }
 
     /// Height of the collapsed strip — i.e. the hardware notch. Constant across
@@ -179,6 +198,7 @@ struct NotchRootView: View {
             }
         }
         .frame(width: surfaceSize.width, height: surfaceSize.height)
+        .offset(x: reachOffset)
         // Clip AFTER the frame so the clip bounds follow the animating size.
         // (Clipping the inner Group instead sized the clip to the *content*, so
         // collapsing left the outgoing panel ghosted at full width outside the
@@ -201,7 +221,11 @@ struct NotchRootView: View {
         // the content branch transitions, and the matched artwork all move
         // under this. The curve comes from the view model, which picks it per
         // transition (bouncier opening, settled closing, quick between peeks).
+        // A dropped file is swallowed: one small scale from the top edge.
+        .scaleEffect(viewModel.gulping ? 0.98 : 1, anchor: .top)
         .animation(viewModel.stateAnimation, value: state)
+        .animation(Motion.resolve(Motion.hud, reduceMotion: a11y.reduceMotion),
+                   value: viewModel.dragReach)
         .animation(Motion.resolve(Motion.anticipate, reduceMotion: a11y.reduceMotion),
                    value: viewModel.isAnticipating)
         // 1:1 while the fingers move; a spring only on the way back.
