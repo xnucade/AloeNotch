@@ -9,6 +9,17 @@ final class PassthroughHostingView<Content: View>: NSHostingView<Content> {
     /// controller as the notch expands/collapses.
     var activeRectProvider: (() -> CGRect)?
 
+    /// Two-finger swipes on the notch. Returns whether the event was used;
+    /// anything it passes on goes to SwiftUI as usual. A list that scrolls
+    /// is its own scroll view and gets its events before they reach here, so
+    /// swipes and scrolling don't compete.
+    var onScroll: ((NSEvent) -> Bool)?
+
+    override func scrollWheel(with event: NSEvent) {
+        if onScroll?(event) == true { return }
+        super.scrollWheel(with: event)
+    }
+
     override func hitTest(_ point: NSPoint) -> NSView? {
         // `point` arrives in the superview's coordinate space.
         let local = superview.map { convert(point, from: $0) } ?? point

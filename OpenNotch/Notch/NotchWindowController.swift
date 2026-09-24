@@ -68,6 +68,7 @@ final class NotchWindowController {
         let root = NotchRootView(viewModel: viewModel)
         let host = PassthroughHostingView(rootView: root)
         host.activeRectProvider = { [weak self] in self?.activeRect() ?? .zero }
+        host.onScroll = { [weak viewModel] event in viewModel?.handleScroll(event) ?? false }
         host.frame = CGRect(origin: .zero, size: frame.size)
         host.autoresizingMask = [.width, .height]
 

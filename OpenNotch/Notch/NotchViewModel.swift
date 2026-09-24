@@ -383,8 +383,76 @@ final class NotchViewModel: ObservableObject {
         refreshState()
     }
 
-    /// Close from an accessibility action. VoiceOver opens the panel without
-    /// the pointer ever entering it, so there is no hover to leave.
+    // MARK: Gestures
+
+    private var swipeTracker = SwipeTracker()
+
+    /// How far a two-finger pull has stretched the closed strip, already
+    /// rubber-banded. The strip follows the fingers until the swipe fires,
+    /// so opening it feels like pulling it down rather than triggering it.
+    @Published private(set) var pull: CGFloat = 0
+    static let pullLimit: CGFloat = 10
+
+    /// Swipe-to-switch in the focused layout. A counter rather than a
+    /// value so the same direction twice is still two changes.
+    struct ModuleStep: Equatable { var count = 0; var direction = 1 }
+    @Published private(set) var moduleStep = ModuleStep()
+
+    /// Two-finger swipes over the notch:
+    /// - down on the closed strip opens it (skipping the hover delay),
+    /// - up on the open panel closes it,
+    /// - left/right on the media peek skips tracks,
+    /// - left/right in the focused layout switches module.
+    func handleScroll(_ event: NSEvent) -> Bool {
+        // Trackpads and Magic Mouse only. A wheel click over the notch is
+        // far more likely to be scrolling the window underneath.
+        guard event.hasPreciseScrollingDeltas else { return false }
+        let phase: SwipeTracker.Phase
+        if !event.momentumPhase.isEmpty {
+            phase = .momentum
+        } else if event.phase.contains(.began) {
+            phase = .began
+        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            phase = .ended
+        } else if event.phase.contains(.changed) {
+            phase = .changed
+        } else {
+            return false
+        }
+        // Finger space: natural scrolling reports the content's direction,
+        // which is the fingers' direction; the classic setting is reversed.
+        let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
+        let swipe = swipeTracker.feed(phase, dx: event.scrollingDeltaX * sign,
+                                      dy: event.scrollingDeltaY * sign)
+
+        let stretched = panelState.isExpanded ? 0
+            : SwipeTracker.rubberBand(swipeTracker.pull, limit: Self.pullLimit)
+        if stretched != pull { pull = stretched }
+
+        guard let swipe else { return true }
+        let expanded = panelState.isExpanded
+        switch swipe {
+        case .down where !expanded:
+            notchClicked()
+        case .up where expanded:
+            dismiss()
+        case .left where !expanded && panelState.showsMedia:
+            media.next()
+        case .right where !expanded && panelState.showsMedia:
+            media.previous()
+        case .left where expanded:
+            moduleStep = ModuleStep(count: moduleStep.count + 1, direction: 1)
+        case .right where expanded:
+            moduleStep = ModuleStep(count: moduleStep.count + 1, direction: -1)
+        default:
+            return true
+        }
+        Haptics.tick()
+        return true
+    }
+
+    /// Close without the pointer leaving: a swipe up, or VoiceOver, which
+    /// opens the panel without the pointer ever entering it.
     func dismiss() {
         intentWorkItem?.cancel()
         collapseWorkItem?.cancel()

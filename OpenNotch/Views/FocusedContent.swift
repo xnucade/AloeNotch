@@ -93,6 +93,14 @@ struct FocusedContent: View {
             }
         }
         .foregroundStyle(.white)
+        // Two-finger swipe left/right on the panel (NotchViewModel.handleScroll).
+        .onChange(of: viewModel.moduleStep) { _, step in
+            let modules = available
+            guard modules.count > 1,
+                  let i = modules.firstIndex(of: resolvedFocus) else { return }
+            let next = modules[(i + step.direction + modules.count) % modules.count]
+            withAnimation(Motion.contentFade) { focus = next }
+        }
     }
 
     /// Pills to move between modules. Only shown when there is more than one —

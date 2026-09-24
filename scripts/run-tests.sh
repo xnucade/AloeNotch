@@ -34,6 +34,7 @@ SOURCES=(
     OpenNotch/System/ClipboardHistory.swift
     OpenNotch/Timer/CountdownState.swift
     OpenNotch/Design/MotionPersonality.swift
+    OpenNotch/Notch/SwipeTracker.swift
 )
 
 TESTS=(Tests/*.swift)

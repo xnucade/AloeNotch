@@ -58,11 +58,14 @@ struct NotchRootView: View {
     /// that decides it (`NotchMetrics.size(for:)`).
     private var surfaceSize: CGSize {
         let base = metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize
+        guard !state.isExpanded else { return base }
+        // A two-finger pull stretches it down, following the fingers.
+        let pulled = CGSize(width: base.width, height: base.height + viewModel.pull)
         // The swell while the pointer decides. Never while open — see
         // `NotchViewModel.isAnticipating`.
-        guard viewModel.isAnticipating, !state.isExpanded else { return base }
-        return CGSize(width: base.width + Metrics.swell.width,
-                      height: base.height + Metrics.swell.height)
+        guard viewModel.isAnticipating else { return pulled }
+        return CGSize(width: pulled.width + Metrics.swell.width,
+                      height: pulled.height + Metrics.swell.height)
     }
 
     /// Height of the collapsed strip — i.e. the hardware notch. Constant across
@@ -201,6 +204,9 @@ struct NotchRootView: View {
         .animation(viewModel.stateAnimation, value: state)
         .animation(Motion.resolve(Motion.anticipate, reduceMotion: a11y.reduceMotion),
                    value: viewModel.isAnticipating)
+        // 1:1 while the fingers move; a spring only on the way back.
+        .animation(viewModel.pull == 0 ? Motion.resolve(Motion.hud, reduceMotion: a11y.reduceMotion) : nil,
+                   value: viewModel.pull)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
         // Only while closed, so it can never swallow a click meant for a
