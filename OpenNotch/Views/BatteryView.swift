@@ -28,7 +28,7 @@ struct BatteryView: View {
     private var fillColor: Color {
         if battery.isCharging || battery.isPluggedIn { return .green }
         if battery.level < 0.2 { return .red }
-        return .white.opacity(0.85)
+        return Ink.primary
     }
 
     var body: some View {
@@ -46,7 +46,7 @@ struct BatteryView: View {
             batteryGlyph
             Text("\(percent)%")
                 .font(Typography.body(.semibold))
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(Ink.primary)
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .animation(Motion.contentFade, value: percent)
@@ -59,13 +59,13 @@ struct BatteryView: View {
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
-        .background(.white.opacity(0.08), in: Capsule())
+        .background(Ink.fill, in: Capsule())
     }
 
     private var batteryGlyph: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 3)
-                .strokeBorder(.white.opacity(0.5), lineWidth: 1)
+                .strokeBorder(Ink.tertiary, lineWidth: 1)
                 .frame(width: 28, height: 13)
 
             GeometryReader { geo in
@@ -80,7 +80,7 @@ struct BatteryView: View {
         }
         .overlay(alignment: .trailing) {
             RoundedRectangle(cornerRadius: 1)
-                .fill(.white.opacity(0.5))
+                .fill(Ink.tertiary)
                 .frame(width: 2, height: 6)
                 .offset(x: 3)
         }
@@ -90,7 +90,7 @@ struct BatteryView: View {
     private var chargingShimmer: some View {
         if battery.isCharging {
             LinearGradient(
-                colors: [.clear, .white.opacity(0.55), .clear],
+                colors: [.clear, Ink.tertiary, .clear],
                 startPoint: .leading, endPoint: .trailing
             )
             .frame(width: 12)

@@ -218,7 +218,7 @@ struct NotchRootView: View {
                 // flare.
                 if state.isExpanded {
                     NotchShape(cornerRadius: radius)
-                        .stroke(.white.opacity(0.09), lineWidth: 1)
+                        .stroke(Ink.fill, lineWidth: 1)
                         .mask(alignment: .bottom) {
                             Rectangle().padding(.top, shoulder + 1)
                         }
@@ -477,7 +477,7 @@ private struct ActivityContent: View {
                     if let title = activity.title {
                         Text(title)
                             .font(Typography.micro(.semibold))
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(Ink.primary)
                             .lineLimit(1)
                     }
                 }
@@ -525,7 +525,7 @@ private struct ActivityContent: View {
             Text(value)
                 .font(Typography.body(.semibold))
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(Ink.primary)
                 .contentTransition(.numericText())
                 .animation(Motion.readout, value: value)
                 .lineLimit(1)
@@ -539,7 +539,7 @@ private struct ActivityContent: View {
                 Text(CountdownState.clock(deadline.timeIntervalSince(context.date)))
                     .font(Typography.body(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(Ink.primary)
                     .contentTransition(.numericText(countsDown: true))
                     .animation(Motion.readout,
                                value: Int(deadline.timeIntervalSince(context.date).rounded(.up)))
@@ -676,7 +676,7 @@ private struct ExpandedContent: View {
     }
 
     private var columnDivider: some View {
-        LinearGradient(colors: [.clear, .white.opacity(0.14), .clear],
+        LinearGradient(colors: [.clear, Ink.fillStrong, .clear],
                        startPoint: .top, endPoint: .bottom)
             .frame(width: 1)
     }
@@ -727,7 +727,7 @@ struct HeaderRow: View {
         TimelineView(.everyMinute) { context in
             HStack(spacing: Metrics.Spacing.regular) {
                 Text(context.date, format: .dateTime.hour().minute())
-                    .font(Typography.title())
+                    .font(Typography.clock())
                     .monospacedDigit()
                     // `.contentTransition(.numericText())` was already here but
                     // never did anything: it describes *how* a change should be
@@ -742,7 +742,7 @@ struct HeaderRow: View {
                     .contentTransition(.numericText())
                     .animation(Motion.contentFade,
                                value: Calendar.current.component(.minute, from: context.date))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(Ink.primary)
 
                 Spacer()
 
@@ -799,7 +799,7 @@ private struct CaffeineButton: View {
         Button { caffeine.toggle() } label: {
             Image(systemName: caffeine.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
                 .font(Typography.icon(12, .medium))
-                .foregroundStyle(caffeine.isActive ? accent : .white.opacity(hovering ? 1 : 0.55))
+                .foregroundStyle(caffeine.isActive ? accent : (hovering ? .white : Ink.tertiary))
                 .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.12 : 1))
         }
@@ -827,7 +827,7 @@ private struct AudioOutputRow: View {
         HStack(spacing: Metrics.Spacing.tight) {
             Image(systemName: "speaker.wave.2")
                 .font(Typography.icon(11, .medium))
-                .foregroundStyle(.white.opacity(0.45))
+                .foregroundStyle(Ink.tertiary)
 
             // Scrolls rather than truncating: an aggregate device or a Mac with
             // several displays attached can list more than fits, and a chip cut
@@ -874,13 +874,13 @@ private struct AudioDeviceChip: View {
                     .font(Typography.micro(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(isActive ? settings.accent : .white.opacity(hovering ? 1 : 0.7))
+            .foregroundStyle(isActive ? settings.accent : (hovering ? .white : Ink.secondary))
             .padding(.horizontal, 9)
             .padding(.vertical, 4)
             .background {
                 Capsule().fill(isActive
                                ? settings.accent.opacity(0.18)
-                               : .white.opacity(hovering ? 0.12 : 0.06))
+                               : (hovering ? Ink.fillStrong : Ink.fill))
             }
             .fixedSize()
             .contentShape(.capsule)
@@ -924,7 +924,7 @@ private struct WeatherPill: View {
                 }
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
-                .background(.white.opacity(hovering && interactive ? 0.16 : 0.08), in: Capsule())
+                .background(hovering && interactive ? Ink.fillStrong : Ink.fill, in: Capsule())
                 .contentShape(.capsule)
             }
             .buttonStyle(PressableButtonStyle())
@@ -954,7 +954,7 @@ private struct WeatherForecastRow: View {
                         .font(Typography.icon(12, .medium))
                     Text(snapshot.summary)
                         .font(Typography.micro(.semibold))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(Ink.secondary)
                         .lineLimit(1)
                         .fixedSize()
                 }
@@ -966,14 +966,14 @@ private struct WeatherForecastRow: View {
                         VStack(spacing: 2) {
                             Text(hour.hourText)
                                 .font(Typography.micro())
-                                .foregroundStyle(.white.opacity(0.45))
+                                .foregroundStyle(Ink.tertiary)
                             Image(systemName: hour.symbolName)
                                 .symbolRenderingMode(.multicolor)
                                 .font(Typography.icon(11, .medium))
                             Text(hour.temperatureText)
                                 .font(Typography.micro(.semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(.white.opacity(0.85))
+                                .foregroundStyle(Ink.primary)
                         }
                         .fixedSize()
                     }
@@ -1021,11 +1021,11 @@ private struct CalendarWeekStrip: View {
                             VStack(spacing: Metrics.Spacing.tight) {
                                 Text(day, format: .dateTime.weekday(.narrow))
                                     .font(Typography.micro(.semibold))
-                                    .foregroundStyle(isToday ? accent : .white.opacity(0.3))
+                                    .foregroundStyle(isToday ? accent : Ink.quaternary)
                                 Text(day, format: .dateTime.day())
                                     .font(Typography.body(isToday ? .bold : .regular))
                                     .monospacedDigit()
-                                    .foregroundStyle(isToday ? accent : .white.opacity(0.6))
+                                    .foregroundStyle(isToday ? accent : Ink.secondary)
                             }
                             .frame(width: 21)
                         }
@@ -1039,7 +1039,7 @@ private struct CalendarWeekStrip: View {
                         Text("\(meeting.timeText) · \(meeting.title)")
                             .font(Typography.caption())
                             .lineLimit(1)
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(Ink.secondary)
                         JoinMeetingButton(link: link)
                     }
                 } else {
@@ -1047,7 +1047,7 @@ private struct CalendarWeekStrip: View {
                         Image(systemName: "calendar").font(Typography.icon(11, .medium))
                         Text(subtitle).font(Typography.caption()).lineLimit(1)
                     }
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(Ink.tertiary)
                 }
             }
             .frame(maxWidth: .infinity)

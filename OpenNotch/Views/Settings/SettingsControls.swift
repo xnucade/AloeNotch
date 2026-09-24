@@ -52,7 +52,7 @@ struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 6) {
             if let title {
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                     .tracking(0.6)
@@ -116,7 +116,7 @@ struct SettingsRow<Control: View>: View {
             Group {
                 if let symbol {
                     Image(systemName: symbol)
-                        .font(.system(size: 13))
+                        .font(.body)
                         .foregroundStyle(symbolTint ?? .secondary)
                 }
             }
@@ -124,17 +124,17 @@ struct SettingsRow<Control: View>: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(title).font(.system(size: 13))
+                    Text(title).font(.body)
                     if let badge {
                         Image(systemName: badge.symbol)
-                            .font(.system(size: 11))
+                            .font(.subheadline)
                             .foregroundStyle(badge.tint)
                             .transition(.scale.combined(with: .opacity))
                     }
                 }
                 if let description {
                     Text(description)
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -193,7 +193,7 @@ struct SettingsSliderRow: View {
             SettingsRow(title, symbol: symbol, description: description) {
                 HStack(spacing: 8) {
                     Text(valueLabel)
-                        .font(.system(size: 11)).monospacedDigit()
+                        .font(.subheadline).monospacedDigit()
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                     if let accessory { accessory }
@@ -323,10 +323,10 @@ struct SettingsNote: View {
     var body: some View {
         HStack(alignment: .top, spacing: SettingsMetrics.glyphGap) {
             Image(systemName: tone.symbol)
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .frame(width: SettingsMetrics.glyphColumn)
             Text(text)
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }

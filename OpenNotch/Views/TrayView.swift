@@ -22,10 +22,10 @@ struct TrayView: View {
                         // A fill that only exists while a file is overhead, so
                         // the well reads as *open* rather than merely outlined.
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(.white.opacity(isTargeted ? 0.10 : 0))
+                            .fill(isTargeted ? Ink.fill : .clear)
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                            .foregroundStyle(.white.opacity(isTargeted ? 0.55 : 0.14))
+                            .foregroundStyle(isTargeted ? Ink.tertiary : Ink.fillStrong)
                     }
                 }
                 // Swells very slightly toward the cursor. Small on purpose:
@@ -48,7 +48,7 @@ struct TrayView: View {
                 .font(Typography.micro(.semibold))
                 .tracking(0.8)
                 .textCase(.uppercase)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Ink.tertiary)
             Spacer()
             if tray.items.count >= 2 {
                 TrayDragAllPill(urls: tray.items.map(\.url))
@@ -72,10 +72,10 @@ struct TrayDragAllPill: View {
                 Image(systemName: "square.stack.3d.up.fill").font(Typography.icon(10, .medium))
                 Text("Drag all").font(Typography.micro())
             }
-            .foregroundStyle(.white.opacity(0.65))
+            .foregroundStyle(Ink.secondary)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(.white.opacity(0.08), in: Capsule())
+            .background(Ink.fill, in: Capsule())
             // Transparent AppKit drag source sits on top and initiates the
             // multi-item drag session (SwiftUI's .onDrag is single-item only).
             MultiFileDragHandle(urls: urls)
@@ -112,7 +112,7 @@ extension TrayView {
                 Text("Drop files here")
                     .font(Typography.caption())
             }
-            .foregroundStyle(.white.opacity(0.4))
+            .foregroundStyle(Ink.tertiary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             LazyVGrid(columns: columns, spacing: 8) {
@@ -179,7 +179,7 @@ private struct TrayChip: View {
                 if let thumb = item.thumbnail {
                     Image(nsImage: thumb).resizable().scaledToFill()
                 } else {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(.white.opacity(0.08))
+                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Ink.fill)
                 }
             }
             .frame(width: 44, height: 44)

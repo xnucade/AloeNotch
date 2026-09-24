@@ -338,6 +338,27 @@ enum Metrics {
 /// Five roles, and a floor of 10pt. Anything smaller stops being *read* and
 /// becomes texture: at 8pt the calendar's weekday initials were decoration
 /// that happened to be letters.
+/// Every white-on-black shade the panel uses. The eye can't tell 0.45 from
+/// 0.5 on black, but it can tell when nothing lines up — so there are five
+/// steps and nothing in between. `run-tests.sh` fails on a raw
+/// `.white.opacity(` anywhere else.
+enum Ink {
+    /// Titles, active values, glyphs you press.
+    static let primary = Color.white.opacity(0.9)
+    /// Artist, event titles, anything read second.
+    static let secondary = Color.white.opacity(0.65)
+    /// Labels, times, inactive glyphs.
+    static let tertiary = Color.white.opacity(0.45)
+    /// Placeholders, disabled, the faintest readable thing.
+    static let quaternary = Color.white.opacity(0.28)
+    /// Resting capsules, wells and hairlines.
+    static let fill = Color.white.opacity(0.08)
+    /// Hovered or selected capsules, dividers that need to be seen.
+    static let fillStrong = Color.white.opacity(0.14)
+    /// Pressed, copied, or the hovered state of an already-strong fill.
+    static let fillBright = Color.white.opacity(0.2)
+}
+
 enum Typography {
     /// The month beside the calendar. The one genuinely large thing in the
     /// panel, and the anchor the rest is judged against.
@@ -346,9 +367,26 @@ enum Typography {
     /// Clock, track title — what you read first.
     static func title() -> Font { .system(size: 13.5, weight: .semibold) }
 
-    /// Values worth reading at a glance: temperature, charge, day numbers.
+    /// The focused media title: the one line in the big layout that is read
+    /// before anything else.
+    static func headline() -> Font { .system(size: 15, weight: .semibold) }
+
+    /// The clock. Same size as `title`, but numerals that *are* the point
+    /// get the rounded face — see the rule above `body`.
+    static func clock() -> Font { .system(size: 13.5, weight: .semibold, design: .rounded) }
+
+    /// The rule: SF Pro for words, SF Pro Rounded for numerals that are the
+    /// point. `body` is the numeral face at 12 — temperature, charge, day
+    /// numbers, timer readouts — and `label` is its word twin at the same
+    /// size, so a value and the words beside it line up without the
+    /// rounded/default mix the week strip used to have.
     static func body(_ weight: Font.Weight = .regular) -> Font {
         .system(size: 12, weight: weight, design: .rounded)
+    }
+
+    /// Words at body size: artist, empty states, "Time's up".
+    static func label(_ weight: Font.Weight = .regular) -> Font {
+        .system(size: 12, weight: weight)
     }
 
     /// Supporting text — artist, next event, empty states.

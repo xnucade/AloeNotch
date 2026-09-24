@@ -38,7 +38,7 @@ struct TimerView: View {
                 .font(Typography.micro(.semibold))
                 .tracking(0.8)
                 .textCase(.uppercase)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Ink.tertiary)
             Spacer()
             if timer.isActive { TimerCancelButton { timer.cancel() } }
         }
@@ -53,8 +53,8 @@ struct TimerView: View {
             // layout takes all five and can afford the label above them.
             if !compact {
                 Text("Start a timer")
-                    .font(Typography.body(.medium))
-                    .foregroundStyle(.white.opacity(0.75))
+                    .font(Typography.label(.medium))
+                    .foregroundStyle(Ink.secondary)
             }
 
             if compact {
@@ -102,7 +102,7 @@ struct TimerView: View {
                     if !compact {
                         Text(timer.state.isPaused ? "Paused" : "Counting down")
                             .font(Typography.caption())
-                            .foregroundStyle(.white.opacity(0.55))
+                            .foregroundStyle(Ink.tertiary)
                     }
                     HStack(spacing: Metrics.Spacing.tight) {
                         TimerControl(symbol: timer.state.isPaused ? "play.fill" : "pause.fill",
@@ -139,12 +139,12 @@ struct TimerView: View {
                 .foregroundStyle(.orange)
                 .symbolEffect(.bounce, options: .repeat(3))
             Text("Time's up")
-                .font(Typography.body(.semibold))
+                .font(Typography.label(.semibold))
             HStack(spacing: Metrics.Spacing.tight) {
                 PresetChip(label: "Again", accent: settings.accent) {
                     timer.start(timer.lastDuration)
                 }
-                PresetChip(label: "Done", accent: .white.opacity(0.5)) {
+                PresetChip(label: "Done", accent: Ink.tertiary) {
                     timer.acknowledge()
                 }
             }
@@ -200,7 +200,7 @@ private struct CountdownRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(.white.opacity(0.12), lineWidth: lineWidth)
+                .stroke(Ink.fillStrong, lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: progress)
@@ -219,7 +219,7 @@ private struct CountdownRing: View {
                 .monospacedDigit()
                 .contentTransition(.numericText(countsDown: true))
                 .animation(Motion.readout, value: Int(remaining.rounded(.up)))
-                .foregroundStyle(.white.opacity(paused ? 0.5 : 0.95))
+                .foregroundStyle(paused ? Ink.tertiary : Ink.primary)
         }
         .frame(width: size, height: size)
         .scaleEffect(pulse)
@@ -251,11 +251,11 @@ private struct PresetChip: View {
                 .font(Typography.micro(.semibold))
                 .lineLimit(1)
                 .fixedSize()
-                .foregroundStyle(hovering ? .white : .white.opacity(0.8))
+                .foregroundStyle(hovering ? .white : Ink.primary)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
                 .background {
-                    Capsule().fill(hovering ? accent.opacity(0.30) : .white.opacity(0.09))
+                    Capsule().fill(hovering ? accent.opacity(0.30) : Ink.fill)
                 }
                 .overlay {
                     Capsule().strokeBorder(accent.opacity(hovering ? 0.55 : 0), lineWidth: 1)
@@ -285,12 +285,12 @@ private struct TimerControl: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(Typography.icon(prominent ? 13 : 11, .semibold))
-                .foregroundStyle(.white.opacity(hovering ? 1 : 0.85))
+                .foregroundStyle(hovering ? .white : Ink.primary)
                 .frame(width: diameter, height: diameter)
                 .background {
-                    Circle().fill(.white.opacity(prominent
-                                                 ? (hovering ? 0.20 : 0.13)
-                                                 : (hovering ? 0.13 : 0.06)))
+                    Circle().fill(prominent
+                                  ? (hovering ? Ink.fillBright : Ink.fillStrong)
+                                  : (hovering ? Ink.fillStrong : Ink.fill))
                 }
                 .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.06 : 1))

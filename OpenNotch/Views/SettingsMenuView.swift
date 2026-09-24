@@ -60,7 +60,7 @@ struct SettingsMenuView: View {
             Image(systemName: "rectangle.topthird.inset.filled")
                 .foregroundStyle(.tint)
             Text("AloeNotch")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.body.weight(.semibold))
             Spacer()
         }
         .padding(.horizontal, 4)
@@ -70,11 +70,11 @@ struct SettingsMenuView: View {
         Toggle(isOn: isOn) {
             HStack(spacing: 8) {
                 Image(systemName: symbol)
-                    .font(.system(size: 12))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .frame(width: 18)
                 Text(title)
-                    .font(.system(size: 12))
+                    .font(.callout)
                 Spacer()
             }
         }
@@ -87,8 +87,8 @@ struct SettingsMenuView: View {
                             action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: symbol).font(.system(size: 12)).frame(width: 18)
-                Text(title).font(.system(size: 12))
+                Image(systemName: symbol).font(.callout).frame(width: 18)
+                Text(title).font(.callout)
                 Spacer()
             }
             .contentShape(.rect)

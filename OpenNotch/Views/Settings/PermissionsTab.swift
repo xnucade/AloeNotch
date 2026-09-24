@@ -59,10 +59,10 @@ struct PermissionsTab: View {
             SettingsSection {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lock.shield")
-                        .font(.system(size: 12))
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                     Text("AloeNotch has no account and no analytics. It makes two kinds of network request: fetching the weather for your approximate location, and asking GitHub once a day whether a newer release exists. Both can be switched off. Everything else stays on this Mac.")
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)

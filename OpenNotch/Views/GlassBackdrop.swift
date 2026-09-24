@@ -86,7 +86,7 @@ private struct PanelSurface: ViewModifier {
                     .fill(Color(nsColor: .windowBackgroundColor))
                     .overlay {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                            .strokeBorder(Ink.fill, lineWidth: 1)
                     }
             }
         }
@@ -107,7 +107,7 @@ extension View {
         } else {
             self.background {
                 Capsule().fill(Color(nsColor: .windowBackgroundColor))
-                    .overlay { Capsule().strokeBorder(.white.opacity(0.10), lineWidth: 1) }
+                    .overlay { Capsule().strokeBorder(Ink.fill, lineWidth: 1) }
             }
         }
     }

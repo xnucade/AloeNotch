@@ -125,10 +125,10 @@ private struct SwitcherPill: View {
         Button(action: action) {
             Image(systemName: module.symbol)
                 .font(Typography.icon(12, .medium))
-                .foregroundStyle(isActive ? accent : .white.opacity(hovering ? 0.85 : 0.45))
+                .foregroundStyle(isActive ? accent : (hovering ? Ink.primary : Ink.tertiary))
                 .frame(width: 34, height: 22)
                 .background {
-                    Capsule().fill(.white.opacity(isActive ? 0.14 : (hovering ? 0.07 : 0)))
+                    Capsule().fill(isActive ? Ink.fillStrong : (hovering ? Ink.fill : .clear))
                 }
                 .contentShape(.capsule)
         }
@@ -158,11 +158,11 @@ private struct FocusedMedia: View {
                 VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                     VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                         Text(media.current.title)
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(Typography.headline())
                             .lineLimit(1)
                         Text(media.current.artist)
-                            .font(Typography.body())
-                            .foregroundStyle(.white.opacity(0.65))
+                            .font(Typography.label())
+                            .foregroundStyle(Ink.secondary)
                             .lineLimit(1)
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
@@ -183,15 +183,15 @@ private struct FocusedMedia: View {
             VStack(spacing: Metrics.Spacing.tight) {
                 Image(systemName: "music.note")
                     .font(Typography.icon(22, .light))
-                    .foregroundStyle(.white.opacity(0.35))
+                    .foregroundStyle(Ink.quaternary)
                 Text(media.isAvailable ? "Nothing playing" : "Now Playing unavailable")
-                    .font(Typography.body(.medium))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .font(Typography.label(.medium))
+                    .foregroundStyle(Ink.secondary)
                 Text(media.isAvailable
                      ? "Start something in Music, Spotify or a browser."
                      : "The media helper didn't start. Relaunching AloeNotch usually fixes it.")
                     .font(Typography.caption())
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(Ink.tertiary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -216,9 +216,9 @@ private struct FocusedMedia: View {
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 } else {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(.white.opacity(0.08))
+                        .fill(Ink.fill)
                         .overlay(Image(systemName: "music.note")
-                            .foregroundStyle(.white.opacity(0.4)))
+                            .foregroundStyle(Ink.tertiary))
                         .frame(width: 82, height: 82)
                 }
             }
@@ -278,12 +278,12 @@ private struct FocusedTransportButton: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(Typography.icon(size))
-                .foregroundStyle(.white.opacity(hovering ? 1 : 0.88))
+                .foregroundStyle(hovering ? .white : Ink.primary)
                 .frame(width: diameter, height: diameter)
                 .background {
-                    Circle().fill(.white.opacity(prominent
-                                                 ? (hovering ? 0.20 : 0.13)
-                                                 : (hovering ? 0.13 : 0)))
+                    Circle().fill(prominent
+                                  ? (hovering ? Ink.fillBright : Ink.fillStrong)
+                                  : (hovering ? Ink.fillStrong : .clear))
                 }
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.06 : 1))
         }
@@ -315,8 +315,8 @@ private struct FocusedScrubber: View {
                 GeometryReader { geo in
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.15))
-                        Capsule().fill(.white.opacity(0.9))
+                        Capsule().fill(Ink.fillStrong)
+                        Capsule().fill(Ink.primary)
                             .frame(width: max(2, w * fraction))
                     }
                     .frame(height: hovering || dragging ? 6 : 4)
@@ -349,7 +349,7 @@ private struct FocusedScrubber: View {
                 }
                 .font(Typography.micro(.regular))
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.45))
+                .foregroundStyle(Ink.tertiary)
             }
         }
     }
@@ -384,28 +384,28 @@ private struct FocusedCalendar: View {
                             VStack(spacing: Metrics.Spacing.tight) {
                                 Text(day, format: .dateTime.weekday(.narrow))
                                     .font(Typography.micro(.semibold))
-                                    .foregroundStyle(isToday ? settings.accent : .white.opacity(0.35))
+                                    .foregroundStyle(isToday ? settings.accent : Ink.quaternary)
                                 Text(day, format: .dateTime.day())
                                     .font(Typography.body(isToday ? .bold : .regular))
                                     .monospacedDigit()
-                                    .foregroundStyle(isToday ? settings.accent : .white.opacity(0.65))
+                                    .foregroundStyle(isToday ? settings.accent : Ink.secondary)
                             }
                             .frame(width: 24)
                         }
                     }
                 }
 
-                Divider().frame(width: 1).overlay(.white.opacity(0.12))
+                Divider().frame(width: 1).overlay(Ink.fillStrong)
 
                 VStack(alignment: .leading, spacing: Metrics.Spacing.tight) {
                     if !calendar.isAuthorized {
                         Text("Allow Calendar in Settings → Access")
                             .font(Typography.caption())
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(Ink.tertiary)
                     } else if calendar.upcoming.isEmpty {
                         Text("Nothing for today")
                             .font(Typography.caption())
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(Ink.tertiary)
                     } else {
                         // Three events instead of one — the room exists now.
                         ForEach(calendar.upcoming.prefix(3)) { event in
@@ -416,7 +416,7 @@ private struct FocusedCalendar: View {
                                 Text(event.timeText)
                                     .font(Typography.micro(.semibold))
                                     .monospacedDigit()
-                                    .foregroundStyle(.white.opacity(0.55))
+                                    .foregroundStyle(Ink.tertiary)
                                     .frame(width: 52, alignment: .leading)
                                 Text(event.title)
                                     .font(Typography.caption())
@@ -428,7 +428,7 @@ private struct FocusedCalendar: View {
                                     } else {
                                         Image(systemName: "video")
                                             .font(Typography.icon(9, .medium))
-                                            .foregroundStyle(.white.opacity(0.35))
+                                            .foregroundStyle(Ink.quaternary)
                                             .help(meeting.service)
                                     }
                                 }

@@ -148,7 +148,7 @@ private struct UtilityTab: View {
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     private var tint: Color {
-        isActive ? accent : .white.opacity(hovering ? 0.7 : 0.38)
+        isActive ? accent : (hovering ? Ink.secondary : Ink.tertiary)
     }
 
     var body: some View {

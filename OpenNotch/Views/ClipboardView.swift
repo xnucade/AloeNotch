@@ -53,7 +53,7 @@ struct ClipboardList: View {
                 .font(Typography.micro(.semibold))
                 .tracking(0.8)
                 .textCase(.uppercase)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Ink.tertiary)
             Spacer()
             if !clipboard.items.isEmpty {
                 Button { clipboard.clear() } label: {
@@ -72,14 +72,14 @@ struct ClipboardList: View {
         VStack(spacing: Metrics.Spacing.tight) {
             Image(systemName: "doc.on.clipboard")
                 .font(Typography.icon(compact ? 15 : 22, .light))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(Ink.quaternary)
             Text("Nothing copied yet")
                 .font(Typography.caption())
-                .foregroundStyle(.white.opacity(0.45))
+                .foregroundStyle(Ink.tertiary)
             if !compact {
                 Text("History stays in memory and is cleared when AloeNotch quits.")
                     .font(Typography.micro())
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(Ink.quaternary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -118,7 +118,7 @@ private struct ClipboardRow: View {
 
                 Text(copied ? "Copied" : item.preview)
                     .font(Typography.caption())
-                    .foregroundStyle(.white.opacity(copied ? 1 : 0.85))
+                    .foregroundStyle(copied ? .white : Ink.primary)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,7 +126,7 @@ private struct ClipboardRow: View {
                 if !compact && !copied {
                     Text(item.detail)
                         .font(Typography.micro())
-                        .foregroundStyle(.white.opacity(0.35))
+                        .foregroundStyle(Ink.quaternary)
                         .fixedSize()
                 }
             }
@@ -134,7 +134,7 @@ private struct ClipboardRow: View {
             .padding(.vertical, compact ? 5 : 7)
             .background {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.white.opacity(copied ? 0.18 : (hovering ? 0.10 : 0.04)))
+                    .fill(copied ? Ink.fillBright : (hovering ? Ink.fillStrong : Ink.fill))
             }
             .contentShape(.rect(cornerRadius: 8))
         }
@@ -166,7 +166,7 @@ private struct ClipboardRow: View {
             } else {
                 Image(systemName: item.symbol)
                     .font(Typography.icon(11, .medium))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .foregroundStyle(Ink.tertiary)
             }
         }
         .frame(width: 16, height: 16)

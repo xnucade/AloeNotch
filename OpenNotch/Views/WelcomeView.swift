@@ -80,7 +80,7 @@ struct WelcomeView: View {
 
             VStack(spacing: 8) {
                 Text("Welcome to AloeNotch")
-                    .font(.system(size: 26, weight: .semibold))
+                    .font(.largeTitle.weight(.semibold))
                 Text("Your MacBook's notch, turned into something useful.")
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
@@ -107,7 +107,7 @@ struct WelcomeView: View {
                 Text("Hover the notch")
                     .font(.system(size: 24, weight: .semibold))
                 Text("That's the whole gesture. AloeNotch stays completely invisible until your pointer reaches the top of the screen.")
-                    .font(.system(size: 13))
+                    .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -116,7 +116,7 @@ struct WelcomeView: View {
             NotchGestureDemo(scale: 1.0)
 
             Text("Try it after you finish setting up.")
-                .font(.system(size: 12))
+                .font(.callout)
                 .foregroundStyle(.secondary)
 
             Spacer(minLength: 0)
@@ -127,9 +127,9 @@ struct WelcomeView: View {
         VStack(spacing: 16) {
             VStack(spacing: 8) {
                 Text("A few optional permissions")
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.title.weight(.semibold))
                 Text("Every one of these is optional, and each only switches off a single feature. You can change them any time in Settings.")
-                    .font(.system(size: 12.5))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -151,7 +151,7 @@ struct WelcomeView: View {
                 Text("You're set")
                     .font(.system(size: 24, weight: .semibold))
                 Text("The notch is live. Hover it whenever you want it.")
-                    .font(.system(size: 13))
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
 
@@ -177,13 +177,13 @@ struct WelcomeView: View {
     private func highlight(_ symbol: String, _ title: String, _ detail: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: symbol)
-                .font(.system(size: 15, weight: .medium))
+                .font(.title3.weight(.medium))
                 .foregroundStyle(.tint)
                 .frame(width: 24, height: 22)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13, weight: .semibold))
+                Text(title).font(.body.weight(.semibold))
                 Text(detail)
-                    .font(.system(size: 12))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

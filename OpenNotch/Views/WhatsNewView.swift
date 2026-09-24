@@ -189,15 +189,15 @@ struct WhatsNewView: View {
                 VStack(spacing: 18) {
                     VStack(spacing: 6) {
                         Text("What's new in AloeNotch")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.callout.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .textCase(.uppercase)
                             .tracking(0.7)
                         Text(entry.headline)
-                            .font(.system(size: 22, weight: .semibold))
+                            .font(.title.weight(.semibold))
                             .multilineTextAlignment(.center)
                         Text("Version \(entry.version)")
-                            .font(.system(size: 12))
+                            .font(.callout)
                             .foregroundStyle(.secondary)
                     }
                     .padding(.top, 34)
@@ -206,14 +206,14 @@ struct WhatsNewView: View {
                         ForEach(entry.items) { item in
                             HStack(alignment: .top, spacing: 13) {
                                 Image(systemName: item.symbol)
-                                    .font(.system(size: 15, weight: .medium))
+                                    .font(.title3.weight(.medium))
                                     .foregroundStyle(.tint)
                                     .frame(width: 24, height: 22)
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(item.title)
-                                        .font(.system(size: 13, weight: .semibold))
+                                        .font(.body.weight(.semibold))
                                     Text(item.detail)
-                                        .font(.system(size: 12))
+                                        .font(.callout)
                                         .foregroundStyle(.secondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
@@ -234,7 +234,7 @@ struct WhatsNewView: View {
                 HStack {
                     Link("Full changelog",
                          destination: URL(string: "https://aloenotch.com/changelog")!)
-                        .font(.system(size: 12))
+                        .font(.callout)
                     Spacer()
                     Button("Continue", action: onDismiss)
                         .glassProminentButtonStyle(settings.useGlass)

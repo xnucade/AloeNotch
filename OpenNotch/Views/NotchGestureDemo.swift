@@ -40,7 +40,7 @@ struct NotchGestureDemo: View {
                 .fill(.black.opacity(0.30))
                 .overlay {
                     RoundedRectangle(cornerRadius: 16 * scale, style: .continuous)
-                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                        .strokeBorder(Ink.fill, lineWidth: 1)
                 }
 
             notch
@@ -77,17 +77,17 @@ struct NotchGestureDemo: View {
                 if phase.notchOpen {
                     HStack(spacing: 9 * scale) {
                         RoundedRectangle(cornerRadius: 5 * scale, style: .continuous)
-                            .fill(.white.opacity(0.22))
+                            .fill(Ink.quaternary)
                             .frame(width: 30 * scale, height: 30 * scale)
                         VStack(alignment: .leading, spacing: 4 * scale) {
-                            Capsule().fill(.white.opacity(0.30))
+                            Capsule().fill(Ink.quaternary)
                                 .frame(width: 66 * scale, height: 5 * scale)
-                            Capsule().fill(.white.opacity(0.16))
+                            Capsule().fill(Ink.fillStrong)
                                 .frame(width: 44 * scale, height: 5 * scale)
                         }
                         Spacer(minLength: 0)
                         RoundedRectangle(cornerRadius: 5 * scale, style: .continuous)
-                            .fill(.white.opacity(0.14))
+                            .fill(Ink.fillStrong)
                             .frame(width: 44 * scale, height: 30 * scale)
                     }
                     .padding(.horizontal, 13 * scale)

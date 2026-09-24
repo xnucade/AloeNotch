@@ -12,6 +12,22 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Design-token guards. The panel has one opacity ladder (`Ink` in Theme.swift)
+# and one type scale (`Typography`); these fail on anything that bypasses
+# them, so the ladder can't quietly grow back to 22 shades.
+LINT_FAIL=0
+if RAW=$(grep -rn --include='*.swift' -E '\.white\.opacity\(' OpenNotch | grep -v 'Design/Theme.swift'); then
+    echo "error: raw .white.opacity( — use an Ink token:" >&2; echo "$RAW" >&2; LINT_FAIL=1
+fi
+# Panel views only: the Settings/onboarding windows use the system text
+# styles, and a size scaled from a parameter (`size * 0.26`) is deliberate.
+if RAW=$(grep -rn --include='*.swift' -E '\.system\(size: [0-9.]+[,)]' OpenNotch/Views \
+        | grep -v -e 'Views/Settings/' -e 'WelcomeView' -e 'WhatsNewView' -e 'SettingsMenuView'); then
+    echo "error: raw .system(size:) in the panel — use Typography:" >&2; echo "$RAW" >&2; LINT_FAIL=1
+fi
+[ "$LINT_FAIL" -eq 0 ] || exit 1
+echo "✓ design tokens clean"
+
 SOURCES=(
     OpenNotch/Notch/PanelState.swift
     OpenNotch/Design/SemanticVersion.swift

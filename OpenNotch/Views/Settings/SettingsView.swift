@@ -158,7 +158,7 @@ private struct SettingsTabButton: View {
                     // control that repainted.
                     .symbolEffect(.bounce, value: isActive)
                 Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.footnote.weight(.medium))
                     .lineLimit(1)
                     .fixedSize()
             }

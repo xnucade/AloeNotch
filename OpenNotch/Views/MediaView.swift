@@ -17,7 +17,7 @@ struct MediaView: View {
                             .lineLimit(1)
                         Text(media.current.artist)
                             .font(Typography.caption())
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(Ink.secondary)
                             .lineLimit(1)
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
@@ -30,11 +30,11 @@ struct MediaView: View {
                 } else {
                     Text(media.isAvailable ? "Nothing playing" : "Now Playing unavailable")
                         .font(Typography.caption(.medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(Ink.secondary)
                     if media.isAvailable {
                         Text("Start something in Music, Spotify or a browser.")
                             .font(Typography.micro(.regular))
-                            .foregroundStyle(.white.opacity(0.45))
+                            .foregroundStyle(Ink.tertiary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         // Was "Not supported on this macOS version", which is
@@ -44,7 +44,7 @@ struct MediaView: View {
                         // and the reason is in Console under "AloeNotch".
                         Text("The media helper didn't start. Relaunching AloeNotch usually fixes it.")
                             .font(Typography.micro(.regular))
-                            .foregroundStyle(.white.opacity(0.45))
+                            .foregroundStyle(Ink.tertiary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -83,8 +83,8 @@ struct MediaView: View {
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 } else {
                     RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius, style: .continuous)
-                        .fill(.white.opacity(0.08))
-                        .overlay(Image(systemName: "music.note").foregroundStyle(.white.opacity(0.4)))
+                        .fill(Ink.fill)
+                        .overlay(Image(systemName: "music.note").foregroundStyle(Ink.tertiary))
                         .frame(width: Metrics.expandedArtworkSize,
                                height: Metrics.expandedArtworkSize)
                 }
@@ -145,10 +145,10 @@ private struct TransportButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: size, weight: .semibold))
-                .foregroundStyle(.white.opacity(hovering ? 1 : 0.85))
+                .font(Typography.icon(size))
+                .foregroundStyle(hovering ? .white : Ink.primary)
                 .frame(width: 27, height: 27)
-                .background(.white.opacity(hovering ? 0.12 : 0), in: Circle())
+                .background(hovering ? Ink.fillStrong : .clear, in: Circle())
                 // The lift is travel, so Reduce Motion drops it and lets the
                 // brightness and fill changes carry the hover on their own.
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.08 : 1))
@@ -182,8 +182,8 @@ private struct ProgressScrubber: View {
                 GeometryReader { geo in
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.15))
-                        Capsule().fill(.white.opacity(0.85))
+                        Capsule().fill(Ink.fillStrong)
+                        Capsule().fill(Ink.primary)
                             .frame(width: max(2, w * fraction))
                         // The knob appears on hover as well as during a drag,
                         // so the bar advertises that it can be scrubbed before
@@ -228,7 +228,7 @@ private struct ProgressScrubber: View {
                 }
                 .font(Typography.micro(.regular))
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.45))
+                .foregroundStyle(Ink.tertiary)
             }
         }
     }

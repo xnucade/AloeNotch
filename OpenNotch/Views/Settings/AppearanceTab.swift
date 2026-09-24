@@ -112,7 +112,7 @@ struct AppearanceTab: View {
                         isDisabled: a11y.reduceMotion
                     )
                 }
-                .font(.system(size: 12))
+                .font(.callout)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
@@ -154,11 +154,11 @@ struct AppearanceTab: View {
                     SettingsDivider()
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Volume")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(.secondary)
                         AccentPicker(hex: $settings.hudVolumeHex)
                         Text("Brightness")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(.secondary)
                             .padding(.top, 4)
                         AccentPicker(hex: $settings.hudBrightnessHex)

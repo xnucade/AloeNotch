@@ -10,7 +10,7 @@ struct AboutTab: View {
                 identity
                 SettingsDivider()
                 Text("A Dynamic Island for your MacBook. Free and open source.")
-                    .font(.system(size: 12))
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -57,7 +57,7 @@ struct AboutTab: View {
                 .resizable()
                 .frame(width: 54, height: 54)
             VStack(alignment: .leading, spacing: 2) {
-                Text("AloeNotch").font(.system(size: 15, weight: .semibold))
+                Text("AloeNotch").font(.title3.weight(.semibold))
                 Text("Version \(version)")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -73,7 +73,7 @@ struct AboutTab: View {
         Link(destination: URL(string: url)!) {
             SettingsRow(title, symbol: symbol, highlightsOnHover: true) {
                 Image(systemName: "arrow.up.forward")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
         }
