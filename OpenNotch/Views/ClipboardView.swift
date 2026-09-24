@@ -64,6 +64,7 @@ struct ClipboardList: View {
                 }
                 .buttonStyle(PressableButtonStyle())
                 .help("Forget everything copied so far")
+                .accessibilityLabel("Clear clipboard history")
             }
         }
     }
@@ -140,6 +141,7 @@ private struct ClipboardRow: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(copied ? "Copied" : "Copy again: \(item.preview)")
+        .accessibilityHint("Copies it again")
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
                 hovering = inside

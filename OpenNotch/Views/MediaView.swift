@@ -21,6 +21,7 @@ struct MediaView: View {
                             .lineLimit(1)
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
+                    .accessibilityElement(children: .combine)
                     .transition(.textSkip(reduceMotion: reduceMotion))
                     .animation(Motion.contentFade, value: media.current.title)
                     if media.current.duration > 0 {
@@ -122,11 +123,14 @@ struct MediaView: View {
     private var controls: some View {
         HStack(spacing: Metrics.Spacing.tight) {
             TransportButton(symbol: "backward.fill") { media.previous() }
+                .accessibilityLabel("Previous track")
             TransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill", size: 15) {
                 media.togglePlayPause()
             }
             .contentTransition(.symbolEffect(.replace))
+            .accessibilityLabel(media.isPlaying ? "Pause" : "Play")
             TransportButton(symbol: "forward.fill") { media.next() }
+                .accessibilityLabel("Next track")
         }
         .padding(.top, 1)
     }

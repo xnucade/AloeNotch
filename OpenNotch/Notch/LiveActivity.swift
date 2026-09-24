@@ -35,6 +35,9 @@ struct LiveActivity: Identifiable, Equatable {
     var tint: Color = .white
     /// Optional label beside the symbol. Kept short — the wings are narrow.
     var title: String?
+    /// What VoiceOver calls it when there's no title, or the title alone
+    /// wouldn't say what happened ("Brightness", "Backup ejected").
+    var spokenName: String?
     var trailing: Trailing = .none
     var size: PanelState.ActivitySize = .regular
 
@@ -48,6 +51,18 @@ struct LiveActivity: Identifiable, Equatable {
     /// Higher wins. A volume readout you are actively driving must not be
     /// buried by a Bluetooth device connecting in the background.
     var priority: Int = 0
+
+    /// One sentence for VoiceOver: the name, then whatever the wing shows.
+    var accessibilityText: String {
+        let name = spokenName ?? title ?? ""
+        let value: String? = switch trailing {
+        case .none: nil
+        case .level(let level): "\(Int((min(1, max(0, level)) * 100).rounded())) percent"
+        case .text(let text): text
+        case .countdown(let deadline): "\(CountdownState.clock(deadline.timeIntervalSinceNow)) remaining"
+        }
+        return [name, value].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+    }
 
     static func == (a: LiveActivity, b: LiveActivity) -> Bool {
         a.kind == b.kind && a.symbol == b.symbol && a.title == b.title
@@ -122,6 +137,11 @@ final class LiveActivityCenter: ObservableObject {
             return
         }
         expiry?.cancel()
+        // Volume and brightness are left to the system, which already speaks
+        // them; announcing each step on top would talk over it.
+        if current?.kind != activity.kind, activity.priority < LiveActivity.Priority.direct {
+            Self.announce(activity)
+        }
         current = activity
 
         let work = DispatchWorkItem { [weak self] in
@@ -132,7 +152,20 @@ final class LiveActivityCenter: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + activity.duration, execute: work)
     }
 
+    /// The panel is a borderless window VoiceOver users rarely have focus
+    /// in, so anything that appears there is invisible to them unless it's
+    /// spoken. Only while VoiceOver is actually running.
+    private static func announce(_ activity: LiveActivity) {
+        let text = activity.accessibilityText
+        guard !text.isEmpty, NSWorkspace.shared.isVoiceOverEnabled else { return }
+        NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested, userInfo: [
+            .announcement: text,
+            .priority: NSAccessibilityPriorityLevel.medium.rawValue,
+        ])
+    }
+
     func setResident(_ activity: LiveActivity?) {
+        if let activity, resident?.kind != activity.kind { Self.announce(activity) }
         resident = activity
     }
 

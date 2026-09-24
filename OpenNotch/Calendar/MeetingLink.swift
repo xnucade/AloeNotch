@@ -103,6 +103,7 @@ struct JoinMeetingButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help("Join on \(link.service)")
+        .accessibilityLabel("Join \(link.service) call")
         .fixedSize()
     }
 }

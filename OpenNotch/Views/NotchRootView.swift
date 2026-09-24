@@ -176,6 +176,13 @@ struct NotchRootView: View {
         // control inside the open panel.
         .gesture(TapGesture().onEnded { viewModel.notchClicked() },
                  including: state.isExpanded ? .none : .all)
+        // VoiceOver can reach the notch but can't hover it: name it, and give
+        // it the open/close the pointer would.
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("AloeNotch")
+        .accessibilityAction(named: state.isExpanded ? "Close" : "Open") {
+            state.isExpanded ? viewModel.dismiss() : viewModel.notchClicked()
+        }
         // Dragging a file over the collapsed strip opens the shelf; dropping
         // directly on the strip stages it immediately.
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
@@ -497,6 +504,10 @@ private struct ActivityContent: View {
             // readout should track, not restart its arrival beat. A *different*
             // kind arriving is genuinely new and gets the beat.
             .id(activity.kind)
+            // One element, one sentence — "Volume, 60 percent" — instead of
+            // a glyph, a title and an unlabeled bar read separately.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(activity.accessibilityText)
             .onAppear {
                 guard !reduceMotion else { arrived = true; return }
                 arrived = false
@@ -769,6 +780,8 @@ struct HeaderRow: View {
                     }
                     .buttonStyle(PressableButtonStyle())
                     .help("Sound output: \(viewModel.audioOutput.current?.name ?? "unknown")")
+                    .accessibilityLabel("Sound output")
+                    .accessibilityValue(viewModel.audioOutput.current?.name ?? "")
                 }
                 CaffeineButton(caffeine: viewModel.caffeine, accent: settings.accent)
 
@@ -780,6 +793,7 @@ struct HeaderRow: View {
                 }
                 .buttonStyle(PressableButtonStyle())
                 .help("Settings")
+                .accessibilityLabel("Settings")
             }
         }
     }
@@ -805,6 +819,8 @@ private struct CaffeineButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(caffeine.isActive ? "Let this Mac sleep again" : "Keep this Mac awake")
+        .accessibilityLabel("Keep awake")
+        .accessibilityValue(caffeine.isActive ? "On" : "Off")
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
                 hovering = inside
@@ -851,6 +867,7 @@ private struct AudioOutputRow: View {
                     .hoverLift(restOpacity: 0.5)
             }
             .buttonStyle(PressableButtonStyle())
+            .accessibilityLabel("Close")
         }
         .onAppear { audio.refresh() }
     }
@@ -887,6 +904,7 @@ private struct AudioDeviceChip: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(isActive ? "\(device.name) — currently playing here" : "Send sound to \(device.name)")
+        .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
                 hovering = inside
@@ -989,6 +1007,7 @@ private struct WeatherForecastRow: View {
                     .hoverLift(restOpacity: 0.5)
             }
             .buttonStyle(PressableButtonStyle())
+            .accessibilityLabel("Close")
         }
     }
 }
@@ -1028,6 +1047,10 @@ private struct CalendarWeekStrip: View {
                                     .foregroundStyle(isToday ? accent : Ink.secondary)
                             }
                             .frame(width: 21)
+                            // "T 24" read aloud is noise; say the day.
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(day, format: .dateTime.weekday(.wide).day().month(.wide)))
+                            .accessibilityAddTraits(isToday ? .isSelected : [])
                         }
                     }
                 }

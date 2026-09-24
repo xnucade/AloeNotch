@@ -134,6 +134,8 @@ private struct SwitcherPill: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(module.label)
+        .accessibilityLabel(module.label)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
                 hovering = inside
@@ -166,6 +168,7 @@ private struct FocusedMedia: View {
                             .lineLimit(1)
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
+                    .accessibilityElement(children: .combine)
                     .transition(.textSkip(reduceMotion: reduceMotion))
                     .animation(Motion.contentFade, value: media.current.title)
 
@@ -253,12 +256,15 @@ private struct FocusedMedia: View {
     private var controls: some View {
         HStack(spacing: Metrics.Spacing.snug) {
             FocusedTransportButton(symbol: "backward.fill", size: 15) { media.previous() }
+                .accessibilityLabel("Previous track")
             FocusedTransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill",
                                    size: 18, prominent: true) {
                 media.togglePlayPause()
             }
             .contentTransition(.symbolEffect(.replace))
+            .accessibilityLabel(media.isPlaying ? "Pause" : "Play")
             FocusedTransportButton(symbol: "forward.fill", size: 15) { media.next() }
+                .accessibilityLabel("Next track")
         }
     }
 }
@@ -391,6 +397,10 @@ private struct FocusedCalendar: View {
                                     .foregroundStyle(isToday ? settings.accent : Ink.secondary)
                             }
                             .frame(width: 24)
+                            // "T 24" read aloud is noise; say the day.
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(day, format: .dateTime.weekday(.wide).day().month(.wide)))
+                            .accessibilityAddTraits(isToday ? .isSelected : [])
                         }
                     }
                 }
@@ -413,6 +423,7 @@ private struct FocusedCalendar: View {
                                 RoundedRectangle(cornerRadius: 1.5)
                                     .fill(event.tint)
                                     .frame(width: 3, height: 12)
+                                    .accessibilityHidden(true)
                                 Text(event.timeText)
                                     .font(Typography.micro(.semibold))
                                     .monospacedDigit()
@@ -430,6 +441,7 @@ private struct FocusedCalendar: View {
                                             .font(Typography.icon(9, .medium))
                                             .foregroundStyle(Ink.quaternary)
                                             .help(meeting.service)
+                                            .accessibilityLabel("\(meeting.service) call")
                                     }
                                 }
                             }

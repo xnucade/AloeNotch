@@ -109,8 +109,10 @@ struct TimerView: View {
                                      prominent: true) {
                             timer.state.isPaused ? timer.resume() : timer.pause()
                         }
+                        .accessibilityLabel(timer.state.isPaused ? "Resume timer" : "Pause timer")
                         TimerControl(symbol: "goforward.60") { timer.extend(by: 60) }
                             .help("Add a minute")
+                        .accessibilityLabel("Add a minute")
                         // No cancel here. Whoever draws the header draws it —
                         // this view when it owns the header, the tabbed column
                         // when it doesn't — so there is exactly one X on screen
@@ -166,6 +168,7 @@ struct TimerCancelButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help("Cancel the timer")
+        .accessibilityLabel("Cancel timer")
     }
 }
 

@@ -131,6 +131,7 @@ struct UtilityColumn: View {
                 }
                 .buttonStyle(PressableButtonStyle())
                 .help("Forget everything copied so far")
+                .accessibilityLabel("Clear clipboard history")
             }
         case .timer:
             if timer.isActive { TimerCancelButton { timer.cancel() } }
@@ -170,6 +171,8 @@ private struct UtilityTab: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(tool.label)
+        .accessibilityLabel(tool.label)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
                 hovering = inside

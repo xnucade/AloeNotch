@@ -138,6 +138,7 @@ final class TimerModel: ObservableObject {
             kind: Self.kind,
             symbol: state.isPaused ? "pause.fill" : "timer",
             tint: .white,
+            spokenName: state.isPaused ? "Timer paused" : "Timer",
             trailing: state.isPaused
                 ? .text(CountdownState.clock(state.remaining(at: Date())))
                 : .countdown(state.deadline ?? Date()),

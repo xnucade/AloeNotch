@@ -98,6 +98,7 @@ struct TrayClearButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help("Empty the shelf")
+        .accessibilityLabel("Empty the shelf")
     }
 }
 
@@ -203,6 +204,11 @@ private struct TrayChip: View {
             }
         }
         .help(item.name)
+        // The remove badge only exists under the pointer, which VoiceOver
+        // doesn't have; the same action lives on the tile instead.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(item.name)
+        .accessibilityAction(named: "Remove from shelf", onRemove)
         .onHover { hovering = $0 }
         .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion), value: hovering)
     }

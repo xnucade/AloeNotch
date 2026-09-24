@@ -34,12 +34,20 @@ enum NotchHUD: Equatable {
     /// As an announcement. The artwork colour is passed in rather than read
     /// here, because `NotchHUD` is a value type that knows nothing about what
     /// is playing.
+    private var spokenName: String {
+        switch self {
+        case .volume(_, let muted): muted ? "Volume muted" : "Volume"
+        case .brightness: "Brightness"
+        }
+    }
+
     func activity(artwork: Color? = nil) -> LiveActivity {
         let isVolume = if case .volume = self { true } else { false }
         return LiveActivity(
             kind: "system.hud",
             symbol: icon,
             tint: AppSettings.shared.hudTint(volume: isVolume, artwork: artwork),
+            spokenName: spokenName,
             trailing: .level(Double(level)),
             size: .wide,
             duration: 1.5,
@@ -375,6 +383,17 @@ final class NotchViewModel: ObservableObject {
         refreshState()
     }
 
+    /// Close from an accessibility action. VoiceOver opens the panel without
+    /// the pointer ever entering it, so there is no hover to leave.
+    func dismiss() {
+        intentWorkItem?.cancel()
+        collapseWorkItem?.cancel()
+        isAnticipating = false
+        isHovering = false
+        isPinnedOpen = false
+        refreshState()
+    }
+
     /// Grace period before an un-hover closes the panel, so brushing past the
     /// edge of the content doesn't collapse it.
     private static let hoverGrace: TimeInterval = 0.25
@@ -516,6 +535,7 @@ final class NotchViewModel: ObservableObject {
             kind: "system.power",
             symbol: "bolt.fill",
             tint: .green,
+            spokenName: "Charging",
             trailing: .text("\(Int((battery.level * 100).rounded()))%"),
             size: .regular,
             duration: 2.0,
