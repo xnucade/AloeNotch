@@ -12,9 +12,7 @@ struct MediaView: View {
             VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                 if media.isAvailable && media.current.hasContent {
                     VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
-                        Text(media.current.title)
-                            .font(Typography.title())
-                            .lineLimit(1)
+                        MarqueeText(text: media.current.title, font: Typography.title())
                         Text(media.current.artist)
                             .font(Typography.caption())
                             .foregroundStyle(Ink.secondary)

@@ -167,9 +167,7 @@ private struct FocusedMedia: View {
                 artwork
                 VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                     VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
-                        Text(media.current.title)
-                            .font(Typography.headline())
-                            .lineLimit(1)
+                        MarqueeText(text: media.current.title, font: Typography.headline())
                         Text(media.current.artist)
                             .font(Typography.label())
                             .foregroundStyle(Ink.secondary)
