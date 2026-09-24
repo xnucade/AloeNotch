@@ -9,6 +9,13 @@ struct UpcomingEvent: Identifiable, Equatable {
     let end: Date
     let isAllDay: Bool
     let tint: Color
+    let meeting: MeetingLink?
+
+    /// From `MeetingLink.joinLead` before the start until the event ends.
+    func isJoinable(at now: Date) -> Bool {
+        meeting != nil && !isAllDay
+            && now >= start.addingTimeInterval(-MeetingLink.joinLead) && now < end
+    }
 
     var timeText: String {
         if isAllDay { return "All day" }
@@ -90,7 +97,8 @@ final class CalendarModel: ObservableObject {
                         start: event.startDate,
                         end: event.endDate,
                         isAllDay: event.isAllDay,
-                        tint: Color(nsColor: event.calendar?.color ?? .systemBlue)
+                        tint: Color(nsColor: event.calendar?.color ?? .systemBlue),
+                        meeting: event.isAllDay ? nil : MeetingLink.find(in: event)
                     )
                 }
             DispatchQueue.main.async { self.upcoming = Array(events) }

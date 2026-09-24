@@ -415,6 +415,17 @@ private struct FocusedCalendar: View {
                                 Text(event.title)
                                     .font(Typography.caption())
                                     .lineLimit(1)
+                                if let meeting = event.meeting {
+                                    Spacer(minLength: Metrics.Spacing.tight)
+                                    if event.isJoinable(at: today) {
+                                        JoinMeetingButton(link: meeting)
+                                    } else {
+                                        Image(systemName: "video")
+                                            .font(Typography.icon(9, .medium))
+                                            .foregroundStyle(.white.opacity(0.35))
+                                            .help(meeting.service)
+                                    }
+                                }
                             }
                         }
                     }

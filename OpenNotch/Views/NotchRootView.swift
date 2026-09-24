@@ -923,11 +923,23 @@ private struct CalendarWeekStrip: View {
                     }
                 }
 
-                HStack(spacing: Metrics.Spacing.tight) {
-                    Image(systemName: "calendar").font(Typography.icon(11, .medium))
-                    Text(subtitle).font(Typography.caption()).lineLimit(1)
+                if let meeting = joinable(at: today), let link = meeting.meeting {
+                    // A call about to start outranks whatever is first in the
+                    // list (usually an all-day event), and gets a way in.
+                    HStack(spacing: Metrics.Spacing.tight) {
+                        Text("\(meeting.timeText) · \(meeting.title)")
+                            .font(Typography.caption())
+                            .lineLimit(1)
+                            .foregroundStyle(.white.opacity(0.7))
+                        JoinMeetingButton(link: link)
+                    }
+                } else {
+                    HStack(spacing: Metrics.Spacing.tight) {
+                        Image(systemName: "calendar").font(Typography.icon(11, .medium))
+                        Text(subtitle).font(Typography.caption()).lineLimit(1)
+                    }
+                    .foregroundStyle(.white.opacity(0.5))
                 }
-                .foregroundStyle(.white.opacity(0.5))
             }
             .frame(maxWidth: .infinity)
             .animation(Motion.contentFade, value: calendar.upcoming)
@@ -937,6 +949,11 @@ private struct CalendarWeekStrip: View {
     /// Line under the week strip. The dates stay useful even without calendar
     /// access, so the strip is never hidden — only this line changes, and it
     /// says where to fix it rather than just reporting that something is off.
+    private func joinable(at now: Date) -> UpcomingEvent? {
+        guard calendar.isAuthorized else { return nil }
+        return calendar.upcoming.first { $0.isJoinable(at: now) }
+    }
+
     private var subtitle: String {
         if !calendar.isAuthorized { return "Allow Calendar in Settings → Access" }
         if let next = calendar.upcoming.first { return "\(next.timeText) · \(next.title)" }
