@@ -54,6 +54,12 @@ struct NotchRootView: View {
         .onChange(of: state.bubble) { _, new in if let new { lastBubble = new } }
     }
 
+    /// The open panel's resting size, which its content is always laid out
+    /// at — see the expanded branch in `notchSurface`.
+    private var expandedSize: CGSize {
+        metrics?.size(for: .expanded) ?? NotchGeometry.simulatedNotchSize
+    }
+
     /// The surface's current on-screen size, straight from the one function
     /// that decides it (`NotchMetrics.size(for:)`).
     private var surfaceSize: CGSize {
@@ -149,6 +155,14 @@ struct NotchRootView: View {
                         // Clear the physical notch.
                         .padding(.top, stripHeight + Metrics.contentTopGap)
                         .padding(.bottom, Metrics.panelBottomInset)
+                        // Laid out once, at the open size, whatever size the
+                        // surface happens to be mid-spring. Fitted to the
+                        // animating frame instead, every column rode the
+                        // spring: the shape's leading edge overshoots left on
+                        // a bouncy open, and the content slid in from the left
+                        // and bounced with it. Now the shape reveals content
+                        // that holds still, pinned to the top edge.
+                        .frame(width: expandedSize.width, height: expandedSize.height)
                         // Insert as identity so the rows' own staggered
                         // arrivals are visible (see NotchEntrance).
                         //
@@ -197,7 +211,7 @@ struct NotchRootView: View {
                 }
             }
         }
-        .frame(width: surfaceSize.width, height: surfaceSize.height)
+        .modifier(SurfaceFrame(size: surfaceSize))
         .offset(x: reachOffset)
         // Clip AFTER the frame so the clip bounds follow the animating size.
         // (Clipping the inner Group instead sized the clip to the *content*, so
@@ -578,6 +592,32 @@ private struct ActivityContent: View {
                 withAnimation(Motion.arrival) { arrived = true }
             }
         }
+    }
+}
+
+/// The surface's frame, laid out afresh on every frame of its animation.
+///
+/// A plain `.frame` animates by interpolating where each view ends up
+/// *relative to its parent*, and the surface's parent centres it — so the
+/// surface's leading edge travels, overshooting on a bouncy open, and
+/// everything positioned from that edge travels with it. That was the open
+/// panel's content sliding in from the left and bouncing. As an `Animatable`
+/// modifier the frame is re-laid-out with each interpolated size instead, so
+/// the fixed-size open content is re-centred every frame and holds still on
+/// screen while the shape grows around it.
+///
+/// Top-aligned: the open content hangs from the top edge while the frame is
+/// still smaller than it.
+private struct SurfaceFrame: ViewModifier, Animatable {
+    var size: CGSize
+
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(size.width, size.height) }
+        set { size = CGSize(width: newValue.first, height: newValue.second) }
+    }
+
+    func body(content: Content) -> some View {
+        content.frame(width: size.width, height: size.height, alignment: .top)
     }
 }
 
