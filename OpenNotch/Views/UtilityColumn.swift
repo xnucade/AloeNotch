@@ -120,6 +120,7 @@ struct UtilityColumn: View {
         switch active {
         case .shelf:
             if tray.items.count >= 2 { TrayDragAllPill(urls: tray.items.map(\.url)) }
+            if !tray.items.isEmpty { TrayAirDropButton(urls: tray.items.map(\.url)) }
             if !tray.items.isEmpty { TrayClearButton { tray.clear() } }
         case .clipboard:
             if !clipboard.items.isEmpty {

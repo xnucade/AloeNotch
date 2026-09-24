@@ -54,6 +54,9 @@ struct TrayView: View {
                 TrayDragAllPill(urls: tray.items.map(\.url))
             }
             if !tray.items.isEmpty {
+                TrayAirDropButton(urls: tray.items.map(\.url))
+            }
+            if !tray.items.isEmpty {
                 TrayClearButton { tray.clear() }
             }
         }
@@ -86,6 +89,23 @@ struct TrayDragAllPill: View {
 }
 
 /// The shelf's trash button, shared with the tabbed column's header.
+/// Sends everything on the shelf over AirDrop in one go.
+struct TrayAirDropButton: View {
+    let urls: [URL]
+
+    var body: some View {
+        Button { ShelfActions.airDrop(urls) } label: {
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .font(Typography.icon(11, .medium))
+                .foregroundStyle(.white)
+                .hoverLift(restOpacity: 0.5)
+        }
+        .buttonStyle(PressableButtonStyle())
+        .help(urls.count == 1 ? "AirDrop this file" : "AirDrop all \(urls.count) files")
+        .accessibilityLabel("AirDrop")
+    }
+}
+
 struct TrayClearButton: View {
     let action: () -> Void
 
@@ -118,7 +138,7 @@ extension TrayView {
         } else {
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(tray.items) { item in
-                    TrayChip(item: item) { tray.remove(item) }
+                    TrayChip(item: item, all: tray.items.map(\.url)) { tray.remove(item) }
                         .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
             }
@@ -170,7 +190,13 @@ private struct MultiFileDragHandle: NSViewRepresentable {
 
 private struct TrayChip: View {
     let item: TrayItem
+    /// Every staged file, so Quick Look's arrow keys walk the whole shelf.
+    let all: [URL]
     let onRemove: () -> Void
+
+    private func quickLook() {
+        ShelfActions.quickLook(all, startingAt: all.firstIndex(of: item.url) ?? 0)
+    }
     @State private var hovering = false
     @Environment(\.notchReduceMotion) private var reduceMotion
 
@@ -189,8 +215,10 @@ private struct TrayChip: View {
             // one control here you are meant to pick up and drag.
             .scaleEffect(hovering && !reduceMotion ? 1.06 : 1)
             .shadow(color: .black.opacity(hovering ? 0.35 : 0), radius: 5, y: 2)
-            // Drag the staged file back out to Finder / another app.
+            // Drag the staged file back out to Finder / another app; a
+            // plain click previews it instead.
             .onDrag { NSItemProvider(object: item.url as NSURL) }
+            .onTapGesture(perform: quickLook)
 
             if hovering {
                 Button(action: onRemove) {
@@ -208,7 +236,16 @@ private struct TrayChip: View {
         // doesn't have; the same action lives on the tile instead.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(item.name)
+        .accessibilityAction(named: "Quick Look", quickLook)
+        .accessibilityAction(named: "AirDrop") { ShelfActions.airDrop([item.url]) }
         .accessibilityAction(named: "Remove from shelf", onRemove)
+        .contextMenu {
+            Button("Quick Look", systemImage: "eye", action: quickLook)
+            Button("AirDrop…", systemImage: "dot.radiowaves.left.and.right") { ShelfActions.airDrop([item.url]) }
+            Button("Show in Finder", systemImage: "folder") { ShelfActions.revealInFinder([item.url]) }
+            Divider()
+            Button("Remove from Shelf", systemImage: "xmark", role: .destructive, action: onRemove)
+        }
         .onHover { hovering = $0 }
         .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion), value: hovering)
     }
