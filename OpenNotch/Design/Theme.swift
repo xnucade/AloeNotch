@@ -176,6 +176,30 @@ extension AnyTransition {
             removal: .opacity.animation(Motion.collapse)
         )
     }
+
+    /// `notchEntrance` for an announcement on the strip, with a light blur
+    /// on the way in and out so the readout resolves out of the black rather
+    /// than cutting in. Only for layers this size — a strip's worth of glyph
+    /// and bar, never the container, whose full-surface blur is what made the
+    /// old `.blurReplace` stutter.
+    static func activityEntrance(reduceMotion: Bool) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        let delay = Motion.entranceDelay(0, reduceMotion: false)
+        return .asymmetric(
+            insertion: .modifier(active: Blurred(radius: 3), identity: Blurred(radius: 0))
+                .combined(with: .opacity)
+                .combined(with: .scale(scale: 0.92, anchor: .top))
+                .animation(Motion.contentFade.delay(delay)),
+            removal: .modifier(active: Blurred(radius: 2), identity: Blurred(radius: 0))
+                .combined(with: .opacity)
+                .animation(Motion.collapse)
+        )
+    }
+}
+
+private struct Blurred: ViewModifier {
+    let radius: CGFloat
+    func body(content: Content) -> some View { content.blur(radius: radius) }
 }
 
 /// Staggered arrival for one element inside the expanding panel.

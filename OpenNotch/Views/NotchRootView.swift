@@ -159,7 +159,7 @@ struct NotchRootView: View {
                     )
                     .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
                                                            : Metrics.hudInsetSimulated)
-                    .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
+                    .transition(.activityEntrance(reduceMotion: a11y.reduceMotion))
                 } else {
                     // On a hardware notch this only draws while media plays (in
                     // the wings that peek out either side); otherwise it renders
@@ -530,6 +530,9 @@ private struct ActivityContent: View {
                 // vanishes reads as unfinished.
                 .scaleEffect(arrived || reduceMotion ? 1 : 0.4)
                 .opacity(arrived || reduceMotion ? 1 : 0)
+                // Resolves as it grows. The glyph group is ~40pt across, so
+                // the blur is as cheap as blurs get.
+                .blur(radius: arrived || reduceMotion ? 0 : 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Spacer(minLength: deadZone)
