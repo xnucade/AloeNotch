@@ -5,9 +5,16 @@ import CoreGraphics
 ///
 /// macOS has no public API for reading brightness on Apple Silicon and no change
 /// notification at all, so this dynamically loads the private DisplayServices
-/// symbol (falling back to CoreDisplay) and polls. The poll is a cheap C call
-/// five times a second; if neither symbol resolves, `isAvailable` stays false
-/// and the brightness HUD simply never appears.
+/// symbol (falling back to CoreDisplay) and polls. If neither symbol resolves,
+/// `isAvailable` stays false and the brightness HUD simply never appears.
+///
+/// The poll is adaptive. The brightness *keys* never need it — the event tap
+/// sees them and presents the HUD directly — so polling only exists for
+/// changes made elsewhere (the Control Center slider, a script). Idle, it
+/// reads once a second; the first change it sees switches it to a fast burst
+/// so a slider drag still animates smoothly, then it drops back. It used to
+/// read five times a second forever, which was nearly every idle wakeup the
+/// app had.
 final class BrightnessMonitor {
     /// Called on the main queue with the new level (0…1) when it changes.
     var onChange: ((Float) -> Void)?
@@ -32,7 +39,13 @@ final class BrightnessMonitor {
     var canSet: Bool { displayServicesSet != nil || coreDisplaySet != nil }
 
     private var timer: Timer?
+    private var burstUntil: Date = .distantPast
     private var last: Float = -1
+
+    private static let idleInterval: TimeInterval = 1.0
+    private static let burstInterval: TimeInterval = 0.1
+    /// How long the fast poll outlives the last change it saw.
+    private static let burstLength: TimeInterval = 2.0
     private var primed = false
 
     init() {
@@ -80,9 +93,7 @@ final class BrightnessMonitor {
         guard isAvailable, timer == nil else { return }
         last = read() ?? -1
         primed = true          // swallow the baseline so launch doesn't flash a HUD
-        timer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
-            self?.poll()
-        }
+        schedule(Self.idleInterval)
     }
 
     func stop() {
@@ -91,13 +102,31 @@ final class BrightnessMonitor {
         primed = false
     }
 
+    private func schedule(_ interval: TimeInterval) {
+        timer?.invalidate()
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            self?.poll()
+        }
+        // Idle reads can drift; letting the system coalesce them with other
+        // wakeups is most of the energy saving. The burst stays precise.
+        timer.tolerance = interval == Self.idleInterval ? 0.3 : 0
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
     private func poll() {
         guard let value = read() else { return }
         guard primed else { last = value; primed = true; return }
         // Ignore float jitter; only real user changes should raise the HUD.
+        let now = Date()
         if abs(value - last) > 0.005 {
             last = value
             onChange?(value)
+            let wasIdle = now >= burstUntil
+            burstUntil = now.addingTimeInterval(Self.burstLength)
+            if wasIdle { schedule(Self.burstInterval) }
+        } else if now >= burstUntil, timer?.timeInterval != Self.idleInterval {
+            schedule(Self.idleInterval)
         }
     }
 

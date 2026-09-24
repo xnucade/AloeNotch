@@ -24,6 +24,20 @@ struct GeneralTab: View {
             }
 
             SettingsSection("Opening the panel", index: 1) {
+                SettingsRow("Open on", symbol: "cursorarrow.rays",
+                            description: settings.openTrigger.detail) {
+                    Picker("", selection: $settings.openTrigger) {
+                        ForEach(OpenTrigger.allCases) { trigger in
+                            Text(trigger.title).tag(trigger)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(width: 150)
+                }
+
+                SettingsDivider()
+
                 SettingsRow("Keyboard shortcut", symbol: "keyboard",
                             description: "Opens and closes the panel from anywhere, and keeps it open until you press it again.") {
                     Toggle("", isOn: $settings.hotKeyEnabled).labelsHidden()

@@ -4,19 +4,25 @@ struct MediaView: View {
     @ObservedObject var media: NowPlayingManager
     /// Namespace for the matched artwork pair, owned by NotchRootView.
     let morph: Namespace.ID
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: Metrics.Spacing.loose) {
             artwork
             VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                 if media.isAvailable && media.current.hasContent {
-                    Text(media.current.title)
-                        .font(Typography.title())
-                        .lineLimit(1)
-                    Text(media.current.artist)
-                        .font(Typography.caption())
-                        .foregroundStyle(.white.opacity(0.7))
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
+                        Text(media.current.title)
+                            .font(Typography.title())
+                            .lineLimit(1)
+                        Text(media.current.artist)
+                            .font(Typography.caption())
+                            .foregroundStyle(.white.opacity(0.7))
+                            .lineLimit(1)
+                    }
+                    .id(media.current.title + "\u{1F}" + media.current.artist)
+                    .transition(.textSkip(reduceMotion: reduceMotion))
+                    .animation(Motion.contentFade, value: media.current.title)
                     if media.current.duration > 0 {
                         ProgressScrubber(media: media).padding(.top, 3)
                     }
@@ -67,7 +73,7 @@ struct MediaView: View {
                             .resizable()
                             .scaledToFill()
                             .id(media.current.artworkToken)
-                            .transition(.opacity)
+                            .transition(.artworkSkip(media.skipDirection, reduceMotion: reduceMotion))
                     }
                     .frame(width: Metrics.expandedArtworkSize,
                            height: Metrics.expandedArtworkSize)

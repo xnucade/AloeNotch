@@ -28,7 +28,12 @@ struct NotchRootView: View {
     /// The surface's current on-screen size, straight from the one function
     /// that decides it (`NotchMetrics.size(for:)`).
     private var surfaceSize: CGSize {
-        metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize
+        let base = metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize
+        // The swell while the pointer decides. Never while open — see
+        // `NotchViewModel.isAnticipating`.
+        guard viewModel.isAnticipating, !state.isExpanded else { return base }
+        return CGSize(width: base.width + Metrics.swell.width,
+                      height: base.height + Metrics.swell.height)
     }
 
     /// Height of the collapsed strip — i.e. the hardware notch. Constant across
@@ -69,6 +74,10 @@ struct NotchRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .withAccessibilityPreferences()
+    }
+
+    private var shoulder: CGFloat {
+        Metrics.shoulder(for: state, hardwareNotch: hasHardwareNotch)
     }
 
     private var notchSurface: some View {
@@ -142,13 +151,14 @@ struct NotchRootView: View {
         // (Clipping the inner Group instead sized the clip to the *content*, so
         // collapsing left the outgoing panel ghosted at full width outside the
         // notch.) This also keeps inner light effects inside the panel.
-        .clipShape(NotchShape(cornerRadius: radius))
+        .clipShape(NotchShape(cornerRadius: radius, shoulder: shoulder))
         // Glow lives outside the clip so its bloom can still extend past the edge.
         .background {
             if settings.ambientGlow {
                 AmbientGlow(
                     media: viewModel.media,
                     radius: radius,
+                    shoulder: shoulder,
                     isExpanded: state.isExpanded
                 )
             }
@@ -158,8 +168,14 @@ struct NotchRootView: View {
         // under this. The curve comes from the view model, which picks it per
         // transition (bouncier opening, settled closing, quick between peeks).
         .animation(viewModel.stateAnimation, value: state)
+        .animation(Motion.resolve(Motion.anticipate, reduceMotion: a11y.reduceMotion),
+                   value: viewModel.isAnticipating)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
+        // Only while closed, so it can never swallow a click meant for a
+        // control inside the open panel.
+        .gesture(TapGesture().onEnded { viewModel.notchClicked() },
+                 including: state.isExpanded ? .none : .all)
         // Dragging a file over the collapsed strip opens the shelf; dropping
         // directly on the strip stages it immediately.
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
@@ -168,7 +184,7 @@ struct NotchRootView: View {
             return accepted
         }
         .onChange(of: isDropTargeted) { _, targeted in
-            viewModel.hoverChanged(targeted || state.isExpanded)
+            viewModel.hoverChanged(targeted || state.isExpanded, immediate: targeted)
         }
     }
 
@@ -183,7 +199,7 @@ struct NotchRootView: View {
         // Same source as the clip shape above (Metrics.radius), so the fill and
         // the clip can never disagree about the silhouette they are drawing.
         let radius = Metrics.radius(expanded: state.isExpanded)
-        return NotchShape(cornerRadius: radius)
+        return NotchShape(cornerRadius: radius, shoulder: shoulder)
             .fill(.black)
             .overlay {
                 // Hairline edge on the sides and bottom only. Nothing light may
@@ -195,10 +211,17 @@ struct NotchRootView: View {
                 // Now that the fill uses continuous corners, a hand-built
                 // circular-arc outline would sit a pixel or two off it around
                 // the bottom curves — exactly where a hairline is most visible.
+                //
+                // The stroke uses the shoulder-less outline and stops where
+                // the shoulders begin: stroking the fill's path would also
+                // outline the shoulder wedges' inner edges, a seam across the
+                // flare.
                 if state.isExpanded {
                     NotchShape(cornerRadius: radius)
                         .stroke(.white.opacity(0.09), lineWidth: 1)
-                        .mask(alignment: .bottom) { Rectangle().padding(.top, 1) }
+                        .mask(alignment: .bottom) {
+                            Rectangle().padding(.top, shoulder + 1)
+                        }
                 }
             }
             // Deliberately no .shadow(): its gaussian tail reaches the window
@@ -215,18 +238,19 @@ struct NotchRootView: View {
 private struct AmbientGlow: View {
     @ObservedObject var media: NowPlayingManager
     let radius: CGFloat
+    let shoulder: CGFloat
     let isExpanded: Bool
 
     var body: some View {
         if media.isPlaying, let accent = media.current.accent {
             ZStack {
                 // Small soft bloom right at the edge.
-                NotchEdgeShape(cornerRadius: radius)
+                NotchEdgeShape(cornerRadius: radius, shoulder: shoulder)
                     .stroke(accent, lineWidth: 4)
                     .blur(radius: 5)
                     .opacity(isExpanded ? 0.5 : 0.35)
                 // The line itself, hugging the silhouette.
-                NotchEdgeShape(cornerRadius: radius)
+                NotchEdgeShape(cornerRadius: radius, shoulder: shoulder)
                     .stroke(accent, lineWidth: 1.5)
                     .blur(radius: 0.5)
                     .opacity(isExpanded ? 0.95 : 0.7)
@@ -248,23 +272,27 @@ private struct AmbientGlow: View {
 /// give the cutout away.
 struct NotchEdgeShape: Shape {
     var cornerRadius: CGFloat
+    var shoulder: CGFloat = 0
 
-    var animatableData: CGFloat {
-        get { cornerRadius }
-        set { cornerRadius = newValue }
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(cornerRadius, shoulder) }
+        set { cornerRadius = newValue.first; shoulder = newValue.second }
     }
 
     func path(in rect: CGRect) -> Path {
         let r = min(cornerRadius, rect.height / 2, rect.width / 2)
+        let s = NotchShape.clampedShoulder(shoulder, in: rect)
         var p = Path()
-        p.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        p.move(to: CGPoint(x: rect.maxX + s, y: rect.minY))
+        if s > 0 { NotchShape.addShoulderCurve(to: &p, in: rect, s: s, trailing: true) }
         p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - r))
         p.addArc(center: CGPoint(x: rect.maxX - r, y: rect.maxY - r),
                  radius: r, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
         p.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
         p.addArc(center: CGPoint(x: rect.minX + r, y: rect.maxY - r),
                  radius: r, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
-        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + s))
+        if s > 0 { NotchShape.addShoulderCurve(to: &p, in: rect, s: s, trailing: false, reversed: true) }
         return p
     }
 }
@@ -272,10 +300,13 @@ struct NotchEdgeShape: Shape {
 /// A rectangle whose bottom corners are rounded — the classic notch silhouette.
 struct NotchShape: Shape {
     var cornerRadius: CGFloat
+    /// Concave flare at the top corners, drawn outside `rect`. See
+    /// `Metrics.shoulder(for:hardwareNotch:)`.
+    var shoulder: CGFloat = 0
 
-    var animatableData: CGFloat {
-        get { cornerRadius }
-        set { cornerRadius = newValue }
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(cornerRadius, shoulder) }
+        set { cornerRadius = newValue.first; shoulder = newValue.second }
     }
 
     /// Square at the top (it meets the screen edge beside the cutout), rounded
@@ -291,9 +322,13 @@ struct NotchShape: Shape {
     /// `UnevenRoundedRectangle` gives the real system squircle rather than an
     /// approximation of it, and still animates, because `animatableData` above
     /// drives the radius it is built from.
+    ///
+    /// The shoulders are two separate wedges added to the same path, so one
+    /// fill covers everything and there is no antialiasing seam between them.
+    /// Each wedge overlaps the body by a point for the same reason.
     func path(in rect: CGRect) -> Path {
         let r = min(cornerRadius, rect.height / 2, rect.width / 2)
-        return UnevenRoundedRectangle(
+        var p = UnevenRoundedRectangle(
             topLeadingRadius: 0,
             bottomLeadingRadius: r,
             bottomTrailingRadius: r,
@@ -301,6 +336,55 @@ struct NotchShape: Shape {
             style: .continuous
         )
         .path(in: rect)
+
+        let s = Self.clampedShoulder(shoulder, in: rect)
+        guard s > 0.5 else { return p }
+        for trailing in [false, true] {
+            let edge = trailing ? rect.maxX : rect.minX
+            let inward: CGFloat = trailing ? -1 : 1
+            // Both wedges must wind the same way as the body. They are
+            // mirror images, so drawn with the same steps the trailing one
+            // winds the other way, and under the non-zero rule its overlap
+            // with the body cancels out into a hairline gap.
+            var wedge = Path()
+            wedge.move(to: CGPoint(x: edge + inward, y: rect.minY))
+            if trailing {
+                wedge.addLine(to: CGPoint(x: edge + s, y: rect.minY))
+                Self.addShoulderCurve(to: &wedge, in: rect, s: s, trailing: true)
+                wedge.addLine(to: CGPoint(x: edge + inward, y: rect.minY + s))
+            } else {
+                wedge.addLine(to: CGPoint(x: edge + inward, y: rect.minY + s))
+                wedge.addLine(to: CGPoint(x: edge, y: rect.minY + s))
+                Self.addShoulderCurve(to: &wedge, in: rect, s: s, trailing: false, reversed: true)
+            }
+            wedge.closeSubpath()
+            p.addPath(wedge)
+        }
+        return p
+    }
+
+    /// A shoulder can't be taller than the strip it hangs from.
+    static func clampedShoulder(_ shoulder: CGFloat, in rect: CGRect) -> CGFloat {
+        max(0, min(shoulder, rect.height / 2))
+    }
+
+    /// Quarter-circle fillet between the screen edge and one side, bowing in
+    /// toward the corner so it reads as concave. Forward runs from the screen
+    /// edge down to the side; `reversed` runs back up.
+    static func addShoulderCurve(to p: inout Path, in rect: CGRect, s: CGFloat,
+                                 trailing: Bool, reversed: Bool = false) {
+        let k: CGFloat = 0.5523   // cubic approximation of a quarter circle
+        let edge = trailing ? rect.maxX : rect.minX
+        let out: CGFloat = trailing ? 1 : -1
+        let top = CGPoint(x: edge + out * s, y: rect.minY)
+        let side = CGPoint(x: edge, y: rect.minY + s)
+        let nearTop = CGPoint(x: edge + out * s * (1 - k), y: rect.minY)
+        let nearSide = CGPoint(x: edge, y: rect.minY + s * (1 - k))
+        if reversed {
+            p.addCurve(to: top, control1: nearSide, control2: nearTop)
+        } else {
+            p.addCurve(to: side, control1: nearTop, control2: nearSide)
+        }
     }
 }
 
@@ -436,6 +520,7 @@ private struct ActivityContent: View {
             }
             .frame(width: 62, height: 4)
             .animation(Motion.readout, value: value)
+            .modifier(RubberBand(push: center.limitPush, reduceMotion: reduceMotion))
         case .text(let value):
             Text(value)
                 .font(Typography.body(.semibold))
@@ -459,6 +544,30 @@ private struct ActivityContent: View {
                     .animation(Motion.readout,
                                value: Int(deadline.timeIntervalSince(context.date).rounded(.up)))
                     .lineLimit(1)
+            }
+        }
+    }
+}
+
+/// Stretch against the stop. The bar lengthens toward the end it was pushed
+/// at and thins as it does (squash and stretch keeps its area roughly
+/// constant, which is what makes it read as elastic rather than as growing),
+/// then springs back. Anchored at the *opposite* end, so the stretch goes
+/// where the push went.
+private struct RubberBand: ViewModifier {
+    let push: LiveActivityCenter.LimitPush
+    let reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content
+        } else {
+            content.keyframeAnimator(initialValue: CGFloat(1), trigger: push) { bar, stretch in
+                bar.scaleEffect(x: stretch, y: 1 - (stretch - 1) * 2.5,
+                                anchor: push.direction > 0 ? .leading : .trailing)
+            } keyframes: { _ in
+                SpringKeyframe(1.1, duration: 0.09, spring: .snappy)
+                SpringKeyframe(1, duration: 0.45, spring: .bouncy(extraBounce: 0.1))
             }
         }
     }

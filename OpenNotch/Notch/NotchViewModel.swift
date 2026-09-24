@@ -94,6 +94,15 @@ final class NotchViewModel: ObservableObject {
     /// machine, not a state itself.
     private var isHovering = false
 
+    /// The pointer is resting on the closed notch and the panel is deciding
+    /// whether to open (or, in click mode, waiting for the click). The view
+    /// swells the surface slightly while this is true. Only drawn when not
+    /// expanded, so it can stay true through the open without resizing
+    /// anything — which also means opening changes only `panelState`, and the
+    /// open spring is the one animation in charge of that frame.
+    @Published private(set) var isAnticipating = false
+    private var intentWorkItem: DispatchWorkItem?
+
     /// Held open by the keyboard shortcut, until it is pressed again.
     @Published private(set) var isPinnedOpen = false
 
@@ -177,6 +186,7 @@ final class NotchViewModel: ObservableObject {
             // Only when the level actually moved. Holding the key down at 0 or
             // 1 should feel like hitting a stop, not like it is still stepping.
             if newLevel != previous { Haptics.tick() }
+            self.pushIfAtLimit(previous: previous, delta: delta)
         }
         mediaKeys.onMuteToggle = { [weak self] in
             guard let self else { return }
@@ -191,6 +201,7 @@ final class NotchViewModel: ObservableObject {
             self.brightness.setLevel(newLevel)
             self.present(.brightness(level: newLevel))
             if newLevel != previous { Haptics.tick() }
+            self.pushIfAtLimit(previous: previous, delta: delta)
         }
 
         settings.$showHUD
@@ -303,14 +314,42 @@ final class NotchViewModel: ObservableObject {
 
     // MARK: - State machine
 
-    // Hover handling with a small close delay so the panel doesn't flicker
+    // Hover handling: a short intent delay on the way in (see `OpenTrigger`),
+    // and a small close delay on the way out so the panel doesn't flicker
     // when the cursor briefly leaves the content.
-    func hoverChanged(_ inside: Bool) {
+    //
+    // `immediate` skips the intent delay — a file being dragged to the notch
+    // is never an accident.
+    func hoverChanged(_ inside: Bool, immediate: Bool = false) {
         collapseWorkItem?.cancel()
+        intentWorkItem?.cancel()
         if inside {
-            isHovering = true
-            refreshState()
+            // Coming back inside the close grace period, or already open:
+            // nothing to decide.
+            let delay = immediate || isHovering || panelState.isExpanded
+                ? 0 : settings.openTrigger.intentDelay
+            guard let delay else {
+                isAnticipating = true   // click mode: swell and wait
+                return
+            }
+            if delay == 0 {
+                isHovering = true
+                refreshState()
+                return
+            }
+            isAnticipating = true
+            let work = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.isHovering = true
+                self.refreshState()
+            }
+            intentWorkItem = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         } else {
+            // Relax the swell now. It is only drawn while closed, so if the
+            // panel is open this changes nothing until the close below.
+            isAnticipating = false
+            guard isHovering || isPinnedOpen else { return }
             let work = DispatchWorkItem { [weak self] in
                 guard let self else { return }
                 self.isHovering = false
@@ -325,6 +364,15 @@ final class NotchViewModel: ObservableObject {
             collapseWorkItem = work
             DispatchQueue.main.asyncAfter(deadline: .now() + Self.hoverGrace, execute: work)
         }
+    }
+
+    /// A click on the closed notch. Opens it in every mode — in click mode
+    /// it is the only way in, and in the hover modes it just skips the wait.
+    func notchClicked() {
+        guard !panelState.isExpanded else { return }
+        intentWorkItem?.cancel()
+        isHovering = true
+        refreshState()
     }
 
     /// Grace period before an un-hover closes the panel, so brushing past the
@@ -390,6 +438,9 @@ final class NotchViewModel: ObservableObject {
             reduceMotion: AccessibilityPreferences.shared.reduceMotion
         )
         panelState = new
+        #if DEBUG
+        FrameBudget.shared.watch("\(old) → \(new)", on: metrics?.screen, for: settle + 0.1)
+        #endif
 
         // The invariant: the clickable region is never smaller than what is
         // actually drawn. Growing is safe to apply at once — a region larger
@@ -478,6 +529,14 @@ final class NotchViewModel: ObservableObject {
     /// that can see both the readout and what is playing. It is nil when
     /// nothing is, which is what makes the `artwork` tint mode fall back to
     /// white on its own rather than needing a special case.
+    /// A step that could not move the level because it was already at the
+    /// stop. The readout stretches against the stop instead of doing nothing,
+    /// which is how iOS says "that's all there is".
+    private func pushIfAtLimit(previous: Float, delta: Float) {
+        if delta > 0, previous >= 0.999 { activities.pushAgainstLimit(1) }
+        if delta < 0, previous <= 0.001 { activities.pushAgainstLimit(-1) }
+    }
+
     private func present(_ readout: NotchHUD) {
         activities.present(readout.activity(artwork: media.current.accent))
     }

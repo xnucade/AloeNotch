@@ -84,6 +84,9 @@ final class AppSettings: ObservableObject {
     /// How the expanded panel arranges its modules. Changing it also moves the
     /// width to that layout's default, because a width chosen for three
     /// columns is wrong for one — see `applyLayoutWidth`.
+    @Published var openTrigger: OpenTrigger {
+        didSet { save(openTrigger.rawValue, "openTrigger") }
+    }
     @Published var panelLayout: PanelLayout {
         didSet {
             guard oldValue != panelLayout else { return }
@@ -154,6 +157,7 @@ final class AppSettings: ObservableObject {
             "glassIntensity": GlassIntensity.medium.rawValue,
             "windowTheme": WindowTheme.system.rawValue,
             "panelLayout": PanelLayout.columns.rawValue,
+            "openTrigger": OpenTrigger.hover.rawValue,
             "animationSpeed": 1.0,
             // Today's behaviour, so nobody's notch changes under them on update.
             "motionBounce": MotionPersonality.standard.bounce,
@@ -189,6 +193,7 @@ final class AppSettings: ObservableObject {
             rawValue: defaults.string(forKey: "windowTheme") ?? ""
         ) ?? .system
         panelLayout = PanelLayout(rawValue: defaults.string(forKey: "panelLayout") ?? "") ?? .columns
+        openTrigger = OpenTrigger(rawValue: defaults.string(forKey: "openTrigger") ?? "") ?? .hover
         animationSpeed = defaults.double(forKey: "animationSpeed")
         motionBounce = MotionPersonality.clamp(defaults.double(forKey: "motionBounce"))
         hudTintMode = HUDTintMode(rawValue: defaults.string(forKey: "hudTintMode") ?? "") ?? .monochrome

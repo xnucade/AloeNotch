@@ -272,8 +272,10 @@ p { text-wrap: pretty; }
 .mb-right span { font-variant-numeric: tabular-nums; }
 
 /* ---------- The panel ---------- */
+/* Registered so the shoulders ride the same spring as width/height. */
+@property --s { syntax: "<number>"; inherits: false; initial-value: 10; }
 .hn {
-  --w: 680; --h: 208; --r: 26;
+  --w: 680; --h: 208; --r: 26; --s: 10;
   position: absolute;
   top: 0;
   left: 50%;
@@ -285,10 +287,29 @@ p { text-wrap: pretty; }
   border-bottom-right-radius: calc(var(--r) * var(--pt));
   /* hero.js swaps the easing per move: a spring on the way out, a
      critically-damped curve on the way in. */
-  transition-property: width, height, border-radius;
+  transition-property: width, height, border-radius, --s;
   transition-duration: 0.45s;
   transition-timing-function: cubic-bezier(0.3, 1.2, 0.4, 1);
   cursor: default;
+}
+/* Concave shoulders: the panel pours out of the bezel instead of hanging
+   off it (Metrics.shoulder — 10pt open, 6pt peeking). */
+.hn::before,
+.hn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: calc(var(--s) * var(--pt));
+  height: calc(var(--s) * var(--pt));
+  pointer-events: none;
+}
+.hn::before {
+  right: 100%;
+  background: radial-gradient(circle at 0 100%, transparent calc(var(--s) * var(--pt) - 0.5px), #000 calc(var(--s) * var(--pt)));
+}
+.hn::after {
+  left: 100%;
+  background: radial-gradient(circle at 100% 100%, transparent calc(var(--s) * var(--pt) - 0.5px), #000 calc(var(--s) * var(--pt)));
 }
 .hn-glow {
   position: absolute;

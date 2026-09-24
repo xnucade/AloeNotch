@@ -149,19 +149,25 @@ private struct SwitcherPill: View {
 private struct FocusedMedia: View {
     @ObservedObject var media: NowPlayingManager
     let morph: Namespace.ID
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         if media.isAvailable && media.current.hasContent {
             HStack(spacing: Metrics.Spacing.loose) {
                 artwork
                 VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
-                    Text(media.current.title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .lineLimit(1)
-                    Text(media.current.artist)
-                        .font(Typography.body())
-                        .foregroundStyle(.white.opacity(0.65))
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
+                        Text(media.current.title)
+                            .font(.system(size: 15, weight: .semibold))
+                            .lineLimit(1)
+                        Text(media.current.artist)
+                            .font(Typography.body())
+                            .foregroundStyle(.white.opacity(0.65))
+                            .lineLimit(1)
+                    }
+                    .id(media.current.title + "\u{1F}" + media.current.artist)
+                    .transition(.textSkip(reduceMotion: reduceMotion))
+                    .animation(Motion.contentFade, value: media.current.title)
 
                     Spacer(minLength: Metrics.Spacing.snug)
 
@@ -202,7 +208,7 @@ private struct FocusedMedia: View {
                             .resizable()
                             .scaledToFill()
                             .id(media.current.artworkToken)
-                            .transition(.opacity)
+                            .transition(.artworkSkip(media.skipDirection, reduceMotion: reduceMotion))
                     }
                     .frame(width: 82, height: 82)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))

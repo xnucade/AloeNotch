@@ -67,6 +67,11 @@ enum Motion {
     /// growing for media or a HUD). Quicker, because nothing is travelling far.
     static var hud: Animation { .smooth(duration: scaled(0.28)) }
 
+    /// The swell while the pointer rests on the notch. No bounce: it is a
+    /// lean, not an arrival, and the open spring picks up from wherever it
+    /// got to.
+    static var anticipate: Animation { .smooth(duration: scaled(0.18)) }
+
     /// Small state flips on controls — hover, press, selection.
     static var micro: Animation { .snappy(duration: scaled(0.20)) }
 
@@ -196,6 +201,40 @@ struct NotchEntrance: ViewModifier {
     }
 }
 
+/// Track changes. Artwork slides the way the skip went (forward = in from the
+/// right) while it cross-fades, inside its own clip, so it reads as the next
+/// card in a stack rather than a new picture. Text rises a few points out of
+/// a light blur — the blur is on a layer a few hundred points across, which
+/// is nothing like the whole-panel blur that stuttered (gotcha #6).
+extension AnyTransition {
+    static func artworkSkip(_ direction: Int, reduceMotion: Bool) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        let d = CGFloat(direction)
+        return .asymmetric(
+            insertion: .offset(x: 14 * d).combined(with: .opacity),
+            removal: .offset(x: -14 * d).combined(with: .opacity)
+        )
+    }
+
+    static func textSkip(reduceMotion: Bool) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return .asymmetric(
+            insertion: .modifier(active: BlurRise(amount: 1), identity: BlurRise(amount: 0)),
+            removal: .opacity.animation(Motion.micro)
+        )
+    }
+}
+
+private struct BlurRise: ViewModifier {
+    let amount: CGFloat
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: 3 * amount)
+            .offset(y: 5 * amount)
+            .opacity(1 - amount)
+    }
+}
+
 extension View {
     /// Arrive `index` steps into the cascade. See `NotchEntrance`.
     func notchEntrance(_ index: Int) -> some View {
@@ -221,6 +260,28 @@ enum Metrics {
     static func radius(expanded: Bool) -> CGFloat {
         expanded ? panelRadius : collapsedRadius
     }
+
+    /// Concave fillet where the surface meets the top screen edge — the flare
+    /// that makes the panel read as poured out of the bezel rather than a
+    /// rectangle stuck to it. Drawn *outside* the surface's frame, so it
+    /// changes nothing about layout or hit-testing.
+    ///
+    /// Zero while idle on a hardware notch: there the strip must be exactly
+    /// the cutout, and any fillet would be black drawn over the menu bar.
+    static func shoulder(for state: PanelState, hardwareNotch: Bool) -> CGFloat {
+        switch state {
+        case .expanded:  expandedShoulder
+        case .peek:      peekShoulder
+        case .collapsed: hardwareNotch ? 0 : peekShoulder
+        }
+    }
+
+    /// How much the surface grows while the pointer is deciding. Enough to
+    /// see, small enough that it never reads as the panel starting to open.
+    static let swell = CGSize(width: 8, height: 3)
+
+    static let peekShoulder: CGFloat = 6
+    static let expandedShoulder: CGFloat = 10
 
     /// Inner card radius, concentric with a parent of `parent` radius at
     /// `inset` points in.
@@ -393,6 +454,43 @@ extension Color {
         let g = Int((ns.greenComponent * 255).rounded())
         let b = Int((ns.blueComponent * 255).rounded())
         return String(format: "#%02X%02X%02X", r, g, b)
+    }
+}
+
+/// What opens the panel from the pointer.
+///
+/// `hover` is the default and waits a beat before opening, so a trip to the
+/// menu bar that happens to cross the notch doesn't pop the panel open. The
+/// wait is filled with a small swell, so it reads as the notch noticing you
+/// rather than as lag. `instant` is the old behaviour; `click` swells on hover
+/// and waits for a click.
+enum OpenTrigger: String, CaseIterable, Identifiable {
+    case hover, instant, click
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .hover:   "Hover"
+        case .instant: "Hover instantly"
+        case .click:   "Click"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .hover:   "Opens after a moment's pause, so passing the notch on the way to the menu bar doesn't open it."
+        case .instant: "Opens the moment the pointer touches the notch."
+        case .click:   "The notch swells when you point at it, and opens when you click."
+        }
+    }
+
+    /// How long the pointer must stay before a hover opens the panel.
+    var intentDelay: TimeInterval? {
+        switch self {
+        case .hover:   0.12
+        case .instant: 0
+        case .click:   nil   // never on hover
+        }
     }
 }
 

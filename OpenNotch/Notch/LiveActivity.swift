@@ -103,6 +103,16 @@ final class LiveActivityCenter: ObservableObject {
     /// What the notch should actually draw.
     var showing: LiveActivity? { current ?? resident }
 
+    /// A level readout was pushed past its stop — volume up at 100%, down at
+    /// 0. `count` only exists to change on every push, so a held key replays
+    /// the stretch; `direction` is +1 at the top, -1 at the bottom.
+    struct LimitPush: Equatable { var count = 0; var direction = 1 }
+    @Published private(set) var limitPush = LimitPush()
+
+    func pushAgainstLimit(_ direction: Int) {
+        limitPush = LimitPush(count: limitPush.count + 1, direction: direction)
+    }
+
     private var expiry: DispatchWorkItem?
 
     func present(_ activity: LiveActivity) {

@@ -91,8 +91,21 @@ final class NowPlayingManager: ObservableObject {
     // MARK: - Transport
 
     func togglePlayPause() { adapter?.send(.togglePlayPause) }
-    func next()            { adapter?.send(.nextTrack) }
-    func previous()        { adapter?.send(.previousTrack) }
+    func next()            { noteSkip(1);  adapter?.send(.nextTrack) }
+    func previous()        { noteSkip(-1); adapter?.send(.previousTrack) }
+
+    /// Which way the next track change should travel: +1 for forward, -1 for
+    /// back. Only our own buttons know, so a skip is remembered for a few
+    /// seconds and anything else — a media key, the app itself — reads as
+    /// forward, which is what an unprompted change almost always is.
+    var skipDirection: Int { Date() < skipValidUntil ? lastSkip : 1 }
+    private var lastSkip = 1
+    private var skipValidUntil = Date.distantPast
+
+    private func noteSkip(_ direction: Int) {
+        lastSkip = direction
+        skipValidUntil = Date().addingTimeInterval(3)
+    }
 
     /// Interpolated current playback position, in seconds. Read this from a
     /// TimelineView so the progress bar advances smoothly between updates.

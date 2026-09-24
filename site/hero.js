@@ -127,6 +127,7 @@
 
     const NOTCH_W = 200, NOTCH_H = 32, MEDIA_WING = 46, ACT_WING = 64;
     const R_COL = 10, R_EXP = 26;
+    const S_COL = 6, S_EXP = 10;   // Metrics.shoulder: peek / expanded
     const ORDER = ["music", "shelf", "clipboard", "volume", "timer"];
     const HOLD = { music: 4400, shelf: 3800, clipboard: 3600, volume: 3000, timer: 3400 };
 
@@ -159,6 +160,7 @@
       hn.style.setProperty("--w", w);
       hn.style.setProperty("--h", h);
       hn.style.setProperty("--r", r);
+      hn.style.setProperty("--s", mode === "panel" ? S_EXP : S_COL);
       stage.dataset.mode = mode;
       cur = { w, h };
     }
