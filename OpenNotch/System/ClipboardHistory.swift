@@ -94,6 +94,17 @@ struct ClipItem: Identifiable, Equatable {
         }
     }
 
+    /// What a row shows while it might be on someone else's screen: the kind
+    /// of thing, never the thing. The count is dropped too — "8 chars" next to
+    /// a login form says more than it should.
+    var redactedPreview: String {
+        switch kind {
+        case .text(let s):  s.looksLikeURL ? "Link" : "Text"
+        case .image:        "Image"
+        case .files(let u): u.count == 1 ? "File" : "\(u.count) files"
+        }
+    }
+
     /// Right-hand label — what kind of thing this is, at a glance.
     var detail: String {
         switch kind {

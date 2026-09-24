@@ -28,6 +28,17 @@ final class AppSettings: ObservableObject {
     @Published var showDeviceEvents: Bool {
         didSet { save(showDeviceEvents, "showDeviceEvents") }
     }
+
+    /// Keep the panel out of screenshots, recordings and screen sharing
+    /// (`NSWindow.sharingType = .none`). Best effort: macOS 15 and later let
+    /// ScreenCaptureKit capture such windows anyway, so this is paired with
+    /// `blurClipboardInCalls`, which doesn't depend on the capturer's goodwill.
+    @Published var hideFromCapture: Bool { didSet { save(hideFromCapture, "hideFromCapture") } }
+    /// Reduce clipboard rows to their kind while the microphone is in use —
+    /// the moment you are most likely to be sharing your screen.
+    @Published var blurClipboardInCalls: Bool {
+        didSet { save(blurClipboardInCalls, "blurClipboardInCalls") }
+    }
     @Published var launchAtLogin: Bool { didSet { applyLaunchAtLogin() } }
 
     /// A global shortcut that opens and closes the panel. On by default:
@@ -149,6 +160,8 @@ final class AppSettings: ObservableObject {
             "showHUD": true,
             "showBattery": true,
             "showDeviceEvents": true,
+            "hideFromCapture": false,
+            "blurClipboardInCalls": true,
             "hotKeyEnabled": true,
             "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
             "useGlass": true,
@@ -173,6 +186,8 @@ final class AppSettings: ObservableObject {
         ])
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
+        hideFromCapture = defaults.bool(forKey: "hideFromCapture")
+        blurClipboardInCalls = defaults.bool(forKey: "blurClipboardInCalls")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")
         showTimer = defaults.bool(forKey: "showTimer")

@@ -89,4 +89,12 @@ func testClipItemPresentation() {
 
     expect(text("abc").detail == "3 chars", "text reports its length")
     expect(text("a").detail == "1 char", "one character is singular")
+
+    // Redacted rows, for while the screen may be shared.
+    expect(text("hunter2").redactedPreview == "Text", "redacted text shows only its kind")
+    expect(!text("hunter2").redactedPreview.contains("7"), "and not even its length")
+    expect(text("https://example.com/reset?token=abc").redactedPreview == "Link", "links say link")
+    expect(one.redactedPreview == "File", "a file's name is hidden")
+    expect(many.redactedPreview == "2 files", "a count of files gives nothing away")
+    expect(image().redactedPreview == "Image", "images say image")
 }

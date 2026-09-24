@@ -16,6 +16,11 @@ struct ClipboardList: View {
     /// without this the click reads as a no-op.
     @State private var justCopied: UUID?
     @State private var resetTask: Task<Void, Never>?
+    @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var calls = CallMonitor.shared
+
+    /// Rows show only their kind while a call is likely — see `CallMonitor`.
+    private var redacted: Bool { settings.blurClipboardInCalls && calls.micInUse }
 
     private var visible: [ClipItem] {
         compact ? Array(clipboard.items.prefix(4)) : clipboard.items
@@ -34,7 +39,8 @@ struct ClipboardList: View {
                             ClipboardRow(
                                 item: item,
                                 copied: justCopied == item.id,
-                                compact: compact
+                                compact: compact,
+                                redacted: redacted
                             ) {
                                 copy(item)
                             }
@@ -107,6 +113,7 @@ private struct ClipboardRow: View {
     let item: ClipItem
     let copied: Bool
     let compact: Bool
+    let redacted: Bool
     let action: () -> Void
 
     @State private var hovering = false
@@ -117,14 +124,15 @@ private struct ClipboardRow: View {
             HStack(spacing: Metrics.Spacing.snug) {
                 leading
 
-                Text(copied ? "Copied" : item.preview)
+                Text(copied ? "Copied" : shown)
                     .font(Typography.caption())
-                    .foregroundStyle(copied ? .white : Ink.primary)
+                    .foregroundStyle(copied ? .white : (redacted ? Ink.tertiary : Ink.primary))
+                    .contentTransition(.opacity)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if !compact && !copied {
+                if !compact && !copied && !redacted {
                     Text(item.detail)
                         .font(Typography.micro())
                         .foregroundStyle(Ink.quaternary)
@@ -140,7 +148,7 @@ private struct ClipboardRow: View {
             .contentShape(.rect(cornerRadius: 8))
         }
         .buttonStyle(PressableButtonStyle())
-        .help(copied ? "Copied" : "Copy again: \(item.preview)")
+        .help(copied ? "Copied" : "Copy again: \(shown)")
         .accessibilityHint("Copies it again")
         .onHover { inside in
             withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
@@ -148,6 +156,8 @@ private struct ClipboardRow: View {
             }
         }
     }
+
+    private var shown: String { redacted ? item.redactedPreview : item.preview }
 
     /// A thumbnail where there is one, the type glyph otherwise. Both occupy
     /// the same box so the text column starts at the same x on every row.
@@ -164,6 +174,9 @@ private struct ClipboardRow: View {
                     .resizable()
                     .scaledToFill()
                     .frame(width: 16, height: 16)
+                    // 16pt is small, but a recognisable screenshot or photo
+                    // is still recognisable at 16pt.
+                    .blur(radius: redacted ? 4 : 0, opaque: true)
                     .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
             } else {
                 Image(systemName: item.symbol)
@@ -173,5 +186,6 @@ private struct ClipboardRow: View {
         }
         .frame(width: 16, height: 16)
         .animation(Motion.micro, value: copied)
+        .animation(Motion.contentFade, value: redacted)
     }
 }

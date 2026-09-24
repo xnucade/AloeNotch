@@ -38,6 +38,12 @@ final class NotchWindowController {
         // Layout changes both dimensions, so the window has to follow. Without
         // this, switching to the focused layout would draw a taller panel
         // inside a window still sized for the shorter one and clip it.
+        // Applied live, so it can be switched on just before a share.
+        settings.$hideFromCapture
+            .dropFirst()
+            .sink { [weak self] hide in self?.panel?.sharingType = hide ? .none : .readOnly }
+            .store(in: &cancellables)
+
         settings.$panelLayout
             .dropFirst()
             .removeDuplicates()
@@ -73,6 +79,7 @@ final class NotchWindowController {
         host.autoresizingMask = [.width, .height]
 
         panel.contentView = host
+        panel.sharingType = settings.hideFromCapture ? .none : .readOnly
         panel.setFrame(frame, display: true)
 
         self.panel = panel

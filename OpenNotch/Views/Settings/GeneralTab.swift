@@ -116,7 +116,21 @@ struct GeneralTab: View {
                 }
             }
 
-            SettingsSection("Onboarding", index: 3) {
+            SettingsSection("Screen sharing", index: 3) {
+                SettingsRow("Hide from screen captures", symbol: "rectangle.dashed.badge.record",
+                            description: "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS.") {
+                    Toggle("", isOn: $settings.hideFromCapture).labelsHidden()
+                }
+
+                SettingsDivider()
+
+                SettingsRow("Hide clipboard during calls", symbol: "eye.slash",
+                            description: "While your microphone is in use, clipboard rows show only what kind of thing they are.") {
+                    Toggle("", isOn: $settings.blurClipboardInCalls).labelsHidden()
+                }
+            }
+
+            SettingsSection("Onboarding", index: 4) {
                 SettingsRow("Welcome screen", symbol: "sparkles",
                             description: "The first-run introduction, including the hover demo.",
                             highlightsOnHover: true) {
