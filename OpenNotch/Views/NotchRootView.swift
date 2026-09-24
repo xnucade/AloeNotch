@@ -23,7 +23,36 @@ struct NotchRootView: View {
     /// Peek the now-playing glyph out beside the notch while something plays.
     /// Now read from the state machine rather than re-derived here, so the
     /// drawn surface and the clickable region can't disagree.
-    private var showMediaGlyph: Bool { state == .peek(.media) }
+    private var showMediaGlyph: Bool { state.showsMedia }
+
+    /// The bubble keeps its last size while it merges back, so it doesn't
+    /// change width on its way under the strip.
+    @State private var lastBubble: PanelState.ActivitySize = .regular
+
+    private var splitBubble: some View {
+        let size = state.bubble ?? lastBubble
+        let width = NotchMetrics.bubbleWidth(size)
+        let split = state.bubble != nil
+        let reduceMotion = a11y.reduceMotion
+        // Reduce Motion: no travel, no bridge — it sits at rest and fades.
+        let gap = split || reduceMotion ? NotchMetrics.bubbleGap : -width
+        return SplitBubble(
+            gap: gap,
+            width: width,
+            height: stripHeight,
+            radius: Metrics.collapsedRadius,
+            activity: viewModel.activities.resident,
+            center: viewModel.activities,
+            onHover: { viewModel.hoverChanged($0) },
+            onTap: { viewModel.notchClicked() }
+        )
+        .opacity(reduceMotion && !split ? 0 : 1)
+        .allowsHitTesting(split)
+        .animation(Motion.resolve(Motion.detach, reduceMotion: reduceMotion), value: split)
+        // Leading edge on the strip's trailing edge.
+        .alignmentGuide(.trailing) { _ in 0 }
+        .onChange(of: state.bubble) { _, new in if let new { lastBubble = new } }
+    }
 
     /// The surface's current on-screen size, straight from the one function
     /// that decides it (`NotchMetrics.size(for:)`).
@@ -152,6 +181,8 @@ struct NotchRootView: View {
         // collapsing left the outgoing panel ghosted at full width outside the
         // notch.) This also keeps inner light effects inside the panel.
         .clipShape(NotchShape(cornerRadius: radius, shoulder: shoulder))
+        // Behind the strip, so it emerges from under it rather than on top.
+        .background(alignment: .topTrailing) { splitBubble }
         // Glow lives outside the clip so its bloom can still extend past the edge.
         .background {
             if settings.ambientGlow {
@@ -497,7 +528,7 @@ private struct ActivityContent: View {
 
                 Spacer(minLength: deadZone)
 
-                trailing(activity)
+                ActivityTrailing(activity: activity, center: center)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             // Keyed on kind, not id: a volume readout replacing a volume
@@ -515,9 +546,17 @@ private struct ActivityContent: View {
             }
         }
     }
+}
 
-    @ViewBuilder
-    private func trailing(_ activity: LiveActivity) -> some View {
+/// What an activity shows beside its symbol: a level bar, a short value or a
+/// live countdown. Its own view so the split island's bubble draws exactly
+/// what the full strip would.
+struct ActivityTrailing: View {
+    let activity: LiveActivity
+    @ObservedObject var center: LiveActivityCenter
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    var body: some View {
         switch activity.trailing {
         case .none:
             EmptyView()

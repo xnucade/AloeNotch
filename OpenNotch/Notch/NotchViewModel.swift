@@ -408,6 +408,7 @@ final class NotchViewModel: ObservableObject {
             isHovering: isHovering,
             isPinned: isPinnedOpen,
             activity: activities.showing?.size,
+            activityIsResident: activities.showing?.isResident ?? false,
             mediaPlaying: media.isPlaying,
             showMedia: settings.showMedia
         ))
@@ -484,7 +485,9 @@ final class NotchViewModel: ObservableObject {
     private func isShrinking(from old: PanelState, to new: PanelState) -> Bool {
         guard let metrics else { return old.isExpanded && !new.isExpanded }
         let a = metrics.size(for: old), b = metrics.size(for: new)
-        return b.width < a.width || b.height < a.height
+        let aw = a.width + metrics.bubbleExtent(for: old)
+        let bw = b.width + metrics.bubbleExtent(for: new)
+        return bw < aw || b.height < a.height
     }
 
     // How long to hold the outgoing hit region, per transition. Each sits just

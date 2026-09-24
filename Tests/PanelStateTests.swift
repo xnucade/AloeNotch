@@ -65,6 +65,28 @@ func testPanelState() {
     expect(!PanelState.peek(.media).isExpanded, "media peek is not expanded")
     expect(!PanelState.peek(.activity(.wide)).isExpanded, "activity peek is not expanded")
 
+    // The split island. Only a resident activity shares with media; an
+    // announcement still takes the whole strip, and the bubble is gone.
+    expect(state(I(activity: .regular, activityIsResident: true, mediaPlaying: true))
+           == .peek(.split(.regular)),
+           "timer + music splits the island instead of hiding the music")
+    expect(state(I(activity: .regular, activityIsResident: true)) == .peek(.activity(.regular)),
+           "a resident alone is a plain activity peek")
+    expect(state(I(activity: .wide, activityIsResident: false, mediaPlaying: true))
+           == .peek(.activity(.wide)),
+           "an announcement over music takes the whole strip")
+    expect(state(I(activity: .regular, activityIsResident: true, mediaPlaying: true, showMedia: false))
+           == .peek(.activity(.regular)),
+           "media disabled means nothing to split with")
+    expect(state(I(isHovering: true, activity: .regular, activityIsResident: true, mediaPlaying: true))
+           == .expanded,
+           "hover beats a split")
+    expect(PanelState.peek(.split(.wide)).bubble == .wide, "split carries the bubble size")
+    expect(PanelState.peek(.activity(.wide)).bubble == nil, "no bubble outside a split")
+    expect(PanelState.peek(.split(.regular)).showsMedia && PanelState.peek(.media).showsMedia,
+           "split keeps the media peek in the strip")
+    expect(!PanelState.peek(.activity(.regular)).showsMedia, "an activity peek doesn't show media")
+
     // Peek kinds are distinct — they map to different strip widths, and
     // collapsing two of them would size the strip wrongly.
     expect(PanelState.peek(.media) != PanelState.peek(.activity(.compact)),

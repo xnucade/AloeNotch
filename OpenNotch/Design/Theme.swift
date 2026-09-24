@@ -63,6 +63,15 @@ enum Motion {
     /// cannot carry any at all.
     static var collapse: Animation { .smooth(duration: scaled(0.32)) }
 
+    /// The split island's bubble pinching off and merging back. Longer than
+    /// `hud` because the bubble actually travels, and bouncier than the
+    /// user's setting: the pinch only reads if the bubble arrives with
+    /// momentum. Overshoot is safe in both directions — out, it carries the
+    /// bubble away from the strip; in, it happens behind the strip.
+    static var detach: Animation {
+        .smooth(duration: scaled(0.52), extraBounce: min(0.4, bounce + 0.14))
+    }
+
     /// Transient readouts and the collapsed strip's width changes (wings
     /// growing for media or a HUD). Quicker, because nothing is travelling far.
     static var hud: Animation { .smooth(duration: scaled(0.28)) }

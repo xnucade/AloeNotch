@@ -89,12 +89,14 @@ final class NotchWindowController {
         guard let host = hostingView else { return .zero }
         let bounds = host.bounds
         let size = metrics.size(for: viewModel.hitTestState)
+        // A split island's bubble sits off the strip's right edge.
+        let bubble = metrics.bubbleExtent(for: viewModel.hitTestState)
         // NSHostingView is flipped (top-left origin), so "top" depends on the
         // flipped state.
         return CGRect(
             x: bounds.midX - size.width / 2,
             y: host.isFlipped ? bounds.minY : bounds.maxY - size.height,
-            width: size.width,
+            width: size.width + bubble,
             height: size.height
         )
     }

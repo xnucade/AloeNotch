@@ -29,6 +29,29 @@ struct NotchMetrics {
         }
     }
 
+    /// The detached bubble of a split island, by the room its activity asked
+    /// for. Same height as the strip so the two read as one material.
+    static func bubbleWidth(_ size: PanelState.ActivitySize) -> CGFloat {
+        switch size {
+        case .compact: 36
+        case .regular: 74
+        case .wide:    94
+        }
+    }
+
+    /// Air between the strip and the bubble at rest. Wide enough to read as
+    /// two things even where the strip's shoulder flares into it at the
+    /// bezel, close enough to read as siblings.
+    static let bubbleGap: CGFloat = 9
+
+    /// How far the bubble reaches past the strip's trailing edge, or 0. The
+    /// hit-test rect grows by this on the right so hovering the bubble opens
+    /// the panel like hovering the strip does.
+    func bubbleExtent(for state: PanelState) -> CGFloat {
+        guard let size = state.bubble else { return 0 }
+        return Self.bubbleGap + Self.bubbleWidth(size)
+    }
+
     /// On-screen size of the notch surface in a given state.
     ///
     /// Single source of truth: the SwiftUI frame and the window's hit-test rect
@@ -43,7 +66,7 @@ struct NotchMetrics {
         case .peek(let kind):
             guard hasHardwareNotch else { return notchSize }
             let wing: CGFloat = switch kind {
-            case .media:              Self.mediaWingWidth
+            case .media, .split:      Self.mediaWingWidth
             case .activity(let size): Self.activityWingWidth(size)
             }
             return CGSize(width: notchSize.width + wing * 2, height: notchSize.height)

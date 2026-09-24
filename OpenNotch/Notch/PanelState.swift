@@ -27,6 +27,11 @@ enum PanelState: Equatable {
         /// room it needs, not what it is: the state machine decides *how big*
         /// the strip should be, and the activity itself decides what goes in it.
         case activity(ActivitySize)
+        /// Two things at once: media keeps the island, and a resident
+        /// activity (a running timer) pinches off beside it as its own
+        /// bubble. The size is the bubble's, not the strip's — the strip is
+        /// always the media peek.
+        case split(ActivitySize)
     }
 
     /// How much wing a transient announcement needs. Three steps rather than a
@@ -43,6 +48,19 @@ enum PanelState: Equatable {
 
     var isExpanded: Bool { self == .expanded }
 
+    /// The detached bubble's size, when there is one.
+    var bubble: ActivitySize? {
+        if case .peek(.split(let size)) = self { size } else { nil }
+    }
+
+    /// Whether the main strip is showing the media peek (alone or split).
+    var showsMedia: Bool {
+        switch self {
+        case .peek(.media), .peek(.split): true
+        default: false
+        }
+    }
+
     /// Short name for diagnostics.
     var debugName: String {
         switch self {
@@ -51,6 +69,9 @@ enum PanelState: Equatable {
         case .peek(.activity(.compact)):  "peek(activity/compact)"
         case .peek(.activity(.regular)):  "peek(activity/regular)"
         case .peek(.activity(.wide)):     "peek(activity/wide)"
+        case .peek(.split(.compact)):     "peek(split/compact)"
+        case .peek(.split(.regular)):     "peek(split/regular)"
+        case .peek(.split(.wide)):        "peek(split/wide)"
         case .expanded:                   "expanded"
         }
     }
@@ -76,17 +97,24 @@ enum PanelStateReducer {
         /// announcement it is does not matter here — the queue in
         /// `LiveActivityCenter` has already picked a winner.
         var activity: PanelState.ActivitySize?
+        /// The activity is a resident one — true until something stops being
+        /// true (a timer running) — rather than an announcement. Only a
+        /// resident can share the strip with media; an announcement is brief
+        /// and time-critical, so it takes the whole strip.
+        var activityIsResident = false
         var mediaPlaying = false
         var showMedia = true
 
         init(isHovering: Bool = false,
              isPinned: Bool = false,
              activity: PanelState.ActivitySize? = nil,
+             activityIsResident: Bool = false,
              mediaPlaying: Bool = false,
              showMedia: Bool = true) {
             self.isHovering = isHovering
             self.isPinned = isPinned
             self.activity = activity
+            self.activityIsResident = activityIsResident
             self.mediaPlaying = mediaPlaying
             self.showMedia = showMedia
         }
@@ -102,10 +130,16 @@ enum PanelStateReducer {
     ///    the track to change has stopped being news.
     /// 3. **Media** — ambient and long-lived; it can wait, and it comes back on
     ///    its own once the transient state clears.
+    ///
+    /// Except that 2 and 3 can share: a *resident* activity alongside media
+    /// splits the island rather than hiding the music until the timer ends.
     static func state(for i: Inputs) -> PanelState {
         if i.isHovering || i.isPinned { return .expanded }
-        if let size = i.activity { return .peek(.activity(size)) }
-        if i.showMedia && i.mediaPlaying { return .peek(.media) }
+        let media = i.showMedia && i.mediaPlaying
+        if let size = i.activity {
+            return i.activityIsResident && media ? .peek(.split(size)) : .peek(.activity(size))
+        }
+        if media { return .peek(.media) }
         return .collapsed
     }
 }
