@@ -3,6 +3,8 @@ import SwiftUI
 /// What this is, whether it is current, and where to go from here.
 struct AboutTab: View {
     @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var diagnostics = Diagnostics.shared
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: SettingsMetrics.sectionGap) {
@@ -37,6 +39,17 @@ struct AboutTab: View {
                 SettingsDivider()
                 linkRow("Report an issue", "exclamationmark.bubble",
                         "https://github.com/xnucade/AloeNotch/issues/new")
+                SettingsDivider()
+                SettingsRow("Diagnostic report", symbol: "stethoscope",
+                            description: diagnosticsDetail) {
+                    Button(copied ? "Copied" : "Copy") {
+                        diagnostics.copyReport()
+                        copied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
+                    }
+                    .controlSize(.small)
+                    .glassButtonStyle(settings.useGlass)
+                }
             }
 
             SettingsSection(index: 3) {
@@ -78,6 +91,12 @@ struct AboutTab: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private var diagnosticsDetail: String {
+        let n = diagnostics.reportCount
+        let held = n == 0 ? "No crash reports so far." : n == 1 ? "1 crash or hang report." : "\(n) crash or hang reports."
+        return "\(held) Copies your version and any reports, to paste into an issue. Never sent anywhere."
     }
 
     private var version: String {

@@ -23,6 +23,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         source.resume()
         sigtermSource = source
 
+        Diagnostics.shared.start()
+
         let vm = NotchViewModel()
         vm.onOpenSettings = { [weak self] in self?.showSettings() }
         let controller = NotchWindowController(viewModel: vm)
