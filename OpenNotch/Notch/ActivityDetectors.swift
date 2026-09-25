@@ -42,19 +42,41 @@ final class ActivityDetectors {
     /// anything — unlike Bluetooth APIs, which prompt.
     private func startAudioOutput() {
         audio.onChange = { [weak self] name in
-            self?.center.present(LiveActivity(
-                kind: "system.audioOutput",
-                symbol: Self.symbol(forOutput: name),
-                tint: .white,
-                title: name,
-                spokenName: "Sound now on \(name)",
-                trailing: .none,
-                size: .wide,
-                duration: 2.2,
-                priority: LiveActivity.Priority.ambient
-            ))
+            guard let self else { return }
+            let activity = Self.outputActivity(name, battery: nil)
+            self.center.present(activity)
+            self.fetchBattery(for: name, showing: activity.id)
         }
         audio.start()
+    }
+
+    private static func outputActivity(_ name: String, battery: HeadphoneBatteryReading?) -> LiveActivity {
+        LiveActivity(
+            kind: "system.audioOutput",
+            symbol: symbol(forOutput: name),
+            tint: .white,
+            title: name,
+            spokenName: "Sound now on \(name)",
+            trailing: battery?.summary.map { .text($0) } ?? .none,
+            size: .wide,
+            duration: battery == nil ? 2.2 : 2.6,
+            priority: LiveActivity.Priority.ambient
+        )
+    }
+
+    /// A headset reports its levels a moment after it connects, so ask a few
+    /// times over the first couple of seconds, and fill the readout in only
+    /// while its announcement is still the one showing.
+    private func fetchBattery(for name: String, showing id: UUID) {
+        let battery = HeadphoneBattery.shared
+        guard AppSettings.shared.showHeadphoneBattery, battery.isAuthorized else { return }
+        for delay in [0.3, 0.9, 1.6] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self, self.center.current?.id == id,
+                      let reading = battery.reading(forDeviceNamed: name) else { return }
+                self.center.present(Self.outputActivity(name, battery: reading))
+            }
+        }
     }
 
     /// Best-effort glyph for a device name. Falls back to a speaker rather than

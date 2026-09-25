@@ -29,6 +29,12 @@ final class AppSettings: ObservableObject {
         didSet { save(showDeviceEvents, "showDeviceEvents") }
     }
 
+    /// Battery levels in the "connected" announcement for AirPods and Beats.
+    /// Off by default: it needs Bluetooth access. See `HeadphoneBattery`.
+    @Published var showHeadphoneBattery: Bool {
+        didSet { save(showHeadphoneBattery, "showHeadphoneBattery") }
+    }
+
     /// Keep the panel out of screenshots, recordings and screen sharing
     /// (`NSWindow.sharingType = .none`). Best effort: macOS 15 and later let
     /// ScreenCaptureKit capture such windows anyway, so this is paired with
@@ -170,6 +176,7 @@ final class AppSettings: ObservableObject {
             "showBattery": true,
             "showDeviceEvents": true,
             "hideFromCapture": false,
+            "showHeadphoneBattery": false,
             "blurClipboardInCalls": true,
             "hotKeyEnabled": true,
             "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
@@ -196,6 +203,7 @@ final class AppSettings: ObservableObject {
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
+        showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
         blurClipboardInCalls = defaults.bool(forKey: "blurClipboardInCalls")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")

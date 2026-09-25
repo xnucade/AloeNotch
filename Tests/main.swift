@@ -28,6 +28,7 @@ testMotionPersonality()
 testHUDContrast()
 testSwipeTracker()
 testDisplayChoice()
+testHeadphoneBattery()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

@@ -36,6 +36,7 @@ SOURCES=(
     OpenNotch/Design/MotionPersonality.swift
     OpenNotch/Notch/SwipeTracker.swift
     OpenNotch/Notch/DisplayChoice.swift
+    OpenNotch/System/HeadphoneBatteryReading.swift
 )
 
 TESTS=(Tests/*.swift)

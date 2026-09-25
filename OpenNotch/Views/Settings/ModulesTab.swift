@@ -10,6 +10,7 @@ import SwiftUI
 struct ModulesTab: View {
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var a11y = AccessibilityPreferences.shared
+    @ObservedObject private var battery = HeadphoneBattery.shared
 
     /// Replacing the macOS HUD means swallowing the volume/brightness keys,
     /// which needs Accessibility. Until it's granted we leave the system HUD be.
@@ -68,9 +69,40 @@ struct ModulesTab: View {
                             description: "A brief note in the notch when headphones connect or a drive mounts or ejects.") {
                     Toggle("", isOn: $settings.showDeviceEvents).labelsHidden()
                 }
+
+                if settings.showDeviceEvents {
+                    SettingsDivider()
+
+                    SettingsRow("Headphone battery", symbol: "battery.75percent",
+                                description: batteryDetail) {
+                        Toggle("", isOn: batteryBinding).labelsHidden()
+                    }
+                }
             }
             .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
                        value: settings.showHUD)
+            .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+                       value: settings.showDeviceEvents)
+        }
+    }
+
+    /// Turning battery on is what asks for Bluetooth access — never before.
+    private var batteryBinding: Binding<Bool> {
+        Binding(
+            get: { settings.showHeadphoneBattery && battery.authorization != .denied },
+            set: { on in
+                settings.showHeadphoneBattery = on
+                if on { battery.requestAccess() }
+            }
+        )
+    }
+
+    private var batteryDetail: String {
+        switch battery.authorization {
+        case .denied, .restricted:
+            return "Bluetooth access is off for AloeNotch. Turn it on in System Settings › Privacy & Security › Bluetooth."
+        default:
+            return "Show AirPods and Beats battery when they connect. Asks for Bluetooth access."
         }
     }
 

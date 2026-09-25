@@ -24,6 +24,8 @@
 	<string>AppIcon</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>AloeNotch reads your headphones' battery level to show it when they connect. Only if you turn on Headphone battery in Settings.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>AloeNotch shows your upcoming events in the notch panel.</string>
 	<key>NSLocationUsageDescription</key>
