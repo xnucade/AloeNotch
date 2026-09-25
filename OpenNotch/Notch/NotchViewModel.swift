@@ -119,6 +119,7 @@ final class NotchViewModel: ObservableObject {
     var onOpenSettings: (() -> Void)?
 
     let media = NowPlayingManager()
+    let lyrics = LyricsProvider()
     let tray = TrayModel()
     let battery = BatteryMonitor()
     let calendar = CalendarModel()
@@ -149,6 +150,7 @@ final class NotchViewModel: ObservableObject {
 
     init() {
         media.start()
+        lyrics.attach(to: media)
         battery.start()
 
         // Calendar and weather follow their toggles so a disabled feature does

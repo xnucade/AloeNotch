@@ -35,6 +35,12 @@ final class AppSettings: ObservableObject {
         didSet { save(showHeadphoneBattery, "showHeadphoneBattery") }
     }
 
+    /// The current line of synced lyrics under the track title. Off by
+    /// default: it sends the track's name to LRCLIB. See `LyricsProvider`.
+    @Published var showLyrics: Bool {
+        didSet { save(showLyrics, "showLyrics") }
+    }
+
     /// Keep the panel out of screenshots, recordings and screen sharing
     /// (`NSWindow.sharingType = .none`). Best effort: macOS 15 and later let
     /// ScreenCaptureKit capture such windows anyway, so this is paired with
@@ -177,6 +183,7 @@ final class AppSettings: ObservableObject {
             "showDeviceEvents": true,
             "hideFromCapture": false,
             "showHeadphoneBattery": false,
+            "showLyrics": false,
             "blurClipboardInCalls": true,
             "hotKeyEnabled": true,
             "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
@@ -204,6 +211,7 @@ final class AppSettings: ObservableObject {
         showMedia = defaults.bool(forKey: "showMedia")
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
         showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
+        showLyrics = defaults.bool(forKey: "showLyrics")
         blurClipboardInCalls = defaults.bool(forKey: "blurClipboardInCalls")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")

@@ -770,7 +770,7 @@ private struct ExpandedContent: View {
 
             HStack(alignment: .center, spacing: Metrics.Spacing.loose) {
                 if settings.showMedia {
-                    MediaView(media: viewModel.media, morph: morph)
+                    MediaView(media: viewModel.media, lyrics: viewModel.lyrics, morph: morph)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .notchEntrance(Slot.media.rawValue)
                 }

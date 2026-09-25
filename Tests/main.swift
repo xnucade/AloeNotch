@@ -29,6 +29,7 @@ testHUDContrast()
 testSwipeTracker()
 testDisplayChoice()
 testHeadphoneBattery()
+testSyncedLyrics()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

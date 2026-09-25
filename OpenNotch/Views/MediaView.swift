@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MediaView: View {
     @ObservedObject var media: NowPlayingManager
+    @ObservedObject var lyrics: LyricsProvider
     /// Namespace for the matched artwork pair, owned by NotchRootView.
     let morph: Namespace.ID
     @Environment(\.notchReduceMotion) private var reduceMotion
@@ -13,10 +14,11 @@ struct MediaView: View {
                 if media.isAvailable && media.current.hasContent {
                     VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                         MarqueeText(text: media.current.title, font: Typography.title())
-                        Text(media.current.artist)
-                            .font(Typography.caption())
-                            .foregroundStyle(Ink.secondary)
-                            .lineLimit(1)
+                        if let lyrics = lyrics.lyrics {
+                            LyricLine(media: media, lyrics: lyrics)
+                        } else {
+                            artistLine(media.current.artist)
+                        }
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
                     .accessibilityElement(children: .combine)
@@ -51,6 +53,13 @@ struct MediaView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .animation(Motion.contentFade, value: media.current)
+    }
+
+    private func artistLine(_ artist: String) -> some View {
+        Text(artist)
+            .font(Typography.caption())
+            .foregroundStyle(Ink.secondary)
+            .lineLimit(1)
     }
 
     private var artwork: some View {
@@ -136,6 +145,34 @@ struct MediaView: View {
 
 /// Plain transport button that brightens and scales slightly on hover, with a
 /// press-down squish — the small physical touches Apple's own controls have.
+/// The line being sung, in the artist's place — which it hands back during
+/// an intro or an instrumental break. Each new line rises in the way a
+/// skipped track's title does. Ticks only while playing.
+private struct LyricLine: View {
+    @ObservedObject var media: NowPlayingManager
+    let lyrics: SyncedLyrics
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 0.2, paused: !media.isPlaying)) { _ in
+            let line = lyrics.line(at: media.liveElapsed())
+            ZStack(alignment: .leading) {
+                Text(line?.text ?? media.current.artist)
+                    .font(Typography.caption(line == nil ? .regular : .medium))
+                    .foregroundStyle(line == nil ? Ink.secondary : Ink.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .id(line?.time ?? -1)
+                    .transition(.textSkip(reduceMotion: reduceMotion))
+            }
+            .animation(Motion.contentFade, value: line?.time)
+        }
+        // Read the artist, not a line that will have moved on by the time
+        // VoiceOver finishes it.
+        .accessibilityRepresentation { Text(media.current.artist) }
+    }
+}
+
 private struct TransportButton: View {
     let symbol: String
     var size: CGFloat = 13
