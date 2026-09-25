@@ -24,6 +24,8 @@
 	<string>AppIcon</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>AloeNotch measures how loud the music is to move its equalizer bars. Audio is never recorded or kept. Only if you turn on Live equalizer in Settings.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>AloeNotch reads your headphones' battery level to show it when they connect. Only if you turn on Headphone battery in Settings.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>

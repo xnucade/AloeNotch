@@ -35,7 +35,7 @@
   <main class="legal">
     <a class="back" href="/">← Back to AloeNotch</a>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: July 19, 2026</p>
+    <p class="updated">Last updated: September 24, 2026</p>
 
     <p>AloeNotch (“the app”) is a macOS menu bar app made by Kade’s Lab (“we”,
     “us”). We built it to be private by default: it has no accounts, no
@@ -44,9 +44,9 @@
 
     <h2>The short version</h2>
     <p>Everything AloeNotch shows you — now playing, your calendar, battery, and
-    files on the shelf — is read on your Mac and stays on your Mac. The only
-    time any data leaves your device is to fetch the weather, and even then it’s
-    just an approximate location sent to a weather service. We never see your
+    files on the shelf — is read on your Mac and stays on your Mac. Data leaves
+    your device only for features you turn on: an approximate location for the
+    weather, and a song’s name if you turn on lyrics. We never see your
     data, because none of it is sent to us. We don’t operate servers that
     receive your information.</p>
 
@@ -55,7 +55,19 @@
       <li><strong>Now playing.</strong> The app reads the title, artist, artwork,
       and playback state of whatever your Mac is currently playing (Apple Music,
       Spotify, a browser tab, etc.) so it can display it and offer play/pause
-      controls. This is read locally and is never transmitted anywhere.</li>
+      controls. This is read locally and is not transmitted, unless you turn on
+      lyrics (see below).</li>
+      <li><strong>Headphone battery (optional).</strong> If you turn it on and
+      allow Bluetooth access, the app reads the battery level your connected
+      headphones report, to show it when they connect. It stays on your Mac.</li>
+      <li><strong>Live equalizer (optional).</strong> If you turn it on and allow
+      system audio recording, the app measures how loud the music is in four
+      frequency bands to move its equalizer bars, only while they are on
+      screen. The audio itself is never recorded, stored, or transmitted.</li>
+      <li><strong>Crash reports.</strong> macOS may hand the app reports about
+      its own crashes and hangs. The app keeps the last few on your Mac. They
+      are sent nowhere; you can copy them from Settings to include in a bug
+      report if you choose.</li>
       <li><strong>Calendar.</strong> If you enable the calendar feature and grant
       access, the app reads your events for the next 24 hours to show what’s
       upcoming. Event data is read locally through Apple’s EventKit and never
@@ -68,7 +80,8 @@
       generating a thumbnail preview locally.</li>
     </ul>
 
-    <h2>The one thing that leaves your device: weather</h2>
+    <h2>What can leave your device</h2>
+    <h3>Weather</h3>
     <p>If you enable the weather feature and grant location access, AloeNotch
     requests your approximate location from macOS (reduced-accuracy, rounded to
     about three decimal places of latitude and longitude — roughly
@@ -85,10 +98,25 @@
       weather and no location data leaves your Mac.</li>
     </ul>
 
+    <h3>Lyrics</h3>
+    <p>Lyrics are off by default. If you turn them on, the app sends the title,
+    artist, album, and length of the song that’s playing to
+    <a href="https://lrclib.net/">LRCLIB</a>, a free, open lyrics database, to
+    fetch time-synced lyrics — once per song. Nothing else is sent: no account,
+    no identifier, no listening history. LRCLIB is a third-party service. Turn
+    lyrics off and no song information leaves your Mac.</p>
+
+    <h3>Update checks</h3>
+    <p>Unless you turn it off in Settings, the app asks GitHub once a day for
+    the latest release’s version number, so it can tell you when an update is
+    available. The request carries nothing about you or your Mac beyond what any
+    web request does.</p>
+
     <h2>Permissions</h2>
     <p>AloeNotch only asks for permissions the features you enable actually need
-    — Calendar access for upcoming events, and Location access for weather. Both
-    are optional. If you deny or disable them, the related feature simply hides
+    — Calendar access for upcoming events, Location access for weather,
+    Bluetooth for headphone battery, and system audio recording for the live
+    equalizer. All are optional. If you deny or disable them, the related feature simply hides
     and the app keeps working. You can change these any time in <strong>System
     Settings → Privacy &amp; Security</strong>.</p>
 

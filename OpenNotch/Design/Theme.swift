@@ -115,6 +115,10 @@ enum Motion {
     /// One equalizer bar's rise and fall. Callers stagger their own phase.
     static let equalizerBar = Animation.easeInOut(duration: 0.5)
 
+    /// Live bars between level updates, which arrive about 30 times a second:
+    /// just long enough to join them up.
+    static let equalizerLive = Animation.linear(duration: 0.05)
+
     /// The highlight sweeping across a charging battery fill.
     static let chargeShimmer = Animation.linear(duration: 1.2)
 

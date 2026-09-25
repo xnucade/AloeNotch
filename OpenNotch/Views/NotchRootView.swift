@@ -708,40 +708,72 @@ private struct WaveformGlyph: View {
 
     @State private var animating = false
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject private var audio = AudioLevels.shared
 
     private let heights: [CGFloat] = [5, 11, 7, 9]
     private let restHeight: CGFloat = 3
+    private let fullHeight: CGFloat = 12
 
     /// Bars only move when there is sound *and* the user hasn't asked for less
     /// motion. Under Reduce Motion they hold at their full heights instead of
     /// collapsing, so the glyph still reads as "audio" without moving.
     private var isDancing: Bool { isPlaying && animating && !reduceMotion }
 
+    /// Real levels are wanted only while they'd be seen moving.
+    private var wantsLive: Bool { settings.liveEqualizer && isDancing }
+
+    /// Live levels when the tap has them; otherwise the loop, which also
+    /// covers the moments before the tap delivers and a denied permission.
+    private var live: [Float]? { wantsLive ? audio.levels : nil }
+
     var body: some View {
         HStack(alignment: .center, spacing: 2) {
             ForEach(Array(heights.enumerated()), id: \.offset) { index, height in
                 Capsule()
                     .fill(tint.opacity(0.9))
-                    .frame(width: 2.5,
-                           height: isDancing ? height
-                                 : (reduceMotion && isPlaying ? height : restHeight))
-                    .animation(
-                        isDancing
-                            ? Motion.equalizerBar
-                                .repeatForever(autoreverses: true)
-                                .delay(Double(index) * 0.11)
-                            // Settling on pause is a one-shot, not a loop —
-                            // keeping repeatForever here would leave an
-                            // animation running against a constant value.
-                            : Motion.micro,
-                        value: isDancing
-                    )
+                    .frame(width: 2.5, height: barHeight(index, looped: height))
+                    .animation(animation(index), value: isDancing)
+                    .animation(live == nil ? nil : Motion.equalizerLive,
+                               value: live?[safe: index])
             }
         }
-        .frame(height: 12)
+        .frame(height: fullHeight)
         .onAppear { animating = true }
         .onDisappear { animating = false }
+        .task(id: wantsLive) {
+            guard wantsLive else { return }
+            await AudioLevels.shared.acquire()
+            // Hold the tap until this task is cancelled — the glyph goes
+            // away, the music stops, or the setting is turned off.
+            while !Task.isCancelled { try? await Task.sleep(for: .seconds(3600)) }
+            await AudioLevels.shared.release()
+        }
     }
+
+    private func barHeight(_ index: Int, looped height: CGFloat) -> CGFloat {
+        if let level = live?[safe: index] {
+            return restHeight + CGFloat(level) * (fullHeight - restHeight)
+        }
+        return isDancing ? height : (reduceMotion && isPlaying ? height : restHeight)
+    }
+
+    private func animation(_ index: Int) -> Animation? {
+        // Live bars carry their own animation; the loop would fight it.
+        guard live == nil else { return nil }
+        return isDancing
+            ? Motion.equalizerBar
+                .repeatForever(autoreverses: true)
+                .delay(Double(index) * 0.11)
+            // Settling on pause is a one-shot, not a loop —
+            // keeping repeatForever here would leave an
+            // animation running against a constant value.
+            : Motion.micro
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
 }
 
 /// Expanded panel: a slim header (clock, weather, battery, settings) over a

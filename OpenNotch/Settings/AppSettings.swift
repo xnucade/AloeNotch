@@ -41,6 +41,12 @@ final class AppSettings: ObservableObject {
         didSet { save(showLyrics, "showLyrics") }
     }
 
+    /// Equalizer bars driven by the actual audio instead of a loop. Off by
+    /// default: it needs system audio recording. See `AudioLevels`.
+    @Published var liveEqualizer: Bool {
+        didSet { save(liveEqualizer, "liveEqualizer") }
+    }
+
     /// Keep the panel out of screenshots, recordings and screen sharing
     /// (`NSWindow.sharingType = .none`). Best effort: macOS 15 and later let
     /// ScreenCaptureKit capture such windows anyway, so this is paired with
@@ -184,6 +190,7 @@ final class AppSettings: ObservableObject {
             "hideFromCapture": false,
             "showHeadphoneBattery": false,
             "showLyrics": false,
+            "liveEqualizer": false,
             "blurClipboardInCalls": true,
             "hotKeyEnabled": true,
             "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
@@ -212,6 +219,7 @@ final class AppSettings: ObservableObject {
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
         showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
         showLyrics = defaults.bool(forKey: "showLyrics")
+        liveEqualizer = defaults.bool(forKey: "liveEqualizer")
         blurClipboardInCalls = defaults.bool(forKey: "blurClipboardInCalls")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")

@@ -30,6 +30,7 @@ testSwipeTracker()
 testDisplayChoice()
 testHeadphoneBattery()
 testSyncedLyrics()
+testSpectrumBands()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

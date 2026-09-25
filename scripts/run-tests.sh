@@ -38,6 +38,7 @@ SOURCES=(
     OpenNotch/Notch/DisplayChoice.swift
     OpenNotch/System/HeadphoneBatteryReading.swift
     OpenNotch/Media/SyncedLyrics.swift
+    OpenNotch/Media/SpectrumBands.swift
 )
 
 TESTS=(Tests/*.swift)

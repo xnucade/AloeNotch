@@ -1157,6 +1157,12 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   letter-spacing: -0.01em;
   margin: 38px 0 12px;
 }
+.legal h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 22px 0 8px;
+}
 .legal p, .legal li {
   font-size: 15px;
   line-height: 1.65;
