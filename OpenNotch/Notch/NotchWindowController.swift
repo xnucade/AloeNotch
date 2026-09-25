@@ -39,6 +39,12 @@ final class NotchWindowController {
         // this, switching to the focused layout would draw a taller panel
         // inside a window still sized for the shorter one and clip it.
         // Applied live, so it can be switched on just before a share.
+        settings.$displayChoice
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.repositionOnActiveScreen() }
+            .store(in: &cancellables)
+
         settings.$hideFromCapture
             .dropFirst()
             .sink { [weak self] hide in self?.panel?.sharingType = hide ? .none : .readOnly }
@@ -127,6 +133,16 @@ final class NotchWindowController {
             width: size.width + bubble,
             height: size.height
         )
+    }
+
+    /// "Move Here": pin the notch to the display under the pointer.
+    func moveToPointerScreen() {
+        let mouse = NSEvent.mouseLocation
+        if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) {
+            settings.pinnedDisplay = screen.localizedName
+            settings.displayChoice = .chosen
+        }
+        repositionOnActiveScreen()
     }
 
     /// Move the panel to the currently preferred screen and resize for its notch.

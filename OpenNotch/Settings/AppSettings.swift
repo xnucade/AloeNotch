@@ -95,6 +95,15 @@ final class AppSettings: ObservableObject {
     /// How the expanded panel arranges its modules. Changing it also moves the
     /// width to that layout's default, because a width chosen for three
     /// columns is wrong for one — see `applyLayoutWidth`.
+    /// Which display the notch lives on. See `DisplayChoice`.
+    @Published var displayChoice: DisplayChoice {
+        didSet { save(displayChoice.rawValue, "displayChoice") }
+    }
+    /// The display "Move Here" picked, by its localized name. Display IDs
+    /// change across reboots and reconnects; names don't.
+    @Published var pinnedDisplay: String? {
+        didSet { defaults.set(pinnedDisplay, forKey: "pinnedDisplay") }
+    }
     @Published var openTrigger: OpenTrigger {
         didSet { save(openTrigger.rawValue, "openTrigger") }
     }
@@ -209,6 +218,8 @@ final class AppSettings: ObservableObject {
         ) ?? .system
         panelLayout = PanelLayout(rawValue: defaults.string(forKey: "panelLayout") ?? "") ?? .columns
         openTrigger = OpenTrigger(rawValue: defaults.string(forKey: "openTrigger") ?? "") ?? .hover
+        displayChoice = DisplayChoice(rawValue: defaults.string(forKey: "displayChoice") ?? "") ?? .automatic
+        pinnedDisplay = defaults.string(forKey: "pinnedDisplay")
         animationSpeed = defaults.double(forKey: "animationSpeed")
         motionBounce = MotionPersonality.clamp(defaults.double(forKey: "motionBounce"))
         hudTintMode = HUDTintMode(rawValue: defaults.string(forKey: "hudTintMode") ?? "") ?? .monochrome

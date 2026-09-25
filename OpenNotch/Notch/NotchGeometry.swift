@@ -137,16 +137,27 @@ enum NotchGeometry {
         )
     }
 
-    /// Screen the user is most likely looking at: the one with the notch, else
-    /// the screen containing the mouse, else the main screen.
+    /// The screen the notch belongs on under the user's `DisplayChoice`.
     static func preferredScreen() -> NSScreen {
-        if let notched = NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) {
-            return notched
+        let screens = NSScreen.screens
+        let settings = AppSettings.shared
+        let candidates = screens.map {
+            DisplayChoice.Candidate(name: $0.localizedName, isBuiltIn: isBuiltIn($0))
         }
-        let mouse = NSEvent.mouseLocation
-        if let under = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) {
-            return under
+        if let i = DisplayChoice.pick(settings.displayChoice, pinnedName: settings.pinnedDisplay,
+                                      from: candidates) {
+            return screens[i]
         }
         return NSScreen.main ?? NSScreen.screens.first!
+    }
+
+    /// The Mac's own panel, notched or not — a pre-notch MacBook's built-in
+    /// display is still where the user expects it.
+    static func isBuiltIn(_ screen: NSScreen) -> Bool {
+        let key = NSDeviceDescriptionKey("NSScreenNumber")
+        guard let id = screen.deviceDescription[key] as? CGDirectDisplayID else {
+            return screen.safeAreaInsets.top > 0
+        }
+        return CGDisplayIsBuiltin(id) != 0
     }
 }

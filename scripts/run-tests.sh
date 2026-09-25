@@ -35,6 +35,7 @@ SOURCES=(
     OpenNotch/Timer/CountdownState.swift
     OpenNotch/Design/MotionPersonality.swift
     OpenNotch/Notch/SwipeTracker.swift
+    OpenNotch/Notch/DisplayChoice.swift
 )
 
 TESTS=(Tests/*.swift)

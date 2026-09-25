@@ -27,6 +27,7 @@ testCountdownFormatting()
 testMotionPersonality()
 testHUDContrast()
 testSwipeTracker()
+testDisplayChoice()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

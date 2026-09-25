@@ -75,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func showSettings() {
         if settingsWindow == nil {
             let view = SettingsView(
-                onReposition: { [weak self] in self?.notchController?.repositionOnActiveScreen() },
+                onReposition: { [weak self] in self?.notchController?.moveToPointerScreen() },
                 onShowWelcome: { [weak self] in self?.showWelcome() }
             )
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))

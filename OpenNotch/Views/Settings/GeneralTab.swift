@@ -14,6 +14,14 @@ struct GeneralTab: View {
     let onReposition: () -> Void
     let onShowWelcome: () -> Void
 
+    private var displayDetail: String {
+        switch settings.displayChoice {
+        case .automatic: "Your Mac's built-in display while it's open, the main display when the lid is closed."
+        case .main:      "Always the display with the menu bar."
+        case .chosen:    "The display you picked. Automatic while it isn't connected."
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: SettingsMetrics.sectionGap) {
             SettingsSection("Startup", index: 0) {
@@ -107,8 +115,24 @@ struct GeneralTab: View {
 
                 SettingsDivider()
 
+                SettingsRow("Show on", symbol: "display.2",
+                            description: displayDetail) {
+                    Picker("", selection: $settings.displayChoice) {
+                        Text("Automatic").tag(DisplayChoice.automatic)
+                        Text("Main display").tag(DisplayChoice.main)
+                        if let pinned = settings.pinnedDisplay {
+                            Text(pinned).tag(DisplayChoice.chosen)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(width: 150)
+                }
+
+                SettingsDivider()
+
                 SettingsRow("Display", symbol: "display",
-                            description: "Move the panel to whichever screen the pointer is on.",
+                            description: "Keep the panel on whichever screen the pointer is on now.",
                             highlightsOnHover: true) {
                     Button("Move Here", action: onReposition)
                         .controlSize(.small)
