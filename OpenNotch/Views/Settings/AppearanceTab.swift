@@ -14,11 +14,14 @@ struct AppearanceTab: View {
         Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)
     }
 
+    /// Intensity applies to both kinds of glass, so it's live if either is.
+    private var anyGlass: Bool { settings.useGlass || settings.notchStyle == .glass }
+
     var body: some View {
         VStack(alignment: .leading, spacing: SettingsMetrics.sectionGap) {
             SettingsSection("Theme", index: 0) {
                 SettingsStackedRow("Windows", symbol: "circle.lefthalf.filled",
-                                   description: "Applies to this window, the welcome screen and the menu bar panel. The notch itself stays black by design — that's what lets it disappear into the cutout.") {
+                                   description: "Applies to this window, the welcome screen and the menu bar panel. The notch has its own style below.") {
                     Picker("", selection: $settings.windowTheme) {
                         ForEach(WindowTheme.allCases) { Text($0.title).tag($0) }
                     }
@@ -36,21 +39,30 @@ struct AppearanceTab: View {
             }
 
             SettingsSection("Glass", index: 2) {
+                SettingsStackedRow("Notch", symbol: "capsule.portrait.tophalf.filled",
+                                   description: settings.notchStyle.detail) {
+                    Picker("", selection: $settings.notchStyle.animation(motion)) {
+                        ForEach(NotchStyle.allCases) { Text($0.title).tag($0) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                }
+                SettingsDivider()
                 SettingsRow("Liquid Glass", symbol: "square.on.square.dashed",
-                            description: "Translucent panels that pick up the desktop behind them.") {
+                            description: "Translucent settings, welcome and menu bar panels that pick up the desktop behind them.") {
                     Toggle("", isOn: $settings.useGlass.animation(motion)).labelsHidden()
                 }
                 SettingsDivider()
                 SettingsStackedRow("Intensity", symbol: "slider.horizontal.below.rectangle",
-                                   description: "How much frost sits between you and the desktop.") {
+                                   description: "How much frost sits between you and the desktop — here and on a glass notch.") {
                     Picker("", selection: $settings.glassIntensity) {
                         ForEach(GlassIntensity.allCases) { Text($0.title).tag($0) }
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
-                    .disabled(!settings.useGlass)
+                    .disabled(!anyGlass)
                 }
-                .opacity(settings.useGlass ? 1 : 0.5)
+                .opacity(anyGlass ? 1 : 0.5)
 
                 if a11y.reduceTransparency {
                     SettingsDivider()
@@ -58,6 +70,7 @@ struct AppearanceTab: View {
                 }
             }
             .animation(motion, value: settings.useGlass)
+            .animation(motion, value: settings.notchStyle)
 
             SettingsSection("Layout", index: 3) {
                 SettingsStackedRow("Panel", symbol: "rectangle.split.3x1",

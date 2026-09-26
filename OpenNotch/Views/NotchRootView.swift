@@ -133,6 +133,12 @@ struct NotchRootView: View {
         .withAccessibilityPreferences()
     }
 
+    /// The open panel is glass: chosen in Appearance, and not overruled by
+    /// Reduce Transparency.
+    private var glassOpen: Bool {
+        state.isExpanded && settings.notchStyle == .glass && !a11y.reduceTransparency
+    }
+
     private var shoulder: CGFloat {
         Metrics.shoulder(for: state, hardwareNotch: hasHardwareNotch)
     }
@@ -211,6 +217,7 @@ struct NotchRootView: View {
                 }
             }
         }
+        .environment(\.notchGlass, glassOpen)
         .modifier(SurfaceFrame(size: surfaceSize))
         .offset(x: reachOffset)
         // Clip AFTER the frame so the clip bounds follow the animating size.
@@ -284,6 +291,16 @@ struct NotchRootView: View {
         return NotchShape(cornerRadius: radius, shoulder: shoulder)
             .fill(.black)
             .overlay {
+                // Glass: only while open. Closed, and in the peek strip, the
+                // notch is always black — that's what lets it pass for the
+                // hardware. The frost fades in as the shape grows.
+                if glassOpen {
+                    GlassPanelFill(solidTop: stripHeight,
+                                   material: settings.glassIntensity.material)
+                        .transition(.opacity)
+                }
+            }
+            .overlay {
                 // Hairline edge on the sides and bottom only. Nothing light may
                 // touch the top region: the fill must stay pure black there so
                 // the hardware notch cutout is indistinguishable from the panel.
@@ -298,7 +315,13 @@ struct NotchRootView: View {
                 // the shoulders begin: stroking the fill's path would also
                 // outline the shoulder wedges' inner edges, a seam across the
                 // flare.
-                if state.isExpanded {
+                if glassOpen {
+                    GlassRim(radius: radius, shoulder: shoulder,
+                             clearTop: stripHeight,
+                             accent: viewModel.media.isPlaying ? viewModel.media.current.accent : nil,
+                             drifting: viewModel.media.isPlaying && !a11y.reduceMotion)
+                        .transition(.opacity)
+                } else if state.isExpanded {
                     NotchShape(cornerRadius: radius)
                         .stroke(Ink.fill, lineWidth: 1)
                         .mask(alignment: .bottom) {
@@ -1070,6 +1093,7 @@ private struct WeatherPill: View {
 
     @State private var hovering = false
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @Environment(\.notchGlass) private var glass
 
     var body: some View {
         if let snapshot = weather.current {
@@ -1087,6 +1111,15 @@ private struct WeatherPill: View {
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
                 .background(hovering && interactive ? Ink.fillStrong : Ink.fill, in: Capsule())
+                // On glass, a pill of glass: a lit edge, brighter along the top.
+                .overlay {
+                    if glass {
+                        Capsule().strokeBorder(
+                            LinearGradient(colors: [Ink.tertiary, Ink.fill],
+                                           startPoint: .top, endPoint: .bottom),
+                            lineWidth: 0.75)
+                    }
+                }
                 .contentShape(.capsule)
             }
             .buttonStyle(PressableButtonStyle())

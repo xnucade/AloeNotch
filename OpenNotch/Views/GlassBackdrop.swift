@@ -25,6 +25,9 @@ struct FrostBackdrop: NSViewRepresentable {
     /// it is meant for the region *under* a window, and across a full window it
     /// collapses to a flat grey wash that samples nothing.
     var material: NSVisualEffectView.Material = GlassIntensity.medium.material
+    /// Force the dark variant whatever the system appearance — the notch is
+    /// always dark glass, even in Light mode.
+    var dark = false
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
@@ -33,6 +36,7 @@ struct FrostBackdrop: NSViewRepresentable {
         // `.active` keeps the frost live even when the window is not key;
         // `.followsWindowActiveState` makes it drop to grey on blur.
         v.state = .active
+        if dark { v.appearance = NSAppearance(named: .darkAqua) }
         return v
     }
 

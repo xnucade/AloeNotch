@@ -139,6 +139,11 @@ final class AppSettings: ObservableObject {
 
     static let panelWidthRange: ClosedRange<Double> = 520...900
 
+    /// Solid black or glass for the open notch panel. See `GlassPanelFill`.
+    @Published var notchStyle: NotchStyle {
+        didSet { save(notchStyle.rawValue, "notchStyle") }
+    }
+
     /// Liquid Glass on the welcome, menu bar panel and settings window.
     /// Offered at first run because it is a taste call, not a capability one:
     /// the material is translucent by design, and over a busy desktop some
@@ -195,6 +200,7 @@ final class AppSettings: ObservableObject {
             "hotKeyEnabled": true,
             "hotKeyCombo": HotKeyCombo.controlOptionN.rawValue,
             "useGlass": true,
+            "notchStyle": NotchStyle.solid.rawValue,
             "checkForUpdates": true,
             "accentHex": AccentPalette.default,
             "glassIntensity": GlassIntensity.medium.rawValue,
@@ -232,6 +238,7 @@ final class AppSettings: ObservableObject {
         hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")
         hotKeyCombo = HotKeyCombo(rawValue: defaults.string(forKey: "hotKeyCombo") ?? "") ?? .controlOptionN
         useGlass = defaults.bool(forKey: "useGlass")
+        notchStyle = NotchStyle(rawValue: defaults.string(forKey: "notchStyle") ?? "") ?? .solid
 
         accentHex = defaults.string(forKey: "accentHex") ?? AccentPalette.default
         glassIntensity = GlassIntensity(

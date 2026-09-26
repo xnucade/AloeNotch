@@ -6,6 +6,7 @@ struct MediaView: View {
     /// Namespace for the matched artwork pair, owned by NotchRootView.
     let morph: Namespace.ID
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @Environment(\.notchGlass) private var glass
 
     var body: some View {
         HStack(spacing: Metrics.Spacing.loose) {
@@ -87,6 +88,13 @@ struct MediaView: View {
                            height: Metrics.expandedArtworkSize)
                     .clipShape(RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius,
                                                 style: .continuous))
+                    // On glass, the cover gets a glass edge too.
+                    .overlay {
+                        if glass {
+                            RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius, style: .continuous)
+                                .strokeBorder(Ink.fillStrong, lineWidth: 0.75)
+                        }
+                    }
                     .animation(Motion.contentFade, value: media.current.artworkToken)
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 } else {
@@ -209,6 +217,11 @@ private struct ProgressScrubber: View {
     @State private var dragFraction: Double = 0
     @State private var hovering = false
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @Environment(\.notchGlass) private var glass
+
+    /// On glass the fill takes the artwork's colour and glows, as if lit
+    /// from inside; on black it stays white.
+    private var fill: Color { glass ? (media.current.accent ?? Ink.primary) : Ink.primary }
 
     var body: some View {
         // Repaint twice a second so the fill creeps forward between updates.
@@ -222,8 +235,9 @@ private struct ProgressScrubber: View {
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
                         Capsule().fill(Ink.fillStrong)
-                        Capsule().fill(Ink.primary)
+                        Capsule().fill(fill)
                             .frame(width: max(2, w * fraction))
+                            .shadow(color: glass ? fill.opacity(0.8) : .clear, radius: 4)
                         // The knob appears on hover as well as during a drag,
                         // so the bar advertises that it can be scrubbed before
                         // you commit to grabbing it.

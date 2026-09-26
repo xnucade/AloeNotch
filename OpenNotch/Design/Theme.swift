@@ -119,6 +119,9 @@ enum Motion {
     /// just long enough to join them up.
     static let equalizerLive = Animation.linear(duration: 0.05)
 
+    /// One slow turn of the glass notch's colours round its edge.
+    static let rimDrift = Animation.linear(duration: 18)
+
     /// The highlight sweeping across a charging battery fill.
     static let chargeShimmer = Animation.linear(duration: 1.2)
 
