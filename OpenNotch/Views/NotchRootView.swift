@@ -295,7 +295,7 @@ struct NotchRootView: View {
                 // notch is always black — that's what lets it pass for the
                 // hardware. The frost fades in as the shape grows.
                 if glassOpen {
-                    GlassPanelFill(solidTop: stripHeight,
+                    GlassPanelFill(cutout: hasHardwareNotch ? metrics?.notchSize : nil,
                                    material: settings.glassIntensity.material)
                         .transition(.opacity)
                 }
@@ -317,7 +317,10 @@ struct NotchRootView: View {
                 // flare.
                 if glassOpen {
                     GlassRim(radius: radius, shoulder: shoulder,
-                             clearTop: stripHeight,
+                             // Up the sides almost to the screen edge now
+                             // that glass reaches the top; clear of the
+                             // shoulders' flare.
+                             clearTop: shoulder + 4,
                              accent: viewModel.media.isPlaying ? viewModel.media.current.accent : nil,
                              drifting: viewModel.media.isPlaying && !a11y.reduceMotion)
                         .transition(.opacity)

@@ -35,34 +35,47 @@ extension EnvironmentValues {
     }
 }
 
-/// The open panel's glass: the desktop frosted and darkened, with solid black
-/// across the top so the camera cutout stays invisible.
+/// The open panel's glass: the desktop frosted and darkened, with a soft
+/// black patch over the camera so the cutout stays invisible.
 ///
-/// Where the panel meets the top of the screen it has to stay pure black —
-/// the hardware notch is black, and anything lighter beside it outlines the
-/// camera housing. So the frost starts below the notch and fades up into the
-/// black, which reads as the glass growing out of the notch.
+/// Only the camera housing has to be hidden — it's black, and glass right
+/// beside it would outline it. So a notch-shaped patch of black sits over
+/// it, feathered at its edges, and the glass runs up to the top everywhere
+/// else. The panel reads as hanging from the notch. (The first version kept
+/// a full-width black band down to the notch's height and faded it out
+/// below; it swallowed the whole header row.)
 struct GlassPanelFill: View {
-    /// Height of the band that stays solid black (the notch's own height).
-    let solidTop: CGFloat
+    /// The hardware cutout's size, or nil on a Mac without one — then there
+    /// is nothing to hide and the glass goes all the way up.
+    let cutout: CGSize?
     var material: NSVisualEffectView.Material
 
     /// Darkens the frost toward the mockup's smoked glass. Enough that white
     /// text holds up over a bright wallpaper; not so much that it's black.
     private static let tint = 0.42
-    /// How far the black takes to give way to glass below the notch.
-    private static let fade: CGFloat = 34
+    /// Softness of the patch's edge.
+    private static let feather: CGFloat = 6
+    /// Solid black reaching past the cutout on each side and below, so the
+    /// feather's falloff starts outside it and the cutout's own edge is
+    /// always fully covered (with room for the panel's small drag lean).
+    private static let margin: CGFloat = 8
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             FrostBackdrop(material: material, dark: true)
             Color.black.opacity(Self.tint)
-            VStack(spacing: 0) {
-                Color.black.frame(height: solidTop)
-                LinearGradient(colors: [.black, .black.opacity(0)],
-                               startPoint: .top, endPoint: .bottom)
-                    .frame(height: Self.fade)
-                Spacer(minLength: 0)
+            if let cutout {
+                let radius = min(cutout.height / 2, 14)
+                UnevenRoundedRectangle(bottomLeadingRadius: radius + Self.margin,
+                                       bottomTrailingRadius: radius + Self.margin,
+                                       style: .continuous)
+                    .fill(.black)
+                    // Extended above the top edge, so the blur's falloff
+                    // there lands off-panel and the top stays solid.
+                    .frame(width: cutout.width + Self.margin * 2,
+                           height: cutout.height + Self.margin + 20)
+                    .offset(y: -20)
+                    .blur(radius: Self.feather)
             }
         }
         .allowsHitTesting(false)
