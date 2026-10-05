@@ -158,3 +158,23 @@ document.getElementById("year").textContent = new Date().getFullYear();
   video.addEventListener("volumechange", sync);
   sync();
 })();
+
+/* The 0.13 film: the vertical cut's poster on phones (the <source media>
+   attributes already pick its video), and it only plays while in view. */
+(() => {
+  const video = document.getElementById("spotVideo");
+  if (!video) return;
+  if (matchMedia("(max-width: 640px)").matches && video.dataset.posterVertical) {
+    video.poster = video.dataset.posterVertical;
+  }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    video.controls = true;
+    return;
+  }
+  new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { const p = video.play(); if (p) p.catch(() => {}); }
+      else video.pause();
+    }
+  }, { threshold: 0.35 }).observe(video);
+})();

@@ -8,12 +8,20 @@
 <body>
 <div id="frame">
   <div id="backdrop"></div>
+  <!-- A real wallpaper, for the glass clips: colour and hard edges for the
+       frost to blur. Hidden unless a clip shows it. -->
+  <div id="wall"><i class="disc d1"></i><i class="disc d2"></i><i class="disc d3"></i><i class="band"></i></div>
   <div id="menubar"></div>
 
   <div id="stage">
     <div id="panelWrap">
       <div id="glow"></div>
       <div id="panel">
+        <!-- Glass (GlassNotch.swift): frost, a black patch over the camera,
+             and the colour-shifting rim. Transparent on the solid panel. -->
+        <div id="frost"></div>
+        <div id="patch"></div>
+        <div id="rim"><i class="ring hard"></i><i class="ring soft"></i></div>
         <!-- Collapsed / peek strip. One shape, three fillings. -->
         <div class="strip" id="strip">
           <div class="side left" id="stripLeft"></div>
@@ -42,8 +50,8 @@
                 <div class="art" id="artMain"></div>
               </div>
               <div class="meta">
-                <div class="title">Neon Arcade</div>
-                <div class="artist">Kade &amp; the Lantern</div>
+                <div class="title" id="title">Neon Arcade</div>
+                <div class="artist" id="artist">Kade &amp; the Lantern</div>
                 <div class="scrub">
                   <div class="track"><b id="scrubFill"></b></div>
                   <div class="times mono-digit"><span id="tElapsed">1:20</span><span>3:24</span></div>
@@ -82,10 +90,16 @@
         </svg>
       </div>
       <div id="edge"></div>
+      <!-- The split island's bubble and the liquid bridge (SplitIsland.swift). -->
+      <svg id="bridge" preserveAspectRatio="none"><path fill="#000"/></svg>
+      <div id="bubble"><div id="bubbleIn"></div></div>
+      <div id="fingers"><i></i><i></i></div>
     </div>
   </div>
 
   <div id="keys"></div>
+  <div id="seg"><span class="lbl">Notch style</span><div class="track"><b id="segKnob"></b><span>Solid</span><span>Glass</span></div></div>
+  <div id="displays"></div>
 </div>
 
 <script src="clips.js"></script>

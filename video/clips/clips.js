@@ -212,6 +212,7 @@ function waveform(t, playing = true) {
 const WX_PILL_HTML = document.getElementById('wxPill').innerHTML;
 
 function reset() {
+  resetNew();
   el.wxPill.innerHTML = WX_PILL_HTML;
   el.wxPill.style.opacity = 1;
   el.gear.style.opacity = 1;
@@ -504,6 +505,306 @@ CLIPS['sound-output'] = { duration: 6.0, poster: 3.8, render(t) {
            `color:${on ? 'var(--accent)' : 'rgba(255,255,255,0.75)'}">` +
            `<span class="temp">${name}</span></span>`;
   }).join('');
+}};
+
+/* =========================================================================
+   New in 0.13 — glass, lyrics, the live equalizer, the split island,
+   gestures, Join, and the display picker.
+   ========================================================================= */
+const N = {};
+['wall', 'frost', 'patch', 'rim', 'seg', 'segKnob', 'bubble', 'bubbleIn', 'bridge',
+ 'fingers', 'displays', 'artist', 'title'].forEach(id => (N[id] = $(id)));
+const ARTIST_HTML = N.artist.innerHTML;
+const TITLE_TEXT = N.title.textContent;
+const CALSUB_HTML = el.calSub.innerHTML;
+const META = document.querySelector('.media .meta');
+
+const TRACK_B = { title: 'Tidal Rooms', artist: 'Marlow Vane', glow: '#3fd6c6',
+  art: 'linear-gradient(135deg, #3ee6c1 0%, #2a8cff 55%, #1b2a6b 100%)' };
+
+/* GlassRim.colors for the cover's accent (#c86bff, hue 279°): the accent,
+   its neighbours ±0.14 round the wheel, and a pale highlight. */
+N.rim.style.setProperty('--c1', 'hsl(279 100% 72%)');
+N.rim.style.setProperty('--c2', 'hsl(329 100% 70%)');
+N.rim.style.setProperty('--c3', 'hsl(279 60% 94%)');
+N.rim.style.setProperty('--c4', 'hsl(229 100% 70%)');
+
+function resetNew() {
+  N.wall.style.opacity = 0;
+  el.panel.style.background = '';
+  N.frost.style.opacity = 0;
+  N.patch.style.opacity = 0;
+  N.rim.style.opacity = 0;
+  N.seg.style.display = 'none';
+  N.bubble.style.display = 'none';
+  N.bridge.style.display = 'none';
+  N.fingers.style.opacity = 0;
+  N.displays.style.display = 'none';
+  el.stage.style.display = '';
+  el.menubar.style.display = '';
+  el.menubar.style.background = '';
+  N.artist.innerHTML = ARTIST_HTML;
+  N.artist.style.cssText = '';
+  N.title.textContent = TITLE_TEXT;
+  META.style.cssText = '';
+  el.artMain.style.cssText = '';
+  el.artMain.style.background = ART;
+  el.artAura.style.background = ART;
+  el.calSub.innerHTML = CALSUB_HTML;
+  el.calSub.parentElement.style.color = '';
+  N.seg.querySelector('.lbl').textContent = 'Notch style';
+  const opts = N.seg.querySelectorAll('.track span');
+  opts[0].textContent = 'Solid'; opts[1].textContent = 'Glass';
+  opts.forEach(o => (o.style.width = ''));
+  N.segKnob.style.width = '';
+}
+
+/** 0 = the solid black panel, 1 = glass. The rim drifts on a sine so the
+    loop wraps without a jump (the app turns it once every 18s). */
+function glass(g, t, period) {
+  el.panel.style.background = `rgba(0,0,0,${1 - g})`;
+  N.frost.style.opacity = g;
+  N.patch.style.opacity = g;
+  N.rim.style.opacity = g;
+  N.rim.style.setProperty('--ang', `${200 + 70 * Math.sin((2 * Math.PI * t) / period)}deg`);
+}
+
+const miniArt = (art = ART) => `<div id="miniArt" style="background:${art}"></div>`;
+
+/* 11. A glass notch — the panel frosts the wallpaper, then goes back. */
+CLIPS['glass'] = { duration: 7.0, poster: 3.6, render(t) {
+  reset();
+  columns({ media: true, cal: true, tools: false });
+  N.wall.style.opacity = 1;
+  fill(EXP_W);
+  morph(1);
+  const knob = clamp01(springAt(t, 1.0, READOUT) - springAt(t, 4.8, READOUT));
+  const g = eramp(t, 1.15, 0.8) - eramp(t, 4.95, 0.8);
+  glass(g, t, 7.0);
+  N.seg.style.display = 'flex';
+  N.segKnob.style.transform = `translateX(${116 * knob}px)`;
+  el.scrubFill.style.width = '42%';
+}};
+
+/* 12. Lyrics — the line being sung takes the artist's place. */
+const LYRICS = ['Coins in the slot and the lights come on',
+                'We were high scores on a Friday night',
+                'Pixel hearts in a neon glow',
+                'Press start, we’re never letting go'];
+CLIPS['lyrics'] = { duration: 7.5, poster: 2.4, render(t) {
+  reset();
+  columns({ media: true, cal: false, tools: false });
+  fill(NARROW_W);
+  morph(1, NOTCH_W, NARROW_W);
+  glow(0.5, ART_ACCENT, NARROW_W);
+  el.scrubFill.style.width = '42%';
+  el.tElapsed.textContent = '1:26';
+  const changes = [1.7, 3.4, 5.1, 6.8];
+  const n = changes.filter(c => t >= c).length;
+  const u = n ? eramp(t, changes[n - 1], 0.42, easeOut) : 1;
+  const cur = LYRICS[n % 4], prev = LYRICS[(n + 3) % 4];
+  const line = (text, y, o) =>
+    `<span style="position:absolute;left:0;top:0;white-space:nowrap;color:rgba(255,255,255,0.95);` +
+    `transform:translateY(${y}%);opacity:${o}">${text}</span>`;
+  N.artist.style.cssText = 'position:relative;height:1.35em;overflow:hidden;text-overflow:clip';
+  N.artist.innerHTML = (u < 1 ? line(prev, -110 * u, 1 - u) : '') + line(cur, 110 * (1 - u), u);
+}};
+
+/* 13. The live equalizer — four bands of a real track, at the edges
+       SpectrumBands.swift uses, with the meter's attack and decay. */
+const EQ = '223817212332141819272222215455491760464115513834544352808552449172663776607231645161265443512245364318383036153225572845218723381894203218791727199217221677191913651616115513181246324025393733313231283527322337333220393927174040231444552820467937343993312933972624388222203269181735581514414816123541242429344777323549922729417828333565284640552456344627472839234024322733203630351730252914252525152721372238225119322555163721564448187937401591313412772628108122240968192007571617064813140540171206341410052812080424100703201106044451470348433904403633044130280447252304392120033318160328151404321312043611100430090803302721063923180841191509341613093718180731212508381821073215246745517656484364474836713952397640564064345633543847284532543252277079853482937140697860425866504349555543524647364439393037334478494882664140895545347446472862396178883375937428639762315382522655696737465856423948473542414037453433315537283760312431504064796773756677916355867753477264453961543733514531285638262947324432403847363332393928273340232839336678813683936830707857485965837649557064524672545339614544335138372743323923363342193028354978338084664093715541975946449850393799423338833528387030237559435863493648535530414459253437502729315931243470262034592717297369743288906234749652286281443352683728445731334548262745402276515576644347645436395445403345386262753271886334789553298080453267676237575652384847444040403733343331353428263635242230302844785360836664866955758858466374493953624139625235335244293763374331533152384426443237223737312531316277793479926629677855335665867847789566589380556178674652655639435547334446403337393335414165357082893784697540715863335948533969574433704837375940315749507180414259673536505739304248433335403638303438322536412721305659763786877943909566447580564563674738705739405947334059402880605074675142805743366748363057404655663476867328868661347272513461616438515154434343454536363845303632383531273929262233332619795452756670856355748553477672443964603733655131345443263546363429553950394640424439333537322830395469783968906640577555344863667963538967674575567038634759325340492744334122373435193134293158297877813693646842975457';
+function eqAt(sec) {
+  const f = sec * 30, i = Math.floor(f), a = f - i;
+  const get = (j, b) => Number(EQ.substr((Math.min(269, Math.max(0, j)) * 4 + b) * 2, 2)) / 99;
+  return [0, 1, 2, 3].map(b => lerp(get(i, b), get(i + 1, b), a));
+}
+CLIPS['live-eq'] = { duration: 6.0, poster: 2.5, render(t) {
+  reset();
+  const S = 1.0, D = 6.0, X = 0.6;
+  let lv = eqAt(S + t);
+  // Cross-fade the tail into the frames just before the start, so it loops.
+  if (t > D - X) {
+    const a = easeInOut((t - (D - X)) / X), early = eqAt(S + t - D);
+    lv = lv.map((v, i) => lerp(v, early[i], a));
+  }
+  // The desktop behind it, so a strip hanging from the top of the screen
+  // isn't a black bar in an empty frame.
+  N.wall.style.opacity = 0.6;
+  morph(0, NOTCH_W + MEDIA_WING * 2);
+  zoom(2.5);
+  const tint = mixHex(ART_ACCENT, '#ffffff', 0.35);
+  // WaveformGlyph: 2.5pt capsules, 3pt at rest, 12pt full, 2pt apart.
+  const bars = lv.map(v =>
+    `<i style="display:block;width:${px(2.5)}px;height:${px(3 + 9 * v)}px;border-radius:${px(1.25)}px;` +
+    `background:${tint};box-shadow:0 0 ${px(4)}px ${ART_ACCENT}"></i>`).join('');
+  strip(miniArt(), `<div style="display:flex;align-items:center;gap:${px(2)}px;height:${px(12)}px">${bars}</div>`);
+}};
+
+/* 14. The split island — a running timer pinches off into its own bubble
+       beside the music, then merges back. */
+CLIPS['split-island'] = { duration: 7.0, poster: 3.4, render(t) {
+  reset();
+  const SW = NOTCH_W + MEDIA_WING * 2, BW = 74, GAP = 9, STRETCH = GAP - 1.5, H = NOTCH_H;
+  N.wall.style.opacity = 0.6;
+  morph(0, SW);
+  strip(miniArt(), waveform(t));
+  const out = springAt(t, 1.2, ARRIVAL) - springAt(t, 5.2, COLLAPSE);
+  const gap = lerp(-BW, GAP, out);
+  // Pan with the bubble so the pair ends up centred.
+  const s = 1.9, shift = px((SW / 2 + GAP + BW - SW / 2) / 2) * s * clamp01(out);
+  el.stage.style.transform = `translateX(calc(-50% - ${shift}px)) scale(${s})`;
+  N.bubble.style.display = 'flex';
+  N.bubble.style.zIndex = -1;
+  N.bubble.style.width = px(BW) + 'px';
+  N.bubble.style.left = `calc(100% + ${px(gap)}px)`;
+  const left = Math.max(0, 300 - Math.floor(t));
+  N.bubbleIn.style.opacity = clamp01((gap + 20) / 20);
+  N.bubbleIn.innerHTML =
+    `<span class="glyph" style="display:flex;color:#ffb454">${ICONS.timer.replace(/22/g, '18')}</span>` +
+    `<span class="value mono-digit" style="font-size:${px(12)}px;font-weight:600">${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</span>`;
+  // The bridge: full while they overlap, its waist thinning as the gap opens.
+  const waist = gap <= 0 ? H : H * (1 - gap / STRETCH);
+  if (waist >= 2.5) {
+    const f = 12, W = Math.max(0, gap) + 2 * f, xR = W - 3, xL = 3, xm = W / 2;
+    N.bridge.style.display = 'block';
+    N.bridge.style.zIndex = -1;
+    N.bridge.style.left = `calc(100% - ${px(f)}px)`;
+    N.bridge.style.width = px(W) + 'px';
+    N.bridge.style.height = px(H) + 'px';
+    N.bridge.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    N.bridge.firstElementChild.setAttribute('d',
+      `M0 0H${W}V${H}H${xR}C${xR} ${waist} ${xm + (xR - xm) * 0.35} ${waist} ${xm} ${waist}` +
+      `C${xm - (xm - xL) * 0.35} ${waist} ${xL} ${waist} ${xL} ${H}H0Z`);
+  }
+}};
+
+/* 15. Swipe — two fingers down to open, sideways to skip, up to close. */
+CLIPS['swipe'] = { duration: 8.0, poster: 3.0, render(t) {
+  reset();
+  columns({ media: true, cal: false, tools: false });
+  const SW = NOTCH_W + MEDIA_WING * 2;
+  const p = clamp01(springAt(t, 1.3, EXPAND) - springAt(t, 6.0, COLLAPSE));
+  fill(lerp(SW, NARROW_W, easeInOut(p)));
+  morph(p, SW, NARROW_W);
+  strip(miniArt(), waveform(t));
+  el.scrubFill.style.width = '42%';
+
+  // Next on a swipe left, back on a swipe right: the loop ends where it began.
+  const fwd = eramp(t, 2.85, 0.4), back = eramp(t, 4.45, 0.4);
+  const u = fwd - back;                                  // 0 = A, 1 = B
+  const moving = (fwd > 0 && fwd < 1) ? -1 : (back > 0 && back < 1) ? 1 : 0;
+  const phase = moving === -1 ? fwd : back;
+  const showB = u >= 0.5;
+  const tr = showB ? TRACK_B : { title: TITLE_TEXT, art: ART, glow: ART_ACCENT };
+  N.title.textContent = tr.title;
+  N.artist.textContent = showB ? TRACK_B.artist : 'Kade & the Lantern';
+  el.artMain.style.background = tr.art;
+  el.artAura.style.background = tr.art;
+  if (moving) {
+    const half = phase < 0.5;
+    const o = half ? 1 - phase * 2 : phase * 2 - 1;
+    const x = (half ? phase * 2 : (phase * 2 - 1) - 1) * px(26) * moving;
+    META.style.cssText = `transform:translateX(${x}px);opacity:${o}`;
+    el.artMain.style.opacity = 0.35 + 0.65 * o;
+  }
+  glow(p * 0.5, mixHex(ART_ACCENT, TRACK_B.glow, u), NARROW_W);
+
+  // The fingertips: [appear, start, end, gone, from, to] in points.
+  const strokes = [
+    [0.5, 0.95, 1.45, 1.75, [0, 4], [0, 52]],
+    [2.35, 2.7, 3.15, 3.45, [40, 110], [-50, 110]],
+    [3.95, 4.3, 4.75, 5.05, [-50, 110], [40, 110]],
+    [5.3, 5.65, 6.1, 6.4, [0, 160], [0, 92]],
+  ];
+  for (const [a, b, c, d, from, to] of strokes) {
+    if (t < a || t > d + 0.01) continue;
+    const m = eramp(t, b, c - b);
+    const o = t < b ? eramp(t, a, b - a, easeOut) : t > c ? 1 - eramp(t, c, d - c) : 1;
+    N.fingers.style.opacity = o;
+    N.fingers.style.zIndex = 3;
+    N.fingers.style.transform =
+      `translateX(calc(-50% + ${px(lerp(from[0], to[0], m))}px)) translateY(${px(lerp(from[1], to[1], m))}px)`;
+  }
+}};
+
+/* 16. Join — calls get a Join button ten minutes before they start. */
+CLIPS['join-call'] = { duration: 7.0, poster: 3.0, render(t) {
+  reset();
+  columns({ media: false, cal: true, tools: false });
+  fill(NARROW_W);
+  const p = clamp01(springAt(t, 0.7, EXPAND) - springAt(t, 5.7, COLLAPSE));
+  morph(p, NOTCH_W, NARROW_W);
+  el.wxPill.style.opacity = eramp(t, 1.1, 0.4, easeOut);
+  el.gear.style.opacity = eramp(t, 1.2, 0.4, easeOut);
+  const pop = springAt(t, 1.45, ARRIVAL);
+  const press = t > 3.05 && t < 3.22 ? 0.9 : 1;
+  const pulse = 0.5 + 0.5 * Math.sin(t * 4.2);
+  el.calSub.parentElement.style.color = 'rgba(255,255,255,0.75)';
+  el.calSub.innerHTML = `Design review · in 8 min` +
+    `<span id="joinPill" style="display:inline-flex;align-items:center;gap:${px(3)}px;margin-left:${px(6)}px;` +
+    `padding:${px(3)}px ${px(8)}px;border-radius:999px;background:var(--accent);color:rgba(0,0,0,0.85);` +
+    `font-size:${px(10)}px;font-weight:600;opacity:${clamp01(pop * 1.5)};transform:scale(${(0.5 + 0.5 * pop) * press});` +
+    `box-shadow:0 0 ${px(6 + 8 * pulse)}px rgba(71,153,255,${0.25 + 0.35 * pulse})">` +
+    `<svg width="${px(10)}" height="${px(10)}" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6.2A2.2 2.2 0 0 1 4.2 4h7.6A2.2 2.2 0 0 1 14 6.2v7.6a2.2 2.2 0 0 1-2.2 2.2H4.2A2.2 2.2 0 0 1 2 13.8zM15 8.4l3-2.1v7.4l-3-2.1z"/></svg>Join</span>`;
+  // The pointer, in panel-local coordinates measured off the live layout.
+  const pill = document.getElementById('joinPill');
+  const reach = eramp(t, 2.0, 0.9, easeOut), leave = eramp(t, 4.0, 0.8, easeOut);
+  if (pill && p > 0.9) {
+    const pr = el.panel.getBoundingClientRect(), r = pill.getBoundingClientRect();
+    const sc = pr.width / el.panel.offsetWidth;
+    const tx = (r.left + r.width * 0.55 - pr.left) / sc, ty = (r.top + r.height * 0.5 - pr.top) / sc;
+    el.cursor.style.opacity = clamp01(reach * 1.5) * (1 - leave);
+    el.cursor.style.left = lerp(tx + px(90), tx, reach) + lerp(0, px(110), leave) + 'px';
+    el.cursor.style.top = lerp(ty + px(70), ty, reach) + lerp(0, px(40), leave) + 'px';
+    el.cursor.style.transform = `scale(${t > 3.05 && t < 3.22 ? 0.88 : 1})`;
+  }
+}};
+
+/* 17. Choose your screen — the notch moves to the other display. */
+function buildDisplays() {
+  if (N.displays.dataset.built) return;
+  N.displays.dataset.built = '1';
+  N.displays.innerHTML = `
+    <div class="scr" id="dLap" style="left:170px;top:84px;width:560px;height:340px">
+      <div class="wp" style="background:radial-gradient(70% 90% at 30% 10%,#ff8a3d,transparent 70%),radial-gradient(60% 80% at 80% 30%,#e8409a,transparent 70%),linear-gradient(160deg,#3a1d5c,#120b22)"></div>
+      <div class="bar"></div><div class="island" id="iLap"></div></div>
+    <div class="stand" style="left:130px;top:430px;width:640px;height:14px;border-radius:0 0 14px 14px"></div>
+    <div class="scr" id="dExt" style="left:830px;top:40px;width:620px;height:384px">
+      <div class="wp" style="background:radial-gradient(70% 90% at 70% 10%,#3a7bff,transparent 70%),radial-gradient(60% 80% at 20% 40%,#20c9b0,transparent 70%),linear-gradient(200deg,#0f2246,#07101f)"></div>
+      <div class="bar"></div><div class="island" id="iExt"></div></div>
+    <div class="stand" style="left:1100px;top:434px;width:80px;height:26px"></div>
+    <div class="stand" style="left:1050px;top:458px;width:180px;height:8px;border-radius:4px"></div>
+    <div class="name" style="left:170px;top:470px;width:580px">Built-in Display</div>
+    <div class="name" style="left:830px;top:480px;width:640px">Studio Display</div>`;
+}
+CLIPS['displays'] = { duration: 7.0, poster: 3.6, render(t) {
+  reset();
+  el.stage.style.display = 'none';
+  el.menubar.style.display = 'none';
+  N.displays.style.display = 'block';
+  buildDisplays();
+  const a = clamp01(springAt(t, 2.1, EXPAND) - springAt(t, 5.1, EXPAND));   // 1 = external
+  const knob = clamp01(springAt(t, 1.8, READOUT) - springAt(t, 4.8, READOUT));
+  // Drawn at 0.75 px per point: the hardware notch, and the strip around it.
+  const notchW = 150, stripW = 219, h = 24;
+  const content = (o) =>
+    `<span class="ma" style="background:${ART};opacity:${o}"></span>` +
+    `<span style="opacity:${o};transform:scale(0.75);transform-origin:100% 50%">${waveform(t)}</span>`;
+  const lap = $('iLap'), ext = $('iExt');
+  lap.style.width = lerp(stripW, notchW, a) + 'px';
+  lap.style.height = h + 'px';
+  lap.innerHTML = content(clamp01(1 - a * 3));
+  ext.style.width = lerp(notchW * 0.6, stripW, a) + 'px';
+  ext.style.height = lerp(0, h, a) + 'px';
+  ext.style.opacity = clamp01(a * 4);
+  ext.innerHTML = content(clamp01((a - 0.5) * 2));
+  N.seg.style.display = 'flex';
+  N.seg.querySelector('.lbl').textContent = 'Show on';
+  const opts = N.seg.querySelectorAll('.track span');
+  opts[0].textContent = 'Built-in'; opts[1].textContent = 'Studio Display';
+  opts.forEach(o => (o.style.width = '200px'));
+  N.segKnob.style.width = '200px';
+  N.segKnob.style.transform = `translateX(${200 * knob}px)`;
 }};
 
 /* ---------- Renderer entry points --------------------------------------- */

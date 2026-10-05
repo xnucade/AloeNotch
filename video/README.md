@@ -60,7 +60,7 @@ one feature. They are a **separate stage** from the 66-second film, in
 
 ```sh
 cd clips
-node render-clips.mjs                 # all ten, 60fps
+node render-clips.mjs                 # all seventeen, 60fps
 node render-clips.mjs --only timer    # one
 node render-clips.mjs --fps 30        # quicker draft
 ```

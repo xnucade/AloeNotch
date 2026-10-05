@@ -1216,3 +1216,173 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   .lede { font-size: 17px; }
   .stage { border-radius: 20px; }
 }
+
+/* =========================================================================
+   Hero: glass, lyrics and the live equalizer (0.13)
+   ========================================================================= */
+@property --ang { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+
+/* Hard-edged shapes behind the panel, faded out before the headline. */
+.wall-shapes {
+  position: absolute; inset: 0;
+  opacity: 0.85;
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(150 * var(--pt)), transparent calc(250 * var(--pt)));
+  mask-image: linear-gradient(180deg, #000 0, #000 calc(150 * var(--pt)), transparent calc(250 * var(--pt)));
+}
+.wall-shapes i { position: absolute; border-radius: 50%; }
+.ws1 { left: calc(50% - 450 * var(--pt)); top: calc(40 * var(--pt)); width: calc(180 * var(--pt)); height: calc(180 * var(--pt)); background: linear-gradient(140deg, #ffd166, #ff6b6b); }
+.ws2 { left: calc(50% + 250 * var(--pt)); top: calc(-24 * var(--pt)); width: calc(200 * var(--pt)); height: calc(200 * var(--pt)); background: linear-gradient(200deg, #7cf3ff, #5b6cff); }
+.ws3 { left: calc(50% - 150 * var(--pt)); top: calc(96 * var(--pt)); width: calc(110 * var(--pt)); height: calc(110 * var(--pt)); background: linear-gradient(160deg, #ff9de2, #b06bff); }
+.wall-shapes .ws-band {
+  left: calc(50% - 540 * var(--pt)); top: calc(118 * var(--pt));
+  width: calc(1080 * var(--pt)); height: calc(20 * var(--pt));
+  border-radius: 99px; background: rgba(255, 255, 255, 0.5);
+  transform: rotate(-4deg);
+}
+
+/* Rim colours from the artwork: its hue and two neighbours, plus a pale one. */
+.hn { --rim1: #9b7bff; --rim2: #ff6fb5; --rim3: #eef0ff; --rim4: #5ee7ff; }
+@supports (color: oklch(from red l c h)) {
+  .hn {
+    --rim1: oklch(from var(--glow) 0.78 0.17 h);
+    --rim2: oklch(from var(--glow) 0.8 0.16 calc(h + 50));
+    --rim3: oklch(from var(--glow) 0.96 0.04 h);
+    --rim4: oklch(from var(--glow) 0.78 0.16 calc(h - 50));
+  }
+}
+.hn-panel { transition: background-color 0.55s ease; }
+.hn::before, .hn::after { transition: opacity 0.4s ease; }
+.hn-frost, .hn-patch, .hn-rim { position: absolute; pointer-events: none; opacity: 0; transition: opacity 0.55s ease; }
+.hn-frost {
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.42);
+  -webkit-backdrop-filter: blur(calc(16 * var(--pt))) saturate(1.6);
+  backdrop-filter: blur(calc(16 * var(--pt))) saturate(1.6);
+}
+/* Black over the camera housing, feathered, so the cutout never shows. */
+.hn-patch {
+  top: calc(-8 * var(--pt)); left: 50%;
+  width: calc(216 * var(--pt)); height: calc(40 * var(--pt));
+  transform: translateX(-50%);
+  border-radius: 0 0 calc(14 * var(--pt)) calc(14 * var(--pt));
+  background: #000;
+  filter: blur(calc(6 * var(--pt)));
+}
+.hn-rim {
+  inset: 0; border-radius: inherit;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent calc(30 * var(--pt)), #000 calc(80 * var(--pt)));
+  mask-image: linear-gradient(180deg, transparent 0, transparent calc(30 * var(--pt)), #000 calc(80 * var(--pt)));
+  animation: rim-drift 18s linear infinite;   /* Motion.rimDrift */
+}
+@keyframes rim-drift { to { --ang: 360deg; } }
+.hn-rim .ring {
+  position: absolute; inset: 0; border-radius: inherit;
+  padding: calc(1.6 * var(--pt));
+  background: conic-gradient(from var(--ang), var(--rim1), var(--rim2), var(--rim3), var(--rim4), var(--rim1));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.hn-rim .soft { padding: calc(9 * var(--pt)); filter: blur(calc(6 * var(--pt))); opacity: 0.55; }
+.hn-rim .spot {
+  padding: calc(2 * var(--pt));
+  background: radial-gradient(circle calc(130 * var(--pt)) at var(--mx, 50%) var(--my, 100%), rgba(255, 255, 255, 0.95), transparent 70%);
+  opacity: var(--spot, 0);
+  transition: opacity 0.4s ease;
+}
+.stage[data-look="glass"][data-mode="panel"] .hn-panel { background-color: transparent; }
+.stage[data-look="glass"][data-mode="panel"] :is(.hn-frost, .hn-patch, .hn-rim) { opacity: 1; }
+.stage[data-look="glass"][data-mode="panel"] .hn::before,
+.stage[data-look="glass"][data-mode="panel"] .hn::after { opacity: 0; }
+
+/* Lyrics take the artist's line and roll up, one line at a time. */
+.meta .artist.lyrics { position: relative; height: 1.35em; overflow: hidden; text-overflow: clip; }
+.lyric {
+  position: absolute; left: 0; top: 0;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.95);
+  animation: lyric-in 0.45s var(--ease-out) both;
+}
+.lyric.out { animation: lyric-out 0.4s ease both; }
+@keyframes lyric-in { from { transform: translateY(105%); opacity: 0; } }
+@keyframes lyric-out { to { transform: translateY(-105%); opacity: 0; } }
+
+/* Equalizer bars set by hero.js from the band data (WaveformGlyph sizes). */
+.wave.live { height: calc(12 * var(--pt)); }
+.wave.live i {
+  animation: none;
+  width: calc(2.5 * var(--pt));
+  height: calc(var(--lv, 3) * var(--pt));
+  box-shadow: 0 0 calc(4 * var(--pt)) color-mix(in oklab, var(--glow) 70%, transparent);
+}
+
+/* The "New" tag pings twice when the page loads. */
+.eyebrow .tag { position: relative; }
+.eyebrow .tag::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--glow) 70%, transparent);
+  animation: tag-ping 1.6s var(--ease-out) 0.9s 2 both;
+  pointer-events: none;
+}
+@keyframes tag-ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--glow) 70%, transparent); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hn-rim { animation: none; }
+  .eyebrow .tag::after { animation: none; }
+}
+
+/* ---------- New in 0.13 ---------- */
+.spotlight { max-width: 1240px; margin: 0 auto; padding: 120px 24px 40px; }
+.spotlight .section-head em {
+  font-style: normal;
+  background: linear-gradient(100deg, #ffd166, #ff6fb5 40%, #9b7bff 70%, #5ee7ff);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.kicker {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(100deg, rgba(255, 209, 102, 0.22), rgba(255, 111, 181, 0.22), rgba(94, 231, 255, 0.22));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+/* The film, in a frame lit by the same rim colours as the glass panel. */
+.spot-film {
+  position: relative;
+  margin: 0 auto 56px;
+  max-width: 1100px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #05070c;
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 40px 120px -40px rgba(155, 123, 255, 0.45),
+    0 30px 80px -30px rgba(0, 0, 0, 0.9);
+}
+.spot-film::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--ang), #5ee7ff, #9b7bff, #ff6fb5, #ffd166, #5ee7ff);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: rim-drift 12s linear infinite;
+  opacity: 0.8;
+  z-index: 1;
+  pointer-events: none;
+}
+.spot-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 640px) {
+  .spotlight { padding-top: 80px; }
+  .spot-film { aspect-ratio: 9 / 16; max-width: 420px; max-height: 82svh; }
+}
+@media (prefers-reduced-motion: reduce) { .spot-film::before { animation: none; } }

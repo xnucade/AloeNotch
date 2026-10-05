@@ -118,10 +118,13 @@
        copyrighted ends up on the page. */
     const TRACKS = [
       { title: "Neon Arcade", artist: "Kade & the Lantern", len: 204, glow: "#c86bff",
+        lyrics: ["Coins in the slot", "and the lights come on", "Press start, hold on"],
         art: "linear-gradient(135deg, #ff5f8f 0%, #a45cff 48%, #4bc0ff 100%)" },
       { title: "Tidal Rooms", artist: "Marlow Vane", len: 247, glow: "#3fd6c6",
+        lyrics: ["Salt on the windows", "the tide keeps the time", "Stay till the morning"],
         art: "linear-gradient(135deg, #3ee6c1 0%, #2a8cff 55%, #1b2a6b 100%)" },
       { title: "Amber Static", artist: "The Paper Suns", len: 188, glow: "#ff8a5c",
+        lyrics: ["Radio hum at midnight", "amber on the dial", "Tune me back to you"],
         art: "linear-gradient(135deg, #ffc15e 0%, #ff5f6d 55%, #6a3093 100%)" },
     ];
 
@@ -129,7 +132,7 @@
     const R_COL = 10, R_EXP = 26;
     const S_COL = 6, S_EXP = 10;   // Metrics.shoulder: peek / expanded
     const ORDER = ["music", "shelf", "clipboard", "volume", "timer"];
-    const HOLD = { music: 4400, shelf: 3800, clipboard: 3600, volume: 3000, timer: 3400 };
+    const HOLD = { music: 6400, shelf: 3800, clipboard: 3600, volume: 3000, timer: 3400 };
 
     const chips = [...document.querySelectorAll(".chip-btn")];
     const hint = $("stageHint");
@@ -187,6 +190,113 @@
     }
     const tool = (html) => { $("hnTool").innerHTML = html; };
 
+    /* ---- Glass or solid (GlassNotch.swift) ----
+       A visitor's own pick is remembered. Without one, the panel opens solid
+       the first time and turns to glass a beat later, so the switch itself
+       is the first thing shown. */
+    let look = null, lookPicked = false;
+    try {
+      const saved = localStorage.getItem("aloenotch-look");
+      if (saved === "solid" || saved === "glass") { look = saved; lookPicked = true; }
+    } catch { /* storage blocked */ }
+    function setLook(l, remember) {
+      look = l;
+      stage.dataset.look = l;
+      for (const b of document.querySelectorAll(".seg [data-look]")) {
+        b.setAttribute("aria-checked", String(b.dataset.look === l));
+      }
+      if (remember) {
+        lookPicked = true;
+        try { localStorage.setItem("aloenotch-look", l); } catch { /* ignore */ }
+      }
+    }
+    setLook(lookPicked ? look : (reduce ? "glass" : "solid"), false);
+    for (const b of document.querySelectorAll(".seg [data-look]")) {
+      b.addEventListener("click", () => {
+        setLook(b.dataset.look, true);
+        dismissHint();
+        if (stage.dataset.mode !== "panel") {
+          clearTimeout(resumeTimer);
+          go("music", { manual: true });
+          resumeTimer = setTimeout(schedule, 9000);
+        }
+      });
+    }
+    let showedGlass = false;
+    function maybeShowGlass() {
+      if (lookPicked || showedGlass) return;
+      showedGlass = true;
+      setTimeout(() => { if (!lookPicked) setLook("glass", false); }, 1500);
+    }
+
+    /* The rim catches the pointer: a highlight that follows it round the edge. */
+    const rim = stage.querySelector(".hn-rim");
+    if (rim && hoverable) {
+      stage.addEventListener("pointermove", (e) => {
+        const r = hn.getBoundingClientRect();
+        rim.style.setProperty("--mx", (e.clientX - r.left).toFixed(0) + "px");
+        rim.style.setProperty("--my", (e.clientY - r.top).toFixed(0) + "px");
+        rim.style.setProperty("--spot", "1");
+      });
+      stage.addEventListener("pointerleave", () => rim.style.setProperty("--spot", "0"));
+    }
+
+    /* ---- Lyrics: the line being sung, in the artist's place ---- */
+    let lyricAt = 0;
+    function stopLyrics() {
+      const a = $("hnArtist");
+      if (!a.classList.contains("lyrics")) return;
+      a.classList.remove("lyrics");
+      a.textContent = TRACKS[track].artist;
+    }
+    function showLyric(i) {
+      const a = $("hnArtist");
+      const lines = TRACKS[track].lyrics;
+      if (!a.classList.contains("lyrics")) { a.classList.add("lyrics"); a.textContent = ""; }
+      for (const old of a.querySelectorAll(".lyric:not(.out)")) {
+        old.classList.add("out");
+        setTimeout(() => old.remove(), 450);
+      }
+      const span = document.createElement("span");
+      span.className = "lyric";
+      span.textContent = lines[i % lines.length];
+      a.appendChild(span);
+    }
+    function startLyrics(delay) {
+      lyricAt = 0;
+      if (reduce) { showLyric(0); return; }
+      const step = () => { showLyric(lyricAt++); later(2100, step); };
+      later(delay, step);
+    }
+
+    /* ---- The equalizer, driven by a real track ----
+       Four bands at SpectrumBands.swift's edges with the meter's attack and
+       decay, measured off the launch video's music and looped. */
+    const EQ = "223817212332141819272222215455491760464115513834544352808552449172663776607231645161265443512245364318383036153225572845218723381894203218791727199217221677191913651616115513181246324025393733313231283527322337333220393927174040231444552820467937343993312933972624388222203269181735581514414816123541242429344777323549922729417828333565284640552456344627472839234024322733203630351730252914252525152721372238225119322555163721564448187937401591313412772628108122240968192007571617064813140540171206341410052812080424100703201106044451470348433904403633044130280447252304392120033318160328151404321312043611100430090803302721063923180841191509341613093718180731212508381821073215246745517656484364474836713952397640564064345633543847284532543252277079853482937140697860425866504349555543524647364439393037334478494882664140895545347446472862396178883375937428639762315382522655696737465856423948473542414037453433315537283760312431504064796773756677916355867753477264453961543733514531285638262947324432403847363332393928273340232839336678813683936830707857485965837649557064524672545339614544335138372743323923363342193028354978338084664093715541975946449850393799423338833528387030237559435863493648535530414459253437502729315931243470262034592717297369743288906234749652286281443352683728445731334548262745402276515576644347645436395445403345386262753271886334789553298080453267676237575652384847444040403733343331353428263635242230302844785360836664866955758858466374493953624139625235335244293763374331533152384426443237223737312531316277793479926629677855335665867847789566589380556178674652655639435547334446403337393335414165357082893784697540715863335948533969574433704837375940315749507180414259673536505739304248433335403638303438322536412721305659763786877943909566447580564563674738705739405947334059402880605074675142805743366748363057404655663476867328868661347272513461616438515154434343454536363845303632383531273929262233332619795452756670856355748553477672443964603733655131345443263546363429553950394640424439333537322830395469783968906640577555344863667963538967674575567038634759325340492744334122373435193134293158297877813693646842975457";
+    const eqGet = (j, b) => Number(EQ.substr((Math.min(269, Math.max(0, j)) * 4 + b) * 2, 2)) / 99;
+    function eqAt(sec) {
+      const f = sec * 30, i = Math.floor(f), a = f - i;
+      return [0, 1, 2, 3].map((b) => eqGet(i, b) + (eqGet(i + 1, b) - eqGet(i, b)) * a);
+    }
+    let eqRunning = false;
+    function eqFrame(now) {
+      const bars = stage.querySelectorAll(".wave.live i");
+      if (!bars.length || !visible) { eqRunning = false; return; }
+      const S = 0.6, D = 8.4, X = 0.6, t = (now / 1000) % D;
+      let lv = eqAt(S + t);
+      if (t > D - X) {
+        const a = (t - (D - X)) / X, early = eqAt(S + t - D);
+        lv = lv.map((v, i) => v + (early[i] - v) * a);
+      }
+      bars.forEach((b, i) => b.style.setProperty("--lv", (3 + 9 * lv[i]).toFixed(2)));
+      requestAnimationFrame(eqFrame);
+    }
+    function startEq() {
+      if (reduce || eqRunning) return;
+      eqRunning = true;
+      requestAnimationFrame(eqFrame);
+    }
+
     /* ---- Track, clock, calendar ---- */
     function setTrack(i) {
       track = i;
@@ -241,12 +351,14 @@
         stage.dataset.col = "media";
         tabs("shelf");
         tool('<div class="drop"><span>Drop files here</span></div>');
-        strip('<div class="mini-art"></div>', '<div class="wave"><i></i><i></i><i></i><i></i></div>');
-        if (reduce) { openPanel(); return; }
+        strip('<div class="mini-art"></div>', '<div class="wave live"><i></i><i></i><i></i><i></i></div>');
+        startEq();
+        if (reduce) { openPanel(); startLyrics(0); return; }
         // Peek first, then open: the open is where the bounce shows.
         shape(NOTCH_W + MEDIA_WING * 2, NOTCH_H, R_COL, "strip");
         light(0.4, 0.45);
-        later(1300, openPanel);
+        later(1300, () => { openPanel(); maybeShowGlass(); });
+        startLyrics(1900);
       },
       shelf() {
         stage.dataset.col = "tools";
@@ -317,6 +429,7 @@
         c.classList.remove("timed");
         c.setAttribute("aria-pressed", String(c.dataset.go === name));
       }
+      stopLyrics();
       MOMENTS[name](advance);
       if (!manual) schedule();
     }
@@ -358,8 +471,9 @@
       if (stage.dataset.mode === "panel") return;
       openedByHover = true;
       if (state === "timer") { stage.dataset.col = "tools"; timerTool(); }
-      else stage.dataset.col = "media";
+      else { clearSub(); stage.dataset.col = "media"; startLyrics(500); }
       openPanel();
+      maybeShowGlass();
     }
 
     if (hoverable) {
@@ -391,11 +505,11 @@
     // Nothing runs while nobody can see it.
     new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;
-      if (visible) schedule(); else pause();
+      if (visible) { schedule(); startEq(); } else pause();
     }, { threshold: 0.2 }).observe(stage);
     document.addEventListener("visibilitychange", () => {
       visible = !document.hidden;
-      if (visible) schedule(); else pause();
+      if (visible) { schedule(); startEq(); } else pause();
     });
 
     // A resize across the phone breakpoint changes the panel's size.

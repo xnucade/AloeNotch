@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AloeNotch — Your notch, awake</title>
-  <meta name="description" content="AloeNotch turns your MacBook's notch into a Dynamic Island: now playing from any app, a drop shelf, calendar, weather and battery — invisible until you hover.">
+  <meta name="description" content="AloeNotch turns your MacBook's notch into a Dynamic Island: a liquid-glass panel, synced lyrics, an equalizer that follows your music, a drop shelf, calendar and timers — free and open source.">
   <link rel="canonical" href="https://aloenotch.com/">
 
   <!-- Open Graph / Twitter: the link preview when the site is shared. Absolute
@@ -12,15 +12,16 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="AloeNotch">
   <meta property="og:title" content="AloeNotch — Your notch, awake">
-  <meta property="og:description" content="Turn your MacBook's notch into a Dynamic Island: now playing from any app, a drop shelf, calendar, weather and battery — invisible until you hover. Free and open source.">
+  <meta property="og:description" content="Turn your MacBook's notch into a Dynamic Island — now with a liquid-glass panel, synced lyrics and an equalizer that follows your music. Free and open source.">
   <meta property="og:url" content="https://aloenotch.com/">
-  <meta property="og:image" content="https://aloenotch.com/assets/demo-poster.jpg">
-  <meta property="og:image:width" content="1920">
-  <meta property="og:image:height" content="1080">
+  <meta property="og:image" content="https://aloenotch.com/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The AloeNotch glass panel showing a song's lyrics, above the words Your notch just woke up.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="AloeNotch — Your notch, awake">
-  <meta name="twitter:description" content="Turn your MacBook's notch into a Dynamic Island. Free and open source.">
-  <meta name="twitter:image" content="https://aloenotch.com/assets/demo-poster.jpg">
+  <meta name="twitter:description" content="Your MacBook's notch as a Dynamic Island — liquid glass, synced lyrics, a live equalizer. Free and open source.">
+  <meta name="twitter:image" content="https://aloenotch.com/assets/og.jpg">
 
   <meta name="theme-color" content="#050507">
   <link rel="icon" type="image/png" href="assets/icon.png">
@@ -35,6 +36,7 @@
         <span>AloeNotch</span>
       </a>
       <nav class="nav-actions" aria-label="Primary">
+        <a class="nav-link nav-wide" href="#new">New</a>
         <a class="nav-link nav-wide" href="#features">Features</a>
         <a class="nav-link nav-wide" href="#tour">Tour</a>
         <a class="nav-link nav-wide" href="#faq">FAQ</a>
@@ -57,7 +59,11 @@
     <section class="hero">
       <div class="stage-wrap">
         <div class="stage" id="stage" data-mode="panel" data-col="all">
-          <div class="wall" aria-hidden="true"></div>
+          <div class="wall" aria-hidden="true">
+            <!-- Hard-edged shapes near the top, so the glass panel has
+                 something to frost. Faded out before the headline. -->
+            <div class="wall-shapes"><i class="ws1"></i><i class="ws2"></i><i class="ws3"></i><i class="ws-band"></i></div>
+          </div>
 
           <div class="menubar" aria-hidden="true">
             <div class="mb-side">
@@ -75,6 +81,11 @@
           <div class="hn" id="hn" role="img" aria-label="An animated AloeNotch panel cycling through now playing, the shelf, clipboard history, the volume readout and a timer.">
             <div class="hn-glow"></div>
             <div class="hn-panel">
+              <!-- Glass (GlassNotch.swift): frost, a black patch over the
+                   camera, and a colour-shifting rim. Hidden on Solid. -->
+              <div class="hn-frost"></div>
+              <div class="hn-patch"></div>
+              <div class="hn-rim"><i class="ring"></i><i class="ring soft"></i><i class="ring spot"></i></div>
               <div class="hn-strip">
                 <div class="side left" id="hnLeft"></div>
                 <div class="dead"></div>
@@ -97,7 +108,7 @@
                     <div class="art-stack"><div class="aura"></div><div class="art"></div></div>
                     <div class="meta">
                       <div class="title" id="hnTitle">Neon Arcade</div>
-                      <div class="artist" id="hnArtist">Kade &amp; the Lantern</div>
+                      <div class="artist" id="hnArtist" aria-live="off">Kade &amp; the Lantern</div>
                       <div class="scrub"><div class="track"><b id="hnScrub"></b></div>
                         <div class="times"><span id="hnElapsed">1:20</span><span id="hnLength">3:24</span></div></div>
                       <div class="controls">
@@ -142,8 +153,8 @@
             <h1>Your notch<br><em>just woke up.</em></h1>
             <p class="lede">
               AloeNotch turns the MacBook notch into a Dynamic Island — now playing
-              from any app, a drop shelf for files, and your day at a glance.
-              Invisible until you hover.
+              with synced lyrics, a drop shelf for files, and your day at a glance.
+              Solid black or liquid glass. Invisible until you hover.
             </p>
             <div class="hero-cta">
               <a class="btn" href="#download">Download for macOS</a>
@@ -151,7 +162,7 @@
                 <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 4.2v11.6L15.6 10z"/></svg>
               </a>
             </div>
-            <p class="fineprint">Apple Silicon · macOS 26 or later · 1.6 MB</p>
+            <p class="fineprint">Apple Silicon · macOS 26 or later · 2.0 MB</p>
           </div>
         </div>
 
@@ -164,6 +175,12 @@
             <button type="button" class="chip-btn" data-go="timer"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="11.4" r="6.6"/><path d="M10 8.2v3.4l2.2 1.5M7.6 1.8h4.8"/></svg>Timer<i></i></button>
           </div>
           <span class="bar-sep" aria-hidden="true"></span>
+          <div class="seg seg-look" role="radiogroup" aria-label="Notch style">
+            <span class="seg-label">Style</span>
+            <button type="button" role="radio" data-look="solid">Solid</button>
+            <button type="button" role="radio" data-look="glass">Glass</button>
+          </div>
+          <span class="bar-sep" aria-hidden="true"></span>
           <div class="seg" role="radiogroup" aria-label="Bounce">
             <span class="seg-label">Bounce</span>
             <button type="button" role="radio" data-bounce="calm">Calm</button>
@@ -174,6 +191,147 @@
       </div>
     </section>
 
+    <!-- ================================================================
+         What's new, right under the hero: the launch film for 0.13 and a
+         card per feature. The film has its own vertical cut for phones;
+         main.js picks the poster to match and only plays it in view.
+         ================================================================ -->
+    <section class="spotlight" id="new">
+      <div class="section-head reveal">
+        <span class="kicker">New in 0.13</span>
+        <h2>Glass, lyrics, and a notch<br><em>that listens.</em></h2>
+        <p>The panel frosts your desktop, the song's words scroll by under its
+        title, and the bars finally move to the music.</p>
+      </div>
+      <div class="spot-film reveal">
+        <video id="spotVideo" muted loop playsinline preload="metadata"
+               poster="assets/spotlight.jpg"
+               data-poster-vertical="assets/spotlight-vertical.jpg"
+               aria-label="A 23-second film of the glass notch, lyrics and the live equalizer">
+          <source media="(max-width: 640px)" src="assets/spotlight-vertical.webm" type="video/webm">
+          <source media="(max-width: 640px)" src="assets/spotlight-vertical.mp4" type="video/mp4">
+          <source src="assets/spotlight.webm" type="video/webm">
+          <source src="assets/spotlight.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="bento">
+        <article class="card reveal span-7">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/glass.jpg"
+                   aria-label="A glass notch, demonstrated">
+              <source src="assets/clips/glass.webm" type="video/webm">
+              <source src="assets/clips/glass.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>A glass notch</h3>
+          <p>Switch the open panel to glass and it frosts whatever is behind it, with an edge that shifts color with the song. It stays black over the camera, so the cutout never shows.</p>
+        </article>
+        <article class="card reveal span-5">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/lyrics.jpg"
+                   aria-label="Lyrics in the notch, demonstrated">
+              <source src="assets/clips/lyrics.webm" type="video/webm">
+              <source src="assets/clips/lyrics.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>Lyrics in the notch</h3>
+          <p>The line being sung, right under the track title. Looked up by song name on LRCLIB — and one switch turns it off.</p>
+        </article>
+        <article class="card reveal span-5">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/live-eq.jpg"
+                   aria-label="The live equalizer, demonstrated">
+              <source src="assets/clips/live-eq.webm" type="video/webm">
+              <source src="assets/clips/live-eq.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>An equalizer that listens</h3>
+          <p>The bars follow the actual music, bass to treble. macOS asks first, and the sound is measured, never recorded.</p>
+        </article>
+        <article class="card reveal span-7">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/split-island.jpg"
+                   aria-label="The split island, demonstrated">
+              <source src="assets/clips/split-island.webm" type="video/webm">
+              <source src="assets/clips/split-island.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>A timer and your music, side by side</h3>
+          <p>Start a timer while something plays and it pinches off into its own bubble beside the notch, then melts back in when it is done.</p>
+        </article>
+        <article class="card reveal span-6">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/swipe.jpg"
+                   aria-label="Swipe gestures, demonstrated">
+              <source src="assets/clips/swipe.webm" type="video/webm">
+              <source src="assets/clips/swipe.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>Swipe on the notch</h3>
+          <p>Two fingers down to open it, up to close it, and sideways to skip a track.</p>
+        </article>
+        <article class="card reveal span-6">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/join-call.jpg"
+                   aria-label="Join from the notch, demonstrated">
+              <source src="assets/clips/join-call.webm" type="video/webm">
+              <source src="assets/clips/join-call.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <h3>Join calls from the notch</h3>
+          <p>Zoom, Meet, Teams and more get a Join button ten minutes before they start. One click and you are in.</p>
+        </article>
+        <article class="card reveal span-12 card-wide">
+          <div class="card-clip">
+            <video muted loop playsinline preload="none"
+                   poster="assets/clips/displays.jpg"
+                   aria-label="Choosing a display, demonstrated">
+              <source src="assets/clips/displays.webm" type="video/webm">
+              <source src="assets/clips/displays.mp4" type="video/mp4">
+            </video>
+            <span class="zoomhint" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
+              Enlarge
+            </span>
+          </div>
+          <div class="card-text">
+            <h3>Choose your screen</h3>
+            <p>With more than one display, pick where the notch lives in Settings → General. On a screen without a notch, AloeNotch draws its own.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <!-- The first objection to a free menu bar app is that it will be bloated
          or slow. These are measured on a real machine, not estimated: the DMG
          and installed sizes from the build, idle CPU sampled over 30 seconds,
@@ -181,7 +339,7 @@
          roughly doubles the figure). Re-measure before changing them. -->
     <section class="stats">
       <div class="stat-row reveal">
-        <div class="stat"><b>1.6 MB</b><span>to download</span></div>
+        <div class="stat"><b>2.0 MB</b><span>to download</span></div>
         <div class="stat"><b>37 MB</b><span>memory in use</span></div>
         <div class="stat"><b>&lt;1%</b><span>of one core, idle</span></div>
         <div class="stat"><b>MIT</b><span>open source</span></div>
@@ -472,7 +630,7 @@
         <h2>Get AloeNotch</h2>
         <p class="fineprint">Version 0.13.1 · Apple Silicon · macOS 26 or later ·
         <a href="/changelog">what’s new</a></p>
-        <a class="btn btn-big" href="assets/AloeNotch-0.13.1.dmg" download>Download .dmg</a>
+        <a class="btn btn-big" href="assets/AloeNotch-0.13.1.dmg" download>Download free · 2.0 MB</a>
         <details>
           <summary>First launch on macOS</summary>
           <p>AloeNotch is an independent app, so macOS will ask before the first
@@ -580,6 +738,6 @@
 
   <script src="main.js"></script>
   <script src="hero.js"></script>
-  <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="xnucade" data-description="Support me on Buy me a coffee!" data-message="If you're feeling up to it I would appreciate the support. Thanks for Visiting! " data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+  <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="xnucade" data-description="Support me on Buy me a coffee!" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 </body>
 </html>

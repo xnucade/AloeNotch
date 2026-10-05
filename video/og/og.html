@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- The site's link-preview image (og:image / twitter:image), 1200x630.
+     Render: node shoot.mjs → ../../site/assets/og.jpg. Same synthetic track,
+     artwork and wallpaper as the clips; nothing copyrighted. -->
+<html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;height:630px;overflow:hidden;background:#07070c;color:#f5f5f7;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;-webkit-font-smoothing:antialiased}
+#wall{position:absolute;inset:0;background:
+  radial-gradient(34% 50% at 30% 6%,rgba(255,138,61,.95),transparent 70%),
+  radial-gradient(30% 48% at 66% 2%,rgba(232,64,154,.9),transparent 70%),
+  radial-gradient(44% 56% at 50% 34%,rgba(58,123,255,.85),transparent 70%),
+  radial-gradient(26% 40% at 86% 18%,rgba(32,201,176,.8),transparent 70%),#0b0b14}
+.disc{position:absolute;border-radius:50%}
+#d1{width:210px;height:210px;left:120px;top:120px;background:linear-gradient(140deg,#ffd166,#ff6b6b)}
+#d2{width:170px;height:170px;left:900px;top:70px;background:linear-gradient(200deg,#7cf3ff,#5b6cff)}
+#d3{width:96px;height:96px;left:690px;top:200px;background:linear-gradient(160deg,#ff9de2,#b06bff)}
+#band{position:absolute;left:-40px;top:250px;width:1280px;height:22px;border-radius:11px;background:rgba(255,255,255,.5);transform:rotate(-4deg)}
+#shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0,transparent 250px,rgba(6,6,10,.9) 330px,#06060a 400px)}
+#mb{position:absolute;left:0;top:0;right:0;height:30px;background:rgba(8,8,14,.55);display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:13px;font-weight:500;color:rgba(255,255,255,.9)}
+#mb b{font-weight:700}#mb span{margin-right:18px}
+#panel{position:absolute;top:0;left:50%;transform:translateX(-50%);width:780px;height:250px;border-radius:0 0 32px 32px;overflow:hidden}
+#frost{position:absolute;inset:0;background:rgba(0,0,0,.42);backdrop-filter:blur(22px) saturate(1.6)}
+#patch{position:absolute;top:-10px;left:50%;margin-left:-138px;width:276px;height:50px;border-radius:0 0 18px 18px;background:#000;filter:blur(7px)}
+.ring{position:absolute;inset:0;border-radius:inherit;background:conic-gradient(from 210deg,#5ee7ff,#9b7bff,#ff6fb5,#ffc36b,#5ee7ff);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor}
+#rim{position:absolute;inset:0;border-radius:inherit;-webkit-mask-image:linear-gradient(180deg,transparent 0,transparent 40px,#000 100px)}
+#hard{padding:2px}#soft{padding:12px;filter:blur(8px);opacity:.55}
+#in{position:absolute;inset:0;padding:44px 34px 24px;display:flex;flex-direction:column;gap:14px}
+.hdr{display:flex;align-items:center;gap:14px}.clock{font-size:20px;font-weight:600;color:rgba(255,255,255,.9)}
+.sp{flex:1}.wx{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.12);font-size:16px;font-weight:600}
+.media{display:flex;align-items:center;gap:24px}
+.art{width:124px;height:124px;border-radius:24px;background:linear-gradient(135deg,#ff5f8f 0%,#a45cff 48%,#4bc0ff 100%);box-shadow:0 0 50px rgba(200,107,255,.55)}
+.meta{flex:1;min-width:0}.title{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.lyr{font-size:20px;margin-top:4px;color:#fff}
+.bar{margin-top:14px;height:6px;border-radius:99px;background:rgba(255,255,255,.22);position:relative}
+.bar b{position:absolute;left:0;top:0;bottom:0;width:42%;border-radius:99px;background:#fff}
+.eq{display:flex;align-items:center;gap:5px;height:44px}
+.eq i{display:block;width:8px;border-radius:4px;background:linear-gradient(180deg,#f3e6ff,#d6a6ff);box-shadow:0 0 10px rgba(200,107,255,.8)}
+#copy{position:absolute;left:0;right:0;top:352px;text-align:center}
+.brand{display:inline-flex;align-items:center;gap:14px;font-size:30px;font-weight:700;letter-spacing:-.02em}
+.brand img{width:56px;height:56px;filter:drop-shadow(0 0 16px rgba(115,191,255,.5))}
+h1{margin-top:14px;font-size:66px;font-weight:750;letter-spacing:-.035em;line-height:1}
+h1 em{font-style:normal;background:linear-gradient(100deg,#ffd166,#ff6fb5 40%,#9b7bff 70%,#5ee7ff);-webkit-background-clip:text;color:transparent}
+.sub{margin-top:18px;font-size:22px;color:rgba(245,245,247,.7)}
+</style></head><body>
+<div id="wall"><i class="disc" id="d1"></i><i class="disc" id="d2"></i><i class="disc" id="d3"></i><i id="band"></i></div>
+<div id="shade"></div>
+<div id="mb"><div><b style="margin-right:18px">Finder</b><span>File</span><span>Edit</span><span>View</span></div><div>Mon Oct 5 &nbsp;9:41</div></div>
+<div id="panel"><div id="frost"></div><div id="patch"></div>
+  <div id="rim"><i class="ring" id="hard"></i><i class="ring" id="soft"></i></div>
+  <div id="in">
+    <div class="hdr"><span class="clock">9:41</span><span class="sp"></span>
+      <span class="wx"><svg width="18" height="18" viewBox="0 0 20 20" fill="#ffd66b"><circle cx="10" cy="10" r="4.2"/><g stroke="#ffd66b" stroke-width="1.6" stroke-linecap="round"><path d="M10 1.6v2.2M10 16.2v2.2M1.6 10h2.2M16.2 10h2.2M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M15.9 4.1l-1.6 1.6M5.7 14.3l-1.6 1.6"/></g></svg>72°</span></div>
+    <div class="media"><div class="art"></div>
+      <div class="meta"><div class="title">Neon Arcade</div><div class="lyr">and the lights come on ♪</div><div class="bar"><b></b></div></div>
+      <div class="eq"><i style="height:22px"></i><i style="height:40px"></i><i style="height:28px"></i><i style="height:34px"></i></div>
+    </div>
+  </div>
+</div>
+<div id="copy">
+  <div class="brand"><img src="icon.png" alt="">AloeNotch</div>
+  <h1>Your notch <em>just woke up.</em></h1>
+  <p class="sub">Liquid glass · Lyrics · A live equalizer — free for macOS</p>
+</div>
+</body></html>
