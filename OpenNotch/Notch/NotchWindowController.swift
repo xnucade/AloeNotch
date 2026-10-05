@@ -103,6 +103,10 @@ final class NotchWindowController {
         }
         host.frame = CGRect(origin: .zero, size: frame.size)
         host.autoresizingMask = [.width, .height]
+        // The controller owns the window frame. By default the hosting view
+        // pushes the SwiftUI content's min/max size onto the window, which
+        // gives AppKit a second opinion about how wide the panel may be.
+        host.sizingOptions = []
 
         panel.contentView = host
         panel.sharingType = settings.hideFromCapture ? .none : .readOnly
@@ -110,6 +114,36 @@ final class NotchWindowController {
 
         self.panel = panel
         self.hostingView = host
+
+        // The window server can move or shrink the panel on its own while
+        // displays reconfigure — sleep, clamshell, a monitor coming and going —
+        // and the screen-parameters notification doesn't always follow. A
+        // squeezed window recentres its content off the hardware notch, so one
+        // side of the strip overhangs the cutout. Whenever the frame drifts,
+        // put it back.
+        NotificationCenter.default
+            .publisher(for: NSWindow.didResizeNotification, object: panel)
+            .merge(with: NotificationCenter.default
+                .publisher(for: NSWindow.didMoveNotification, object: panel))
+            .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.restoreFrameIfDrifted() }
+            .store(in: &cancellables)
+
+        // After wake the screen list settles late; re-read it rather than
+        // trusting the metrics from before sleep.
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.screensDidWakeNotification)
+            .delay(for: .seconds(1), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.repositionOnActiveScreen() }
+            .store(in: &cancellables)
+    }
+
+    private func restoreFrameIfDrifted() {
+        guard let panel else { return }
+        let target = positionedFrame()
+        if panel.frame.integral != target.integral {
+            panel.setFrame(target, display: true)
+        }
     }
 
     /// The region that should receive mouse events, in the hosting view's
