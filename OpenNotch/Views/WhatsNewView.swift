@@ -17,11 +17,52 @@ enum WhatsNew {
         let symbol: String
         let title: String
         let detail: String
+        /// An opt-in feature this item can switch on from the sheet. Without
+        /// it, anything off by default is announced and then never found.
+        var setting: Setting? = nil
         var id: String { title }
+    }
+
+    enum Setting {
+        case glassNotch, lyrics, liveEqualizer, headphoneBattery
     }
 
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
+        Entry(
+            version: "0.13.1",
+            headline: "Glass, lyrics, and a notch that listens",
+            items: [
+                Item(symbol: "rectangle.topthird.inset.filled",
+                     title: "A glass notch",
+                     detail: "The open panel frosts the desktop behind it, with a color-shifting edge. It stays black over the camera.",
+                     setting: .glassNotch),
+                Item(symbol: "quote.bubble",
+                     title: "Lyrics in the notch",
+                     detail: "The line being sung, right under the track title. Looks up the song's name on LRCLIB.",
+                     setting: .lyrics),
+                Item(symbol: "waveform",
+                     title: "An equalizer that listens",
+                     detail: "The bars follow the actual music. macOS asks before AloeNotch can hear system audio, which is measured and never recorded.",
+                     setting: .liveEqualizer),
+                Item(symbol: "airpods.pro",
+                     title: "AirPods battery",
+                     detail: "See how charged your AirPods or Beats are when they connect.",
+                     setting: .headphoneBattery),
+                Item(symbol: "rectangle.split.2x1",
+                     title: "A timer and your music, side by side",
+                     detail: "While both are running, the timer pinches off into its own bubble beside the notch."),
+                Item(symbol: "hand.draw",
+                     title: "Swipe on the notch",
+                     detail: "Two fingers down to open, up to close, and sideways to skip tracks."),
+                Item(symbol: "video",
+                     title: "Join calls from the notch",
+                     detail: "Zoom, Meet, Teams and more get a Join button ten minutes before they start."),
+                Item(symbol: "display.2",
+                     title: "Choose your screen",
+                     detail: "With more than one display, pick where the notch lives in Settings → General."),
+            ]
+        ),
         Entry(
             version: "0.9.2",
             headline: "Motion you can dial",
@@ -33,8 +74,8 @@ enum WhatsNew {
                      title: "Closing never bounces",
                      detail: "On purpose. A spring that overshoots also undershoots, which would briefly make the collapsed strip smaller than the hardware notch and show wallpaper around it. Opening overshoots outward, where there's room."),
                 Item(symbol: "slider.horizontal.below.square.filled.and.square",
-                     title: "Colour the volume and brightness bars",
-                     detail: "White as before, or follow your accent, or pick each one, or let them take the colour of whatever's playing — the same colour the glow is already using."),
+                     title: "Color the volume and brightness bars",
+                     detail: "White as before, or follow your accent, or pick each one, or let them take the color of whatever's playing — the same color the glow is already using."),
             ]
         ),
         Entry(
@@ -139,7 +180,7 @@ enum WhatsNew {
                      detail: "Cover art is decoded off the main thread, so skipping a track no longer costs a frame just as the artwork is crossfading."),
                 Item(symbol: "slider.horizontal.3",
                      title: "A real settings window",
-                     detail: "Five tabs, with accent colour, panel width, glass intensity and animation speed — plus every module toggled individually."),
+                     detail: "Five tabs, with accent color, panel width, glass intensity and animation speed — plus every module toggled individually."),
                 Item(symbol: "hand.tap",
                      title: "It responds to you",
                      detail: "Hover and press feedback throughout, the shelf opens to catch a dragged file, and the trackpad taps on drop and on volume steps."),
@@ -217,6 +258,13 @@ struct WhatsNewView: View {
                                         .foregroundStyle(.secondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
+                                if let setting = item.setting {
+                                    Spacer(minLength: 8)
+                                    Toggle(item.title, isOn: binding(for: setting))
+                                        .labelsHidden()
+                                        .toggleStyle(.switch)
+                                        .controlSize(.small)
+                                }
                             }
                         }
                     }
@@ -245,8 +293,34 @@ struct WhatsNewView: View {
                 .padding(.vertical, 14)
             }
         }
-        .frame(width: 470, height: 540)
+        .frame(width: 470, height: 580)
         .frostedWindowBackground(settings.useGlass)
         .withAccessibilityPreferences()
+    }
+
+    /// Each switch is the same setting as its row in Settings, with the same
+    /// side effects: battery is what asks for Bluetooth, and it only shows
+    /// under Device events, so turning it on here turns that on too.
+    private func binding(for setting: WhatsNew.Setting) -> Binding<Bool> {
+        switch setting {
+        case .glassNotch:
+            Binding(get: { settings.notchStyle == .glass },
+                    set: { settings.notchStyle = $0 ? .glass : .solid })
+        case .lyrics:
+            $settings.showLyrics
+        case .liveEqualizer:
+            $settings.liveEqualizer
+        case .headphoneBattery:
+            Binding(
+                get: { settings.showHeadphoneBattery
+                       && HeadphoneBattery.shared.authorization != .denied },
+                set: { on in
+                    settings.showHeadphoneBattery = on
+                    if on {
+                        settings.showDeviceEvents = true
+                        HeadphoneBattery.shared.requestAccess()
+                    }
+                })
+        }
     }
 }

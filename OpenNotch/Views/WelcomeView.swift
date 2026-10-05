@@ -156,7 +156,7 @@ struct WelcomeView: View {
             }
 
             VStack(spacing: 0) {
-                SettingsRow("Open AloeNotch at login", symbol: "power",
+                SettingsRow("Open at login", symbol: "power",
                             description: "It runs quietly in the menu bar.") {
                     Toggle("", isOn: $settings.launchAtLogin).labelsHidden()
                 }

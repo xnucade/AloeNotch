@@ -28,7 +28,7 @@ struct SettingsMenuView: View {
                     .panelSurface(cornerRadius: 16, glass: settings.useGlass)
 
                     VStack(spacing: 6) {
-                        toggleRow("power", "Launch at Login", $settings.launchAtLogin)
+                        toggleRow("power", "Open at Login", $settings.launchAtLogin)
                         Divider().opacity(0.4)
                         if let newVersion = updates.availableVersion {
                             // Only ever shown when there is something to say —
@@ -40,10 +40,11 @@ struct SettingsMenuView: View {
                                 updates.openReleasesPage()
                             }
                         }
-                        menuButton("gearshape", "Settings…", action: onOpenSettings)
+                        menuButton("gearshape", "Settings…", shortcut: ",", action: onOpenSettings)
                         menuButton("arrow.up.to.line", "Reposition", action: onReposition)
-                        menuButton("xmark.circle", "Quit AloeNotch",
-                                   tint: .red) { NSApp.terminate(nil) }
+                        menuButton("xmark.circle", "Quit AloeNotch", shortcut: "q") {
+                            NSApp.terminate(nil)
+                        }
                     }
                     .padding(11)
                     .panelSurface(cornerRadius: 16, glass: settings.useGlass)
@@ -82,18 +83,33 @@ struct SettingsMenuView: View {
         .controlSize(.mini)
     }
 
+    @ViewBuilder
     private func menuButton(_ symbol: String, _ title: String,
                             tint: Color? = nil,
+                            shortcut: Character? = nil,
                             action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        let button = Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: symbol).font(.callout).frame(width: 18)
                 Text(title).font(.callout)
                 Spacer()
+                // Shown the way a real menu shows it, and bound below so it
+                // works while this window is open.
+                if let shortcut {
+                    Text("⌘\(String(shortcut).uppercased())")
+                        .font(.callout)
+                        .foregroundStyle(.tertiary)
+                }
             }
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .foregroundStyle(tint ?? .primary)
+
+        if let shortcut {
+            button.keyboardShortcut(KeyEquivalent(shortcut), modifiers: .command)
+        } else {
+            button
+        }
     }
 }

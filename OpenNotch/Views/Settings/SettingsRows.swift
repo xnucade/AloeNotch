@@ -35,7 +35,7 @@ struct AccentPicker: View {
 
             // Custom. `supportsOpacity: false` because a translucent accent
             // would read as washed-out chrome rather than a colour choice.
-            ColorPicker("Custom colour", selection: $customColor, supportsOpacity: false)
+            ColorPicker("Custom color", selection: $customColor, supportsOpacity: false)
                 .labelsHidden()
                 .frame(width: 22, height: 22)
                 .overlay {

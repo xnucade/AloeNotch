@@ -17,7 +17,7 @@ enum NotchStyle: String, CaseIterable, Identifiable {
     var detail: String {
         switch self {
         case .solid: "Black, like the notch it grows out of."
-        case .glass: "The open panel frosts the desktop behind it and picks up a colour-shifting edge. It stays black where it meets the camera, and whenever it's closed."
+        case .glass: "The open panel frosts the desktop behind it and picks up a color-shifting edge. It stays black where it meets the camera, and whenever it's closed."
         }
     }
 }
@@ -82,7 +82,7 @@ struct GlassPanelFill: View {
     }
 }
 
-/// A thin colour-shifting edge for the glass panel, drawn inside the clip.
+/// A thin color-shifting edge for the glass panel, drawn inside the clip.
 ///
 /// Colours come from the artwork when music plays, so the rim belongs to the
 /// song; otherwise a cool default. While music plays the colours drift slowly

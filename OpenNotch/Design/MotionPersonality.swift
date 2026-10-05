@@ -93,9 +93,9 @@ enum HUDTintMode: String, CaseIterable, Identifiable {
     var detail: String {
         switch self {
         case .monochrome: "The readouts stay white."
-        case .accent:     "They follow the accent colour above."
-        case .perKind:    "Volume and brightness get their own colours."
-        case .artwork:    "They take the colour of whatever is playing, and go back to white when nothing is."
+        case .accent:     "They follow the accent color above."
+        case .perKind:    "Volume and brightness get their own colors."
+        case .artwork:    "They take the color of whatever is playing, and go back to white when nothing is."
         }
     }
 }

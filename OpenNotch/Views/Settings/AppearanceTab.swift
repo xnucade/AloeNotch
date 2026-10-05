@@ -31,7 +31,7 @@ struct AppearanceTab: View {
             }
 
             SettingsSection("Accent", index: 1) {
-                SettingsStackedRow("Colour", symbol: "paintpalette",
+                SettingsStackedRow("Color", symbol: "paintpalette",
                                    description: "Tints controls, the selected tab and today's date in the calendar. The glow around album art keeps following the artwork.") {
                     AccentPicker(hex: $settings.accentHex)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -133,7 +133,7 @@ struct AppearanceTab: View {
                 SettingsDivider()
 
                 SettingsRow("Ambient glow", symbol: "sparkles",
-                            description: "A thin line of the artwork's colour hugging the panel edge.") {
+                            description: "A thin line of the artwork's color hugging the panel edge.") {
                     Toggle("", isOn: $settings.ambientGlow).labelsHidden()
                 }
                 SettingsDivider()
@@ -153,7 +153,7 @@ struct AppearanceTab: View {
             }
 
             SettingsSection("Readouts", index: 5) {
-                SettingsRow("Colour", symbol: "slider.horizontal.below.square.filled.and.square",
+                SettingsRow("Color", symbol: "slider.horizontal.below.square.filled.and.square",
                             description: settings.hudTintMode.detail) {
                     Picker("", selection: $settings.hudTintMode) {
                         ForEach(HUDTintMode.allCases) { Text($0.title).tag($0) }
@@ -180,7 +180,7 @@ struct AppearanceTab: View {
                 }
 
                 if settings.hudTintMode == .artwork {
-                    SettingsNote("Nothing playing means no artwork colour, so the readouts stay white until something is.")
+                    SettingsNote("Nothing playing means no artwork color, so the readouts stay white until something is.")
                 }
             }
         }
