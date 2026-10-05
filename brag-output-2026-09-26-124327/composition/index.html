@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #050507; }
+
+      #root {
+        width: 100%; height: 100%;
+        position: relative; overflow: hidden;
+        font-family: system-ui, sans-serif;
+        color: #f5f5f7;
+        -webkit-font-smoothing: antialiased;
+        background: #050507;
+      }
+      .num { font-variant-numeric: tabular-nums; }
+
+      #bgGlow {
+        position: absolute; left: -200px; top: 60px; width: 1480px; height: 1300px;
+        background: radial-gradient(50% 50% at 50% 45%, rgba(115,191,255,0.16), transparent 70%);
+      }
+
+      /* Clear of TikTok's top tabs. */
+      #tag { position: absolute; top: 150px; left: 0; width: 100%; display: flex; justify-content: center; }
+      .tagIn {
+        display: inline-flex; align-items: center; gap: 12px;
+        padding: 10px 24px; border-radius: 999px;
+        background: rgba(115,191,255,0.12); border: 2px solid rgba(115,191,255,0.35);
+        font-size: 26px; font-weight: 600; letter-spacing: 0.08em; color: #9fd3ff;
+        opacity: 0;
+      }
+
+      /* ---------- The Mac ----------
+         A screen top in its bezel. Inside, the wallpaper and the stage are
+         authored in the landscape film's design space (1920 x 1080) and
+         anchored so design x = 960 sits on the screen's centre line; the
+         camera zooms inside the glass. */
+      #device {
+        position: absolute; left: 32px; top: 230px; width: 1016px; height: 880px;
+        padding: 12px 12px 0;
+        border-radius: 54px 54px 0 0;
+        background: linear-gradient(180deg, #2a2a31, #141418 40%);
+        -webkit-mask-image: linear-gradient(180deg, #000 0, #000 74%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 0, #000 74%, transparent 100%);
+      }
+      #screen { position: relative; width: 992px; height: 868px; border-radius: 42px 42px 0 0; overflow: hidden; background: #0b0b14; }
+
+      #wall {
+        position: absolute; left: -464px; top: 0; width: 1920px; height: 1080px;
+        transform-origin: 960px 0;
+        background:
+          radial-gradient(34% 46% at 34% 4%, rgba(255,138,61,0.95), transparent 70%),
+          radial-gradient(30% 44% at 63% 2%, rgba(232,64,154,0.9), transparent 70%),
+          radial-gradient(40% 52% at 50% 30%, rgba(58,123,255,0.85), transparent 70%),
+          radial-gradient(26% 38% at 76% 22%, rgba(32,201,176,0.8), transparent 70%),
+          radial-gradient(30% 40% at 40% 78%, rgba(122,77,255,0.7), transparent 70%),
+          radial-gradient(26% 34% at 64% 70%, rgba(255,111,181,0.55), transparent 70%),
+          #0b0b14;
+      }
+      .disc { position: absolute; border-radius: 50%; }
+      #d1 { width: 300px; height: 300px; left: 620px; top: 60px;  background: linear-gradient(140deg, #ffd166, #ff6b6b); }
+      #d2 { width: 200px; height: 200px; left: 1150px; top: 20px; background: linear-gradient(200deg, #7cf3ff, #5b6cff); }
+      #d3 { width: 130px; height: 130px; left: 960px; top: 210px; background: linear-gradient(160deg, #ff9de2, #b06bff); }
+      #d4 { width: 260px; height: 260px; left: 470px; top: 560px; background: linear-gradient(160deg, #5ef0d0, #2f7bff); }
+      #d5 { width: 180px; height: 180px; left: 1230px; top: 620px; background: linear-gradient(200deg, #ffc36b, #ff6f91); }
+      #band { position: absolute; left: 380px; top: 150px; width: 1200px; height: 36px; background: rgba(255,255,255,0.55); border-radius: 18px; }
+      #band2 { position: absolute; left: 300px; top: 470px; width: 1300px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 12px; }
+
+      #stage { position: absolute; left: -464px; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 0; }
+
+      #menubar {
+        position: absolute; left: 0; top: 0; width: 100%; height: 48px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 420px;
+        background: rgba(8,8,14,0.78);
+        font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.92);
+      }
+      #menubar .l, #menubar .r { display: flex; gap: 26px; align-items: center; }
+      #menubar b { font-weight: 700; }
+
+      /* ---------- The panel: notch → open panel → strip ---------- */
+      #panel {
+        position: absolute; top: 0; left: 0; right: 0; margin: 0 auto;
+        width: 400px; height: 64px;
+        border-radius: 0 0 20px 20px;
+        overflow: hidden;
+      }
+      .fill { position: absolute; inset: 0; }
+      #frost {
+        backdrop-filter: blur(34px) saturate(1.7);
+        -webkit-backdrop-filter: blur(34px) saturate(1.7);
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+      }
+      #patch {
+        position: absolute; top: -20px; left: 50%; margin-left: -216px;
+        width: 432px; height: 96px;
+        border-radius: 0 0 30px 30px;
+        background: #000;
+        box-shadow: 0 0 14px 8px #000;
+      }
+      #solid { background: #000; }
+
+      #rimWrap {
+        position: absolute; inset: 0; border-radius: inherit;
+        --ang: 0deg;
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 60px, #000 110px);
+        mask-image: linear-gradient(180deg, transparent 0, transparent 60px, #000 110px);
+        opacity: 0;
+      }
+      .ring {
+        position: absolute; inset: 0; border-radius: inherit;
+        background: conic-gradient(from var(--ang), #5ee7ff, #9b7bff, #ff6fb5, #ffc36b, #5ee7ff);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      #ringHard { padding: 3px; }
+      #ringSoftWrap { position: absolute; inset: 0; border-radius: inherit; filter: blur(9px); opacity: 0.55; }
+      #ringSoft { padding: 14px; }
+
+      #expanded {
+        position: absolute; left: 0; top: 0; width: 880px; height: 364px;
+        display: flex; flex-direction: column;
+        padding: 64px 44px 26px;
+        gap: 16px;
+        opacity: 0;
+      }
+      .hdr { display: flex; align-items: center; gap: 22px; height: 44px; }
+      .clock { font-size: 30px; font-weight: 600; color: rgba(255,255,255,0.9); }
+      .sp { flex: 1; }
+      .wx {
+        position: relative;
+        display: inline-flex; align-items: center; gap: 10px;
+        padding: 7px 18px; border-radius: 999px; background: rgba(255,255,255,0.1);
+        font-size: 24px; font-weight: 600;
+      }
+      #wxRim {
+        position: absolute; inset: 0; border-radius: 999px; padding: 2px;
+        background: linear-gradient(120deg, rgba(255,255,255,0.7), rgba(115,191,255,0.25), rgba(255,255,255,0.55));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0;
+      }
+      .wx > svg, .wx > .num { position: relative; }
+      .gear { color: rgba(255,255,255,0.7); display: flex; }
+
+      .media { display: flex; align-items: center; gap: 28px; flex: 1; min-height: 0; }
+      .art { position: relative; width: 180px; height: 180px; flex: 0 0 auto; }
+      .art .aura { position: absolute; inset: 0; border-radius: 32px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); filter: blur(40px); opacity: 0.55; }
+      .art .img { position: absolute; inset: 0; border-radius: 32px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); overflow: hidden; }
+      .art .img i { position: absolute; left: 24px; right: 24px; height: 7px; border-radius: 4px; background: rgba(255,255,255,0.35); }
+      #artRim { position: absolute; inset: 0; border-radius: 32px; border: 2px solid rgba(255,255,255,0.4); opacity: 0; }
+
+      /* Type inside the panel runs larger than the app's, for a phone. */
+      .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .title { font-size: 44px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+      .sub2 { position: relative; height: 50px; overflow: hidden; }
+      .sub2 span { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 36px; line-height: 50px; }
+      #artist { color: rgba(255,255,255,0.78); }
+      .lyr { color: #f5f5f7; font-weight: 600; opacity: 0; }
+      .bar { margin-top: 12px; position: relative; height: 9px; border-radius: 999px; background: rgba(255,255,255,0.2); }
+      #barfill { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 999px; background: #fff; }
+      .times { display: flex; justify-content: space-between; font-size: 20px; color: rgba(255,255,255,0.78); margin-top: 6px; }
+      .tx { display: flex; gap: 20px; margin-top: 4px; color: #fff; }
+
+      #strip { position: absolute; left: 0; top: 0; width: 720px; height: 64px; display: flex; align-items: center; padding: 0 22px; opacity: 0; }
+      #strip .side { flex: 1; display: flex; align-items: center; }
+      #strip .side.r { justify-content: flex-end; }
+      #strip .dead { flex: 0 0 400px; }
+      #mini { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); }
+      #bars { display: flex; align-items: center; gap: 7px; height: 52px; }
+      #bars i { display: block; width: 10px; height: 10px; border-radius: 5px; background: linear-gradient(180deg, #d9efff, #73bfff); box-shadow: 0 0 8px rgba(115,191,255,0.7); }
+
+      /* ---------- Text zone: 1110–1480, clear of the caption area ---------- */
+      #seg { position: absolute; top: 1112px; left: 0; width: 100%; display: flex; justify-content: center; }
+      .segIn { display: flex; align-items: center; gap: 22px; padding: 12px 14px 12px 28px; border-radius: 24px; background: rgba(18,18,26,0.92); border: 2px solid rgba(255,255,255,0.14); opacity: 0; }
+      .segLbl { font-size: 28px; font-weight: 600; color: rgba(255,255,255,0.85); }
+      .pill { position: relative; display: flex; padding: 4px; border-radius: 15px; background: rgba(255,255,255,0.1); }
+      #knob { position: absolute; left: 4px; top: 4px; width: 150px; height: 52px; border-radius: 12px; background: #3a3a48; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+      .o { position: relative; width: 150px; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 600; color: #f5f5f7; }
+
+      .blk { position: absolute; top: 1236px; left: 90px; width: 900px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+      .lb { font-size: 66px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.08; opacity: 0; }
+      .sb { font-size: 34px; font-weight: 400; line-height: 1.3; color: rgba(245,245,247,0.74); opacity: 0; }
+      .accent { color: #73bfff; }
+      #hookB { top: 1176px; }
+      #hookB .lb { font-size: 80px; }
+
+      #mark { position: absolute; top: 1190px; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 26px; opacity: 0; }
+      #mark img { width: 124px; height: 124px; display: block; filter: drop-shadow(0 0 22px rgba(115,191,255,0.55)) drop-shadow(0 0 2px rgba(255,255,255,0.5)); }
+      #mark .nm { font-size: 86px; font-weight: 700; letter-spacing: -0.03em; }
+      #mark .v { font-size: 86px; font-weight: 300; color: rgba(245,245,247,0.6); letter-spacing: -0.03em; }
+      #url { position: absolute; top: 1356px; left: 0; width: 100%; text-align: center; font-size: 40px; font-weight: 500; letter-spacing: 0.02em; color: #73bfff; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="23"
+         data-width="1080" data-height="1920">
+
+      <div id="bgGlow"></div>
+      <div id="tag"><span class="tagIn">NEW IN ALOENOTCH 0.13</span></div>
+
+      <div id="device">
+        <div id="screen">
+          <div id="wall" data-layout-ignore>
+            <div class="disc" id="d1"></div>
+            <div class="disc" id="d2"></div>
+            <div class="disc" id="d3"></div>
+            <div class="disc" id="d4"></div>
+            <div class="disc" id="d5"></div>
+            <div id="band"></div>
+            <div id="band2"></div>
+          </div>
+
+          <div id="stage" data-layout-allow-overflow>
+            <div id="menubar" data-layout-ignore>
+            </div>
+
+            <div id="panel">
+              <div class="fill" id="frost"></div>
+              <div id="patch" data-layout-allow-overflow></div>
+              <div class="fill" id="solid"></div>
+              <div id="rimWrap" data-layout-ignore>
+                <div class="ring" id="ringHard"></div>
+                <div id="ringSoftWrap"><div class="ring" id="ringSoft"></div></div>
+              </div>
+
+              <!-- Mid-morph the panel is narrower than its contents, as in the app;
+                   overflow:hidden clips them on purpose. -->
+              <div id="expanded" data-layout-allow-overflow>
+                <div class="hdr">
+                  <span class="clock num">10:54</span>
+                  <span class="sp"></span>
+                  <span class="wx">
+                    <span id="wxRim" data-layout-ignore></span>
+                    <svg width="26" height="26" viewBox="0 0 20 20" fill="#ffd66b"><circle cx="10" cy="10" r="4.2"/><g stroke="#ffd66b" stroke-width="1.6" stroke-linecap="round"><path d="M10 1.6v2.2M10 16.2v2.2M1.6 10h2.2M16.2 10h2.2M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M15.9 4.1l-1.6 1.6M5.7 14.3l-1.6 1.6"/></g></svg>
+                    <span class="num">72&deg;</span>
+                  </span>
+                  <span class="gear">
+                    <svg width="26" height="26" viewBox="0 0 20 20" fill="currentColor"><path d="M10 6.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zm0 5.2a1.8 1.8 0 1 1 0-3.6 1.8 1.8 0 0 1 0 3.6z"/><path d="M17.3 11.6l-1.2-.7a6.6 6.6 0 0 0 0-1.8l1.2-.7a.8.8 0 0 0 .3-1.1l-1.1-1.9a.8.8 0 0 0-1.1-.3l-1.2.7a6.5 6.5 0 0 0-1.6-.9V3.5a.8.8 0 0 0-.8-.8H9.2a.8.8 0 0 0-.8.8v1.4a6.5 6.5 0 0 0-1.6.9l-1.2-.7a.8.8 0 0 0-1.1.3L3.4 7.3a.8.8 0 0 0 .3 1.1l1.2.7a6.6 6.6 0 0 0 0 1.8l-1.2.7a.8.8 0 0 0-.3 1.1l1.1 1.9a.8.8 0 0 0 1.1.3l1.2-.7c.5.4 1 .7 1.6.9v1.4a.8.8 0 0 0 .8.8h2.2a.8.8 0 0 0 .8-.8v-1.4c.6-.2 1.1-.5 1.6-.9l1.2.7a.8.8 0 0 0 1.1-.3l1.1-1.9a.8.8 0 0 0-.3-1.1z"/></svg>
+                  </span>
+                </div>
+
+                <div class="media">
+                  <div class="art">
+                    <div class="aura"></div>
+                    <div class="img"><i style="top:126px"></i><i style="top:143px;right:70px"></i></div>
+                    <div id="artRim"></div>
+                  </div>
+                  <div class="meta">
+                    <div class="title">Neon Arcade</div>
+                    <div class="sub2">
+                      <span id="artist" data-layout-allow-overlap>Kade &amp; the Lantern</span>
+                      <span class="lyr" id="ly1" data-layout-allow-overlap>Neon on the skyline</span>
+                      <span class="lyr" id="ly2" data-layout-allow-overlap>we don&rsquo;t need the daylight</span>
+                      <span class="lyr" id="ly3" data-layout-allow-overlap>turn it up and let it glow</span>
+                    </div>
+                    <div class="bar"><b id="barfill"></b></div>
+                    <div class="times num"><span>1:17</span><span>3:24</span></div>
+                    <div class="tx">
+                      <svg width="36" height="36" viewBox="0 0 20 20" fill="currentColor"><path d="M6 4.4a.9.9 0 0 0-.9.9v9.4a.9.9 0 0 0 1.8 0v-3.6l6.7 3.9a.9.9 0 0 0 1.4-.8V6.2a.9.9 0 0 0-1.4-.8L6.9 9.3V5.3a.9.9 0 0 0-.9-.9z"/></svg>
+                      <svg width="36" height="36" viewBox="0 0 20 20" fill="currentColor"><path d="M6.6 4.2h2.2v11.6H6.6zM11.2 4.2h2.2v11.6h-2.2z"/></svg>
+                      <svg width="36" height="36" viewBox="0 0 20 20" fill="currentColor"><path d="M14 4.4a.9.9 0 0 1 .9.9v9.4a.9.9 0 0 1-1.8 0v-3.6l-6.7 3.9a.9.9 0 0 1-1.4-.8V6.2a.9.9 0 0 1 1.4-.8l6.7 3.9V5.3a.9.9 0 0 1 .9-.9z"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="strip" data-layout-allow-overflow>
+                <div class="side"><div id="mini"></div></div>
+                <div class="dead"></div>
+                <div class="side r"><div id="bars"><i></i><i></i><i></i><i></i></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="seg" class="clip" data-start="3.2" data-duration="5.7" data-track-index="3">
+        <div class="segIn">
+          <span class="segLbl">Notch</span>
+          <div class="pill"><div id="knob"></div><span class="o">Solid</span><span class="o">Glass</span></div>
+        </div>
+      </div>
+
+      <div id="hookB" class="blk clip" data-start="0.3" data-duration="2.95" data-track-index="2">
+        <div class="lb" id="hookL">Three new tricks for your notch.</div>
+      </div>
+      <div id="b1" class="blk clip" data-start="4.0" data-duration="4.9" data-track-index="2">
+        <div class="lb" id="b1l"><span class="accent">Liquid Glass</span> notch</div>
+        <div class="sb" id="b1s">Frosts your desktop. Stays black over the camera.</div>
+      </div>
+      <div id="b2" class="blk clip" data-start="9.25" data-duration="4.85" data-track-index="2">
+        <div class="lb" id="b2l">Synced lyrics, <span class="accent">right in the notch.</span></div>
+        <div class="sb" id="b2s">Every line lands on the beat it&rsquo;s sung.</div>
+      </div>
+      <div id="b3" class="blk clip" data-start="14.6" data-duration="4.7" data-track-index="2">
+        <div class="lb" id="b3l">An equalizer that <span class="accent">actually listens.</span></div>
+        <div class="sb" id="b3s">It hears what your Mac is playing. Not the mic.</div>
+      </div>
+
+      <div id="mark" class="clip" data-start="19.45" data-duration="3.55" data-track-index="3">
+        <img src="assets/img/icon.png" alt="" /><span class="nm">AloeNotch</span><span class="v num">0.13</span>
+      </div>
+      <div id="url" class="clip" data-start="19.85" data-duration="3.15" data-track-index="4">Free &middot; aloenotch.com</div>
+
+      <audio id="bed" src="assets/music/bed.mp3"
+             data-start="0" data-duration="23" data-track-index="8" data-volume="1"
+             data-automation='{"version":1,"lanes":[{"target":"volume","points":[
+               {"t":0,"v":0.0},{"t":0.25,"v":0.42},{"t":14.0,"v":0.42},{"t":14.4,"v":0.58},
+               {"t":19.3,"v":0.58},{"t":19.6,"v":0.44},{"t":21.8,"v":0.44},{"t":23,"v":0}]}]}'></audio>
+      <audio id="sfx-drop"   src="assets/sfx/drop.ogg"   data-start="1.58"  data-duration="0.19" data-track-index="9"  data-volume="0.45"></audio>
+      <audio id="sfx-switch" src="assets/sfx/switch.ogg" data-start="3.68"  data-duration="0.61" data-track-index="10" data-volume="0.40"></audio>
+      <audio id="sfx-glass"  src="assets/sfx/glass.ogg"  data-start="5.79"  data-duration="0.21" data-track-index="11" data-volume="0.30"></audio>
+      <audio id="sfx-bell"   src="assets/sfx/bell.ogg"   data-start="19.47" data-duration="1.48" data-track-index="12" data-volume="0.30"></audio>
+    </div>
+
+    <script src="assets/music/audio-data.js"></script>
+    <script>
+      (function () {
+        var tl = gsap.timeline({ paused: true });
+
+        // Camera: the stage scales from the notch; the wallpaper follows at a
+        // third of the zoom for depth, never below what fills the screen.
+        function wallScale(s) { return 0.92 + (s - 0.86) * 0.3; }
+        function camera(at, scale, dur, ease) {
+          tl.to("#stage", { scale: scale, duration: dur, ease: ease }, at);
+          tl.to("#wall", { scale: wallScale(scale), duration: dur, ease: ease }, at);
+        }
+        tl.set("#stage", { scale: 1.6 }, 0);
+        tl.set("#wall", { scale: wallScale(1.6) }, 0);
+
+        // Ambient drift behind the glass, and a slow breath on the backdrop.
+        tl.fromTo("#d1", { x: 0, y: 0 }, { x: 70, y: 18, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d2", { x: 0, y: 0 }, { x: -60, y: 26, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d3", { x: 0, y: 0 }, { x: -40, y: -20, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d4", { x: 0, y: 0 }, { x: 60, y: -30, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d5", { x: 0, y: 0 }, { x: -50, y: 20, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#band", { x: 0 }, { x: -90, duration: 23, ease: "none" }, 0);
+        tl.fromTo("#band2", { x: 0 }, { x: 80, duration: 23, ease: "none" }, 0);
+        tl.fromTo("#bgGlow", { scale: 0.94, opacity: 0.8 }, { scale: 1.06, opacity: 1, duration: 11.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+
+        tl.fromTo(".tagIn", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.15);
+
+        function block(lb, sb, at, out) {
+          tl.fromTo(lb, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, at);
+          if (sb) tl.fromTo(sb, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, at + 0.55);
+          tl.to(sb ? [lb, sb] : lb, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, out);
+        }
+
+        /* ---- 1. Hook ---- */
+        block("#hookL", null, 0.3, 2.95);
+        tl.to("#panel", { width: 880, height: 364, borderBottomLeftRadius: 56, borderBottomRightRadius: 56,
+                          duration: 0.75, ease: "back.out(1.15)" }, 1.6);
+        camera(1.5, 1.08, 1.0, "power3.inOut");
+        tl.fromTo("#expanded", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 1.85);
+        tl.fromTo(".hdr, .media", { y: 14 }, { y: 0, duration: 0.5, ease: "power3.out", stagger: 0.06 }, 1.85);
+        tl.fromTo("#barfill", { width: "38%" }, { width: "56%", duration: 12.6, ease: "none" }, 1.6);
+
+        /* ---- 2. Glass ---- */
+        tl.fromTo(".segIn", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 3.2);
+        tl.to("#knob", { x: 150, duration: 0.32, ease: "power3.inOut" }, 3.68);
+        tl.to("#solid", { opacity: 0, duration: 0.7, ease: "power2.inOut" }, 3.72);
+        tl.to("#frost", { opacity: 1, duration: 0.7, ease: "power2.inOut" }, 3.72);
+        tl.to("#rimWrap", { opacity: 1, duration: 0.9, ease: "power2.out" }, 3.8);
+        tl.to("#wxRim, #artRim", { opacity: 1, duration: 0.6 }, 3.9);
+        tl.to("#barfill", { backgroundColor: "#73bfff", boxShadow: "0 0 16px 2px rgba(115,191,255,0.8)", duration: 0.6 }, 3.9);
+        tl.fromTo("#rimWrap", { "--ang": "0deg" }, { "--ang": "560deg", duration: 19.2, ease: "none" }, 3.8);
+        tl.to("#ringSoftWrap", { opacity: 1, duration: 0.18, ease: "power2.out" }, 5.8);
+        tl.to("#ringSoftWrap", { opacity: 0.55, duration: 0.9, ease: "power2.inOut" }, 5.98);
+        block("#b1l", "#b1s", 4.0, 8.6);
+        tl.to(".segIn", { opacity: 0, duration: 0.3 }, 8.55);
+
+        /* ---- 3. Lyrics ---- */
+        camera(8.96, 1.1, 0.9, "power3.inOut");
+        function swap(outSel, inSel, at) {
+          tl.to(outSel, { opacity: 0, y: -36, duration: 0.34, ease: "power2.in" }, at);
+          tl.fromTo(inSel, { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, at + 0.1);
+        }
+        swap("#artist", "#ly1", 9.5);
+        swap("#ly1", "#ly2", 11.06);
+        swap("#ly2", "#ly3", 12.65);
+        block("#b2l", "#b2s", 9.25, 13.8);
+
+        /* ---- 4. Equalizer ---- */
+        tl.to("#expanded", { opacity: 0, duration: 0.22 }, 14.1);
+        tl.to("#rimWrap", { opacity: 0, duration: 0.3 }, 14.1);
+        tl.to("#solid", { opacity: 1, duration: 0.35 }, 14.15);
+        tl.to("#frost", { opacity: 0, duration: 0.35 }, 14.15);
+        tl.to("#panel", { width: 720, height: 64, borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+                          duration: 0.6, ease: "power3.inOut" }, 14.22);
+        camera(14.22, 1.3, 0.95, "power3.inOut");
+        tl.fromTo("#strip", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 14.62);
+        camera(15.2, 1.37, 4.1, "sine.inOut");
+        block("#b3l", "#b3s", 14.6, 19.0);
+
+        // Bars follow the real track: 4 bands at the app's SpectrumBands edges,
+        // quick attack, meter-style decay, precomputed so any seek is exact.
+        var F = AUDIO_DATA.frames, fps = AUDIO_DATA.fps, level = [], prev = [0, 0, 0, 0];
+        for (var f = 0; f < F.length; f++) {
+          var row = [];
+          for (var b = 0; b < 4; b++) {
+            var v = Math.pow(F[f].bands[b], 1.1);
+            prev[b] = v > prev[b] ? prev[b] + (v - prev[b]) * 0.7 : prev[b] * 0.84;
+            row.push(prev[b]);
+          }
+          level.push(row);
+        }
+        var bars = document.querySelectorAll("#bars i");
+        function draw(t) {
+          var row = level[Math.max(0, Math.min(level.length - 1, Math.floor(t * fps)))];
+          for (var i = 0; i < 4; i++) bars[i].style.height = (10 + 42 * row[i]).toFixed(1) + "px";
+        }
+        var clock = { t: 0 };
+        tl.fromTo(clock, { t: 14.4 }, { t: 23, duration: 8.6, ease: "none",
+          onUpdate: function () { draw(clock.t); } }, 14.4);
+
+        /* ---- 5. Outro ---- */
+        camera(19.3, 1.2, 0.9, "power3.inOut");
+        tl.fromTo("#mark", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 19.47);
+        tl.fromTo("#url", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 19.85);
+
+        window.__timelines["main"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+AloeNotch 0.13 is live: your notch now frosts like Liquid Glass, shows synced lyrics, and has an equalizer that actually listens to what your Mac is playing.
+Free at aloenotch.com

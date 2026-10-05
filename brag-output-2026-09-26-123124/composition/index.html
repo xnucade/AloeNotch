@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050507; }
+
+      #root {
+        width: 100%; height: 100%;
+        position: relative; overflow: hidden;
+        font-family: system-ui, sans-serif;
+        color: #f5f5f7;
+        -webkit-font-smoothing: antialiased;
+      }
+      .num { font-variant-numeric: tabular-nums; }
+
+      /* ---------- Desktop wallpaper ----------
+         Colour and hard edges sit right behind where the panel opens, so the
+         frost has something to blur. It lives outside the camera and only
+         drifts a little with it: a parallax, not a zoom. */
+      #wall {
+        position: absolute; inset: 0;
+        transform-origin: 50% 0;
+        background:
+          radial-gradient(34% 46% at 34% 4%, rgba(255,138,61,0.95), transparent 70%),
+          radial-gradient(30% 44% at 63% 2%, rgba(232,64,154,0.9), transparent 70%),
+          radial-gradient(40% 52% at 50% 30%, rgba(58,123,255,0.85), transparent 70%),
+          radial-gradient(26% 38% at 80% 16%, rgba(32,201,176,0.8), transparent 70%),
+          #0b0b14;
+      }
+      .disc { position: absolute; border-radius: 50%; }
+      #d1 { width: 300px; height: 300px; left: 620px; top: 60px;  background: linear-gradient(140deg, #ffd166, #ff6b6b); }
+      #d2 { width: 200px; height: 200px; left: 1150px; top: 20px; background: linear-gradient(200deg, #7cf3ff, #5b6cff); }
+      #d3 { width: 130px; height: 130px; left: 960px; top: 210px; background: linear-gradient(160deg, #ff9de2, #b06bff); }
+      #band { position: absolute; left: 380px; top: 150px; width: 1200px; height: 36px; background: rgba(255,255,255,0.55); border-radius: 18px; }
+
+      /* Dark floor for the type. Unscaled, so a camera push never drags the
+         colour under a caption. */
+      #shade {
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 0, transparent 470px, rgba(5,5,7,0.94) 610px, #050507 700px);
+      }
+
+      /* ---------- Camera ----------
+         Menu bar and panel, authored at 1pt = 2px and scaled from the top
+         centre, so every push-in is one transform. */
+      #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 50% 0; }
+
+      #menubar {
+        position: absolute; left: 0; top: 0; width: 100%; height: 48px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 28px;
+        background: rgba(8,8,14,0.78);
+        font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.92);
+      }
+      #menubar .l, #menubar .r { display: flex; gap: 30px; align-items: center; }
+      #menubar b { font-weight: 700; }
+
+      /* ---------- The panel ----------
+         One element morphs notch → open panel → strip. */
+      #panel {
+        position: absolute; top: 0; left: 0; right: 0; margin: 0 auto;
+        width: 400px; height: 64px;
+        border-radius: 0 0 20px 20px;
+        overflow: hidden;
+      }
+      .fill { position: absolute; inset: 0; }
+      #frost {
+        backdrop-filter: blur(34px) saturate(1.7);
+        -webkit-backdrop-filter: blur(34px) saturate(1.7);
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+      }
+      /* Stays black over the camera housing, feathered into the frost. */
+      #patch {
+        position: absolute; top: -20px; left: 50%; margin-left: -216px;
+        width: 432px; height: 96px;
+        border-radius: 0 0 30px 30px;
+        background: #000;
+        box-shadow: 0 0 14px 8px #000;
+      }
+      #solid { background: #000; }
+
+      #rimWrap {
+        position: absolute; inset: 0; border-radius: inherit;
+        --ang: 0deg;
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 60px, #000 110px);
+        mask-image: linear-gradient(180deg, transparent 0, transparent 60px, #000 110px);
+        opacity: 0;
+      }
+      .ring {
+        position: absolute; inset: 0; border-radius: inherit;
+        background: conic-gradient(from var(--ang), #5ee7ff, #9b7bff, #ff6fb5, #ffc36b, #5ee7ff);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      #ringHard { padding: 3px; }
+      #ringSoftWrap { position: absolute; inset: 0; border-radius: inherit; filter: blur(9px); opacity: 0.55; }
+      #ringSoft { padding: 14px; }
+
+      /* Open panel contents. */
+      #expanded {
+        position: absolute; left: 0; top: 0; width: 1100px; height: 372px;
+        display: flex; flex-direction: column;
+        padding: 70px 52px 30px;
+        gap: 20px;
+        opacity: 0;
+      }
+      .hdr { display: flex; align-items: center; gap: 22px; height: 44px; }
+      .clock { font-size: 30px; font-weight: 600; color: rgba(255,255,255,0.9); }
+      .sp { flex: 1; }
+      .wx {
+        position: relative;
+        display: inline-flex; align-items: center; gap: 10px;
+        padding: 7px 18px; border-radius: 999px; background: rgba(255,255,255,0.1);
+        font-size: 24px; font-weight: 600;
+      }
+      #wxRim {
+        position: absolute; inset: 0; border-radius: 999px; padding: 2px;
+        background: linear-gradient(120deg, rgba(255,255,255,0.7), rgba(115,191,255,0.25), rgba(255,255,255,0.55));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0;
+      }
+      .wx > svg, .wx > .num { position: relative; }
+      .gear { color: rgba(255,255,255,0.7); display: flex; }
+
+      .media { display: flex; align-items: center; gap: 34px; flex: 1; min-height: 0; }
+      .art { position: relative; width: 170px; height: 170px; flex: 0 0 auto; }
+      .art .aura { position: absolute; inset: 0; border-radius: 30px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); filter: blur(40px); opacity: 0.55; }
+      .art .img { position: absolute; inset: 0; border-radius: 30px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); overflow: hidden; }
+      .art .img i { position: absolute; left: 22px; right: 22px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.35); }
+      #artRim { position: absolute; inset: 0; border-radius: 30px; border: 2px solid rgba(255,255,255,0.4); opacity: 0; }
+
+      .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .title { font-size: 34px; font-weight: 700; letter-spacing: -0.01em; }
+      .sub2 { position: relative; height: 40px; margin-top: 2px; overflow: hidden; }
+      .sub2 span { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 27px; line-height: 40px; }
+      #artist { color: rgba(255,255,255,0.78); }
+      .lyr { color: #f5f5f7; opacity: 0; }
+      .bar { margin-top: 18px; position: relative; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.2); }
+      #barfill { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 999px; background: #fff; }
+      .times { display: flex; justify-content: space-between; font-size: 19px; color: rgba(255,255,255,0.78); margin-top: 8px; }
+      .tx { display: flex; gap: 18px; margin-top: 6px; color: #fff; }
+
+      /* Collapsed strip. */
+      #strip { position: absolute; left: 0; top: 0; width: 720px; height: 64px; display: flex; align-items: center; padding: 0 22px; opacity: 0; }
+      #strip .side { flex: 1; display: flex; align-items: center; }
+      #strip .side.r { justify-content: flex-end; }
+      #strip .dead { flex: 0 0 400px; }
+      #mini { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(140deg, #ff9a3c, #ff3d8b 55%, #7a4dff); }
+      #bars { display: flex; align-items: center; gap: 7px; height: 52px; }
+      #bars i { display: block; width: 10px; height: 10px; border-radius: 5px; background: linear-gradient(180deg, #d9efff, #73bfff); box-shadow: 0 0 8px rgba(115,191,255,0.7); }
+
+      /* ---------- Outside the camera ---------- */
+      #seg { position: absolute; top: 424px; left: 0; width: 100%; display: flex; justify-content: center; }
+      .segIn { display: flex; align-items: center; gap: 22px; padding: 12px 14px 12px 26px; border-radius: 22px; background: rgba(18,18,26,0.92); border: 2px solid rgba(255,255,255,0.12); opacity: 0; }
+      .segLbl { font-size: 24px; font-weight: 600; color: rgba(255,255,255,0.85); }
+      .pill { position: relative; display: flex; padding: 4px; border-radius: 14px; background: rgba(255,255,255,0.1); }
+      #knob { position: absolute; left: 4px; top: 4px; width: 132px; height: 44px; border-radius: 11px; background: #3a3a48; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+      .o { position: relative; width: 132px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: #f5f5f7; }
+
+      .line { position: absolute; left: 0; width: 100%; text-align: center; opacity: 0; }
+      .hook  { top: 612px; font-size: 76px; font-weight: 700; letter-spacing: -0.025em; }
+      .label { top: 640px; font-size: 68px; font-weight: 700; letter-spacing: -0.02em; }
+      .sub   { top: 738px; font-size: 32px; font-weight: 400; color: rgba(245,245,247,0.72); }
+      .accent { color: #73bfff; }
+
+      #mark { position: absolute; top: 600px; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 28px; opacity: 0; }
+      #mark img { width: 116px; height: 116px; display: block; filter: drop-shadow(0 0 22px rgba(115,191,255,0.55)) drop-shadow(0 0 2px rgba(255,255,255,0.5)); }
+      #mark .nm { font-size: 84px; font-weight: 700; letter-spacing: -0.03em; }
+      #mark .v { font-size: 84px; font-weight: 300; color: rgba(245,245,247,0.6); letter-spacing: -0.03em; }
+      #url { position: absolute; top: 760px; left: 0; width: 100%; text-align: center; font-size: 34px; font-weight: 500; letter-spacing: 0.02em; color: #73bfff; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="23"
+         data-width="1920" data-height="1080">
+
+      <div id="wall">
+        <div class="disc" id="d1"></div>
+        <div class="disc" id="d2"></div>
+        <div class="disc" id="d3"></div>
+        <div id="band"></div>
+      </div>
+      <div id="shade"></div>
+
+      <div id="stage">
+        <div id="menubar" data-layout-ignore>
+          <div class="l"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span></div>
+          <div class="r"><span>Sat Sep 26</span><span class="num">10:54</span></div>
+        </div>
+
+        <div id="panel">
+          <div class="fill" id="frost"></div>
+          <div id="patch" data-layout-allow-overflow></div>
+          <div class="fill" id="solid"></div>
+          <div id="rimWrap" data-layout-ignore>
+            <div class="ring" id="ringHard"></div>
+            <div id="ringSoftWrap"><div class="ring" id="ringSoft"></div></div>
+          </div>
+
+          <!-- Mid-morph the panel is narrower than its contents, as in the app;
+               overflow:hidden clips them on purpose. -->
+          <div id="expanded" data-layout-allow-overflow>
+            <div class="hdr">
+              <span class="clock num">10:54</span>
+              <span class="sp"></span>
+              <span class="wx">
+                <span id="wxRim" data-layout-ignore></span>
+                <svg width="26" height="26" viewBox="0 0 20 20" fill="#ffd66b"><circle cx="10" cy="10" r="4.2"/><g stroke="#ffd66b" stroke-width="1.6" stroke-linecap="round"><path d="M10 1.6v2.2M10 16.2v2.2M1.6 10h2.2M16.2 10h2.2M4.1 4.1l1.6 1.6M14.3 14.3l1.6 1.6M15.9 4.1l-1.6 1.6M5.7 14.3l-1.6 1.6"/></g></svg>
+                <span class="num">72&deg;</span>
+              </span>
+              <span class="gear">
+                <svg width="26" height="26" viewBox="0 0 20 20" fill="currentColor"><path d="M10 6.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zm0 5.2a1.8 1.8 0 1 1 0-3.6 1.8 1.8 0 0 1 0 3.6z"/><path d="M17.3 11.6l-1.2-.7a6.6 6.6 0 0 0 0-1.8l1.2-.7a.8.8 0 0 0 .3-1.1l-1.1-1.9a.8.8 0 0 0-1.1-.3l-1.2.7a6.5 6.5 0 0 0-1.6-.9V3.5a.8.8 0 0 0-.8-.8H9.2a.8.8 0 0 0-.8.8v1.4a6.5 6.5 0 0 0-1.6.9l-1.2-.7a.8.8 0 0 0-1.1.3L3.4 7.3a.8.8 0 0 0 .3 1.1l1.2.7a6.6 6.6 0 0 0 0 1.8l-1.2.7a.8.8 0 0 0-.3 1.1l1.1 1.9a.8.8 0 0 0 1.1.3l1.2-.7c.5.4 1 .7 1.6.9v1.4a.8.8 0 0 0 .8.8h2.2a.8.8 0 0 0 .8-.8v-1.4c.6-.2 1.1-.5 1.6-.9l1.2.7a.8.8 0 0 0 1.1-.3l1.1-1.9a.8.8 0 0 0-.3-1.1z"/></svg>
+              </span>
+            </div>
+
+            <div class="media">
+              <div class="art">
+                <div class="aura"></div>
+                <div class="img"><i style="top:118px"></i><i style="top:134px;right:64px"></i></div>
+                <div id="artRim"></div>
+              </div>
+              <div class="meta">
+                <div class="title">Neon Arcade</div>
+                <div class="sub2">
+                  <span id="artist" data-layout-allow-overlap>Kade &amp; the Lantern</span>
+                  <span class="lyr" id="ly1" data-layout-allow-overlap>Neon on the skyline</span>
+                  <span class="lyr" id="ly2" data-layout-allow-overlap>we don&rsquo;t need the daylight</span>
+                  <span class="lyr" id="ly3" data-layout-allow-overlap>turn it up and let it glow</span>
+                </div>
+                <div class="bar"><b id="barfill"></b></div>
+                <div class="times num"><span>1:17</span><span>3:24</span></div>
+                <div class="tx">
+                  <svg width="34" height="34" viewBox="0 0 20 20" fill="currentColor"><path d="M6 4.4a.9.9 0 0 0-.9.9v9.4a.9.9 0 0 0 1.8 0v-3.6l6.7 3.9a.9.9 0 0 0 1.4-.8V6.2a.9.9 0 0 0-1.4-.8L6.9 9.3V5.3a.9.9 0 0 0-.9-.9z"/></svg>
+                  <svg width="34" height="34" viewBox="0 0 20 20" fill="currentColor"><path d="M6.6 4.2h2.2v11.6H6.6zM11.2 4.2h2.2v11.6h-2.2z"/></svg>
+                  <svg width="34" height="34" viewBox="0 0 20 20" fill="currentColor"><path d="M14 4.4a.9.9 0 0 1 .9.9v9.4a.9.9 0 0 1-1.8 0v-3.6l-6.7 3.9a.9.9 0 0 1-1.4-.8V6.2a.9.9 0 0 1 1.4-.8l6.7 3.9V5.3a.9.9 0 0 1 .9-.9z"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="strip" data-layout-allow-overflow>
+            <div class="side"><div id="mini"></div></div>
+            <div class="dead"></div>
+            <div class="side r"><div id="bars"><i></i><i></i><i></i><i></i></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="seg" class="clip" data-start="3.2" data-duration="5.7" data-track-index="3">
+        <div class="segIn">
+          <span class="segLbl">Notch</span>
+          <div class="pill"><div id="knob"></div><span class="o">Solid</span><span class="o">Glass</span></div>
+        </div>
+      </div>
+
+      <div id="hook" class="line hook clip"  data-start="0.3"  data-duration="2.95" data-track-index="2">Three new tricks for your notch.</div>
+      <div id="lb1" class="line label clip"  data-start="4.0"  data-duration="4.9"  data-track-index="2"><span class="accent">Liquid Glass</span> notch</div>
+      <div id="sb1" class="line sub clip"    data-start="4.55" data-duration="4.35" data-track-index="4">Frosts your desktop. Stays black over the camera.</div>
+      <div id="lb2" class="line label clip"  data-start="9.25" data-duration="4.85" data-track-index="2">Synced lyrics, <span class="accent">right in the notch.</span></div>
+      <div id="sb2" class="line sub clip"    data-start="9.8"  data-duration="4.3"  data-track-index="4">Every line lands on the beat it&rsquo;s sung.</div>
+      <div id="lb3" class="line label clip"  data-start="14.6" data-duration="4.7"  data-track-index="2">An equalizer that <span class="accent">actually listens.</span></div>
+      <div id="sb3" class="line sub clip"    data-start="15.15" data-duration="4.15" data-track-index="4">It hears what your Mac is playing. Not the mic.</div>
+
+      <div id="mark" class="clip" data-start="19.45" data-duration="3.55" data-track-index="3">
+        <img src="assets/img/icon.png" alt="" /><span class="nm">AloeNotch</span><span class="v num">0.13</span>
+      </div>
+      <div id="url" class="clip" data-start="19.85" data-duration="3.15" data-track-index="4">Free &middot; aloenotch.com</div>
+
+      <audio id="bed" src="assets/music/bed.mp3"
+             data-start="0" data-duration="23" data-track-index="8" data-volume="1"
+             data-automation='{"version":1,"lanes":[{"target":"volume","points":[
+               {"t":0,"v":0.0},{"t":0.25,"v":0.42},{"t":14.0,"v":0.42},{"t":14.4,"v":0.58},
+               {"t":19.3,"v":0.58},{"t":19.6,"v":0.44},{"t":21.8,"v":0.44},{"t":23,"v":0}]}]}'></audio>
+      <audio id="sfx-drop"   src="assets/sfx/drop.ogg"   data-start="1.58"  data-duration="0.19" data-track-index="9"  data-volume="0.45"></audio>
+      <audio id="sfx-switch" src="assets/sfx/switch.ogg" data-start="3.68"  data-duration="0.61" data-track-index="10" data-volume="0.40"></audio>
+      <audio id="sfx-glass"  src="assets/sfx/glass.ogg"  data-start="5.79"  data-duration="0.21" data-track-index="11" data-volume="0.30"></audio>
+      <audio id="sfx-bell"   src="assets/sfx/bell.ogg"   data-start="19.47" data-duration="1.48" data-track-index="12" data-volume="0.30"></audio>
+    </div>
+
+    <script src="assets/music/audio-data.js"></script>
+    <script>
+      (function () {
+        var $ = function (s) { return document.querySelector(s); };
+        var tl = gsap.timeline({ paused: true });
+
+        // Camera: the stage scales from its top centre; the wallpaper follows at
+        // a third of the zoom for a little depth.
+        function camera(at, scale, dur, ease) {
+          tl.to("#stage", { scale: scale, duration: dur, ease: ease }, at);
+          tl.to("#wall", { scale: 1 + (scale - 1) * 0.3, duration: dur, ease: ease }, at);
+        }
+        tl.set("#stage", { scale: 1.55 }, 0);
+        tl.set("#wall", { scale: 1 + 0.55 * 0.3 }, 0);
+
+        // Ambient wallpaper drift so the frost always has motion behind it.
+        tl.fromTo("#d1", { x: 0, y: 0 }, { x: 70, y: 18, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d2", { x: 0, y: 0 }, { x: -60, y: 26, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#d3", { x: 0, y: 0 }, { x: -40, y: -20, duration: 23, ease: "sine.inOut" }, 0);
+        tl.fromTo("#band", { x: 0 }, { x: -90, duration: 23, ease: "none" }, 0);
+
+        /* ---- 1. Hook ---- */
+        tl.fromTo("#hook", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.3);
+        tl.to("#hook", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 2.95);
+
+        // Opens on the first big beat.
+        tl.to("#panel", { width: 1100, height: 372, borderBottomLeftRadius: 56, borderBottomRightRadius: 56,
+                          duration: 0.75, ease: "back.out(1.15)" }, 1.6);
+        camera(1.5, 1.0, 1.0, "power3.inOut");
+        tl.fromTo("#expanded", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 1.85);
+        tl.fromTo(".hdr, .media", { y: 14 }, { y: 0, duration: 0.5, ease: "power3.out", stagger: 0.06 }, 1.85);
+        tl.fromTo("#barfill", { width: "38%" }, { width: "56%", duration: 12.6, ease: "none" }, 1.6);
+
+        /* ---- 2. Glass ---- */
+        tl.fromTo(".segIn", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 3.2);
+        tl.to("#knob", { x: 132, duration: 0.32, ease: "power3.inOut" }, 3.68);
+        tl.to("#solid", { opacity: 0, duration: 0.7, ease: "power2.inOut" }, 3.72);
+        tl.to("#frost", { opacity: 1, duration: 0.7, ease: "power2.inOut" }, 3.72);
+        tl.to("#rimWrap", { opacity: 1, duration: 0.9, ease: "power2.out" }, 3.8);
+        tl.to("#wxRim, #artRim", { opacity: 1, duration: 0.6 }, 3.9);
+        tl.to("#barfill", { backgroundColor: "#73bfff", boxShadow: "0 0 16px 2px rgba(115,191,255,0.8)", duration: 0.6 }, 3.9);
+        // The rim drifts while playing, as Motion.rimDrift does in the app.
+        tl.fromTo("#rimWrap", { "--ang": "0deg" }, { "--ang": "560deg", duration: 19.2, ease: "none" }, 3.8);
+        // A flare on the next strong cue.
+        tl.to("#ringSoftWrap", { opacity: 1, duration: 0.18, ease: "power2.out" }, 5.8);
+        tl.to("#ringSoftWrap", { opacity: 0.55, duration: 0.9, ease: "power2.inOut" }, 5.98);
+
+        tl.fromTo("#lb1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.0);
+        tl.fromTo("#sb1", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 4.55);
+        tl.to(".segIn", { opacity: 0, duration: 0.3 }, 8.55);
+        tl.to("#lb1, #sb1", { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, 8.6);
+
+        /* ---- 3. Lyrics ---- */
+        camera(8.96, 1.34, 0.9, "power3.inOut");
+        function swap(outSel, inSel, at) {
+          tl.to(outSel, { opacity: 0, y: -30, duration: 0.34, ease: "power2.in" }, at);
+          tl.fromTo(inSel, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, at + 0.1);
+        }
+        swap("#artist", "#ly1", 9.5);
+        swap("#ly1", "#ly2", 11.06);
+        swap("#ly2", "#ly3", 12.65);
+        tl.fromTo("#lb2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 9.25);
+        tl.fromTo("#sb2", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 9.8);
+        tl.to("#lb2, #sb2", { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, 13.8);
+
+        /* ---- 4. Equalizer ---- */
+        // Collapsed notch is always solid black, as in the app.
+        tl.to("#expanded", { opacity: 0, duration: 0.22 }, 14.1);
+        tl.to("#rimWrap", { opacity: 0, duration: 0.3 }, 14.1);
+        tl.to("#solid", { opacity: 1, duration: 0.35 }, 14.15);
+        tl.to("#frost", { opacity: 0, duration: 0.35 }, 14.15);
+        tl.to("#panel", { width: 720, height: 64, borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+                          duration: 0.6, ease: "power3.inOut" }, 14.22);
+        camera(14.22, 2.15, 0.95, "power3.inOut");
+        tl.fromTo("#strip", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 14.62);
+        camera(15.2, 2.4, 4.1, "sine.inOut");
+        tl.fromTo("#lb3", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 14.6);
+        tl.fromTo("#sb3", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 15.15);
+        tl.to("#lb3, #sb3", { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, 19.0);
+
+        // Bars follow the real track: 4 bands at the app's SpectrumBands edges,
+        // with a quick attack and a meter-style decay, precomputed so any seek
+        // lands on the same frame.
+        var F = AUDIO_DATA.frames, fps = AUDIO_DATA.fps, level = [], prev = [0, 0, 0, 0];
+        for (var f = 0; f < F.length; f++) {
+          var row = [];
+          for (var b = 0; b < 4; b++) {
+            var v = Math.pow(F[f].bands[b], 1.1);
+            prev[b] = v > prev[b] ? prev[b] + (v - prev[b]) * 0.7 : prev[b] * 0.84;
+            row.push(prev[b]);
+          }
+          level.push(row);
+        }
+        var bars = document.querySelectorAll("#bars i");
+        function draw(t) {
+          var row = level[Math.max(0, Math.min(level.length - 1, Math.floor(t * fps)))];
+          for (var i = 0; i < 4; i++) bars[i].style.height = (10 + 42 * row[i]).toFixed(1) + "px";
+        }
+        var clock = { t: 0 };
+        tl.fromTo(clock, { t: 14.4 }, { t: 23, duration: 8.6, ease: "none",
+          onUpdate: function () { draw(clock.t); } }, 14.4);
+
+        /* ---- 5. Outro ---- */
+        camera(19.3, 1.45, 0.9, "power3.inOut");
+        tl.fromTo("#mark", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 19.47);
+        tl.fromTo("#url", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 19.85);
+
+        window.__timelines["main"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>
