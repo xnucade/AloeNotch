@@ -1222,23 +1222,20 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
    ========================================================================= */
 @property --ang { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
 
-/* Hard-edged shapes behind the panel, faded out before the headline. */
-.wall-shapes {
-  position: absolute; inset: 0;
-  opacity: 0.85;
-  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(150 * var(--pt)), transparent calc(250 * var(--pt)));
-  mask-image: linear-gradient(180deg, #000 0, #000 calc(150 * var(--pt)), transparent calc(250 * var(--pt)));
+/* A soft wash of the artwork's colour behind the panel, so the glass has
+   something to frost. Gradient only, no shapes; it fades in with glass. */
+.wall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(40% 32% at 34% 6%, color-mix(in oklab, var(--glow) 75%, transparent), transparent 70%),
+    radial-gradient(36% 30% at 68% 4%, rgba(64, 140, 255, 0.6), transparent 70%),
+    radial-gradient(30% 26% at 52% 20%, rgba(255, 120, 170, 0.35), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s ease;
 }
-.wall-shapes i { position: absolute; border-radius: 50%; }
-.ws1 { left: calc(50% - 450 * var(--pt)); top: calc(40 * var(--pt)); width: calc(180 * var(--pt)); height: calc(180 * var(--pt)); background: linear-gradient(140deg, #ffd166, #ff6b6b); }
-.ws2 { left: calc(50% + 250 * var(--pt)); top: calc(-24 * var(--pt)); width: calc(200 * var(--pt)); height: calc(200 * var(--pt)); background: linear-gradient(200deg, #7cf3ff, #5b6cff); }
-.ws3 { left: calc(50% - 150 * var(--pt)); top: calc(96 * var(--pt)); width: calc(110 * var(--pt)); height: calc(110 * var(--pt)); background: linear-gradient(160deg, #ff9de2, #b06bff); }
-.wall-shapes .ws-band {
-  left: calc(50% - 540 * var(--pt)); top: calc(118 * var(--pt));
-  width: calc(1080 * var(--pt)); height: calc(20 * var(--pt));
-  border-radius: 99px; background: rgba(255, 255, 255, 0.5);
-  transform: rotate(-4deg);
-}
+.stage[data-look="glass"] .wall::before { opacity: 1; }
 
 /* Rim colours from the artwork: its hue and two neighbours, plus a pale one. */
 .hn { --rim1: #9b7bff; --rim2: #ff6fb5; --rim3: #eef0ff; --rim4: #5ee7ff; }
