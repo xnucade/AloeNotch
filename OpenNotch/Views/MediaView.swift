@@ -138,7 +138,21 @@ struct MediaView: View {
         }
     }
 
+    /// Shuffle and repeat flank the transport when the player reports them,
+    /// and drop out before anything would clip in a narrow column.
     private var controls: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Metrics.Spacing.tight) {
+                PlaybackModeButton(kind: .shuffle, media: media, diameter: 24)
+                transport
+                PlaybackModeButton(kind: .repeat, media: media, diameter: 24)
+            }
+            transport
+        }
+        .padding(.top, 1)
+    }
+
+    private var transport: some View {
         HStack(spacing: Metrics.Spacing.tight) {
             TransportButton(symbol: "backward.fill") { media.previous() }
                 .accessibilityLabel("Previous track")
@@ -150,7 +164,6 @@ struct MediaView: View {
             TransportButton(symbol: "forward.fill") { media.next() }
                 .accessibilityLabel("Next track")
         }
-        .padding(.top, 1)
     }
 }
 
@@ -210,6 +223,79 @@ private struct TransportButton: View {
             withAnimation(Motion.micro) {
                 hovering = inside
             }
+        }
+    }
+}
+
+/// Shuffle or repeat, shown only while the player reports the mode.
+///
+/// On is a filled circle behind a full-strength glyph, off a dim glyph on
+/// nothing: a change of shape as well as brightness, so it reads without
+/// colour, the way Music's own buttons do.
+struct PlaybackModeButton: View {
+    enum Kind { case shuffle, `repeat` }
+
+    let kind: Kind
+    @ObservedObject var media: NowPlayingManager
+    var diameter: CGFloat = 24
+
+    @State private var hovering = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
+
+    private var isOn: Bool? {
+        switch kind {
+        case .shuffle: media.current.shuffle.map { $0 != .off }
+        case .repeat:  media.current.repeatMode.map { $0 != .off }
+        }
+    }
+
+    private var symbol: String {
+        switch kind {
+        case .shuffle: "shuffle"
+        case .repeat:  media.current.repeatMode == .one ? "repeat.1" : "repeat"
+        }
+    }
+
+    private var label: LocalizedStringKey {
+        switch kind {
+        case .shuffle: "Shuffle"
+        case .repeat:  "Repeat"
+        }
+    }
+
+    private var value: LocalizedStringKey {
+        switch (kind, media.current.repeatMode) {
+        case (.repeat, .one?): "One song"
+        case (.repeat, .all?): "All"
+        default: isOn == true ? "On" : "Off"
+        }
+    }
+
+    var body: some View {
+        if let isOn {
+            Button {
+                switch kind {
+                case .shuffle: media.toggleShuffle()
+                case .repeat:  media.cycleRepeat()
+                }
+            } label: {
+                Image(systemName: symbol)
+                    .font(Typography.icon(11))
+                    .foregroundStyle(isOn || hovering ? Ink.primary : Ink.tertiary)
+                    .frame(width: diameter, height: diameter)
+                    .background(isOn ? Ink.fillBright : (hovering ? Ink.fill : .clear), in: Circle())
+                    .contentTransition(.symbolEffect(.replace))
+                    .scaleEffect(reduceMotion ? 1 : (hovering ? 1.06 : 1))
+            }
+            .buttonStyle(PressableButtonStyle())
+            .onHover { inside in
+                withAnimation(Motion.micro) { hovering = inside }
+            }
+            .animation(Motion.micro, value: isOn)
+            .animation(Motion.micro, value: symbol)
+            .accessibilityLabel(label)
+            .accessibilityValue(value)
+            .help(label)
         }
     }
 }

@@ -33,6 +33,7 @@ testDisplayChoice()
 testHeadphoneBattery()
 testSyncedLyrics()
 testSpectrumBands()
+testPlaybackModes()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

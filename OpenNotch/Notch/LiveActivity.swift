@@ -22,6 +22,8 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         /// anyone re-presenting the activity every second — a running timer
         /// would otherwise restart its arrival beat sixty times a minute.
         case countdown(Date)
+        /// A song: the title, scrolling if it has to, over the artist.
+        case track(title: String, artist: String)
     }
 
     let id = UUID()
@@ -32,6 +34,10 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
     let kind: String
 
     let symbol: String
+    /// Lead with the now-playing cover instead of the symbol, read live so a
+    /// cover that arrives after the title still lands. The symbol stands in
+    /// until it does.
+    var showsArtwork = false
     var tint: Color = .white
     /// Optional label beside the symbol. Kept short — the wings are narrow.
     var title: String?
@@ -60,6 +66,7 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         case .level(let level): "\(Int((min(1, max(0, level)) * 100).rounded())) percent"
         case .text(let text): text
         case .countdown(let deadline): "\(CountdownState.clock(deadline.timeIntervalSinceNow)) remaining"
+        case .track: nil
         }
         return [name, value].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
     }

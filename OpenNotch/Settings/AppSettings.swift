@@ -25,6 +25,11 @@ final class AppSettings: ObservableObject {
 
     /// Brief announcements when hardware changes underneath you — headphones
     /// connecting, a drive mounting or ejecting.
+    /// The new song's cover and name, briefly, when the track changes. Off
+    /// by default: it is one more thing moving at the top of the screen.
+    @Published var peekOnTrackChange: Bool {
+        didSet { save(peekOnTrackChange, "peekOnTrackChange") }
+    }
     @Published var showDeviceEvents: Bool {
         didSet { save(showDeviceEvents, "showDeviceEvents") }
     }
@@ -192,6 +197,7 @@ final class AppSettings: ObservableObject {
             "showHUD": true,
             "showBattery": true,
             "showDeviceEvents": true,
+            "peekOnTrackChange": false,
             "hideFromCapture": false,
             "hideInFullScreen": true,
             "showHeadphoneBattery": false,
@@ -236,6 +242,7 @@ final class AppSettings: ObservableObject {
         showHUD = defaults.bool(forKey: "showHUD")
         showBattery = defaults.bool(forKey: "showBattery")
         showDeviceEvents = defaults.bool(forKey: "showDeviceEvents")
+        peekOnTrackChange = defaults.bool(forKey: "peekOnTrackChange")
         hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")
         hotKeyCombo = HotKeyCombo(rawValue: defaults.string(forKey: "hotKeyCombo") ?? "") ?? .controlOptionN
         useGlass = defaults.bool(forKey: "useGlass")

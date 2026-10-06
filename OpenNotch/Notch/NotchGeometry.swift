@@ -26,6 +26,7 @@ struct NotchMetrics {
         case .compact: 46
         case .regular: 64
         case .wide:    84
+        case .track:   124
         }
     }
 
@@ -36,6 +37,7 @@ struct NotchMetrics {
         case .compact: 36
         case .regular: 74
         case .wide:    94
+        case .track:   124
         }
     }
 

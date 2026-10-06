@@ -221,6 +221,7 @@ struct NotchRootView: View {
                     // the state machine sized the strip for.
                     ActivityContent(
                         center: viewModel.activities,
+                        media: viewModel.media,
                         deadZone: hasHardwareNotch ? (metrics?.notchSize.width ?? 0) : 0
                     )
                     .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
@@ -600,6 +601,7 @@ private struct CollapsedContent: View {
 /// the hardware cutout kept clear between them.
 private struct ActivityContent: View {
     @ObservedObject var center: LiveActivityCenter
+    @ObservedObject var media: NowPlayingManager
     let deadZone: CGFloat
 
     @State private var arrived = false
@@ -609,12 +611,24 @@ private struct ActivityContent: View {
         if let activity = center.showing {
             HStack(spacing: 0) {
                 HStack(spacing: Metrics.Spacing.tight) {
-                    Image(systemName: activity.symbol)
-                        .font(Typography.icon(13))
-                        .foregroundStyle(activity.tint)
-                        // Symbols swap in place when only the glyph changes —
-                        // speaker.wave.1 to .wave.3 as the level climbs.
-                        .contentTransition(.symbolEffect(.replace))
+                    if activity.showsArtwork, let art = media.current.artwork {
+                        Image(nsImage: art)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: Metrics.peekArtworkSize,
+                                   height: Metrics.peekArtworkSize)
+                            .clipShape(RoundedRectangle(cornerRadius: Metrics.peekArtworkRadius,
+                                                        style: .continuous))
+                            .id(media.current.artworkToken)
+                            .transition(.opacity)
+                    } else {
+                        Image(systemName: activity.symbol)
+                            .font(Typography.icon(13))
+                            .foregroundStyle(activity.tint)
+                            // Symbols swap in place when only the glyph changes —
+                            // speaker.wave.1 to .wave.3 as the level climbs.
+                            .contentTransition(.symbolEffect(.replace))
+                    }
                     if let title = activity.title {
                         Text(title)
                             .font(Typography.micro(.semibold))
@@ -622,6 +636,7 @@ private struct ActivityContent: View {
                             .lineLimit(1)
                     }
                 }
+                .animation(Motion.contentFade, value: media.current.artworkToken)
                 // A single arrival beat rather than a loop: this is on screen
                 // for a second or two, and something still moving when it
                 // vanishes reads as unfinished.
@@ -711,6 +726,17 @@ struct ActivityTrailing: View {
                 .contentTransition(.numericText())
                 .animation(Motion.readout, value: value)
                 .lineLimit(1)
+        case .track(let title, let artist):
+            VStack(alignment: .leading, spacing: 0) {
+                MarqueeText(text: title, font: Typography.micro(.semibold))
+                    .foregroundStyle(Ink.primary)
+                if !artist.isEmpty {
+                    Text(artist)
+                        .font(Typography.micro(.regular))
+                        .foregroundStyle(Ink.secondary)
+                        .lineLimit(1)
+                }
+            }
         case .countdown(let deadline):
             // A quarter-second timeline rather than SwiftUI's own
             // `Text(timerInterval:)`, which always renders to the second: at

@@ -254,22 +254,26 @@ final class MediaAdapterEngine {
     }
 
     func send(_ command: Command) {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        p.arguments = [scriptURL.path, frameworkURL.path,
-                       "send", String(command.rawValue)]
-        p.standardOutput = FileHandle.nullDevice
-        p.standardError = FileHandle.nullDevice
-        try? p.run()
+        run("send", String(command.rawValue))
     }
 
     /// Seek to a timeline position. The adapter's `seek` takes MICROSECONDS
     /// (payload elapsed/duration are in seconds), so convert here.
     func seek(toSeconds seconds: Double) {
         let micros = Int((max(0, seconds) * 1_000_000).rounded())
+        run("seek", String(micros))
+    }
+
+    /// MediaRemote shuffle and repeat modes, as `ShuffleMode` and
+    /// `RepeatMode` raw values.
+    func setShuffle(_ mode: Int) { run("shuffle", String(mode)) }
+    func setRepeat(_ mode: Int)  { run("repeat", String(mode)) }
+
+    /// One-shot adapter call; the result arrives through the stream.
+    private func run(_ function: String, _ argument: String) {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        p.arguments = [scriptURL.path, frameworkURL.path, "seek", String(micros)]
+        p.arguments = [scriptURL.path, frameworkURL.path, function, argument]
         p.standardOutput = FileHandle.nullDevice
         p.standardError = FileHandle.nullDevice
         try? p.run()

@@ -264,6 +264,7 @@ private struct FocusedMedia: View {
     /// centred: the eye is already at the left edge reading the title.
     private var controls: some View {
         HStack(spacing: Metrics.Spacing.snug) {
+            PlaybackModeButton(kind: .shuffle, media: media, diameter: 28)
             FocusedTransportButton(symbol: "backward.fill", size: 15) { media.previous() }
                 .accessibilityLabel("Previous track")
             FocusedTransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill",
@@ -274,6 +275,7 @@ private struct FocusedMedia: View {
             .accessibilityLabel(media.isPlaying ? "Pause" : "Play")
             FocusedTransportButton(symbol: "forward.fill", size: 15) { media.next() }
                 .accessibilityLabel("Next track")
+            PlaybackModeButton(kind: .repeat, media: media, diameter: 28)
         }
     }
 }

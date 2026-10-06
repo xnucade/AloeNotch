@@ -71,6 +71,13 @@ struct ModulesTab: View {
 
                 SettingsDivider()
 
+                SettingsRow("Song changes", symbol: "music.note",
+                            description: "The new song's cover and name, for a moment, when the track changes on its own or from the keyboard.") {
+                    Toggle("", isOn: $settings.peekOnTrackChange).labelsHidden()
+                }
+
+                SettingsDivider()
+
                 SettingsRow("Device events", symbol: "airpods.pro",
                             description: "A brief note in the notch when headphones connect or a drive mounts or ejects.") {
                     Toggle("", isOn: $settings.showDeviceEvents).labelsHidden()
