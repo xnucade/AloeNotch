@@ -413,7 +413,7 @@ final class NotchViewModel: ObservableObject {
     func dropLanded(_ accepted: Bool) {
         landing = true
         guard accepted, !AccessibilityPreferences.shared.reduceMotion else { return }
-        withAnimation(.easeOut(duration: 0.07)) { gulping = true } completion: {
+        withAnimation(Motion.gulp) { gulping = true } completion: {
             withAnimation(Motion.arrival) { self.gulping = false }
         }
     }
@@ -545,21 +545,15 @@ final class NotchViewModel: ObservableObject {
         let animation: Animation
         let settle: TimeInterval
         switch (old, new) {
-        case (_, .expanded): animation = Self.expandAnimation; settle = Self.expandSettle
-        case (.expanded, _): animation = Self.collapseAnimation; settle = Self.collapseSettle
-        default:             animation = Self.hudAnimation; settle = Self.hudSettle
+        case (_, .expanded): animation = Self.expandAnimation; settle = Motion.settle(Motion.Duration.expand)
+        case (.expanded, _): animation = Self.collapseAnimation; settle = Motion.settle(Motion.Duration.collapse)
+        default:             animation = Self.hudAnimation; settle = Motion.settle(Motion.Duration.hud)
         }
 
         // Order matters: the view reads `stateAnimation` when `panelState`
-        // changes, so the curve has to be in place first.
-        //
-        // Reduce Motion is resolved here rather than in the view because this
-        // is the single place the panel's curve is chosen — doing it at the
-        // call site would mean every future transition has to remember to.
-        stateAnimation = Motion.resolve(
-            animation,
-            reduceMotion: AccessibilityPreferences.shared.reduceMotion
-        )
+        // changes, so the curve has to be in place first. The `Motion` tokens
+        // already honor Reduce Motion.
+        stateAnimation = animation
         panelState = new
         #if DEBUG
         FrameBudget.shared.watch("\(old) → \(new)", on: metrics?.screen, for: settle + 0.1)
@@ -593,12 +587,6 @@ final class NotchViewModel: ObservableObject {
         return bw < aw || b.height < a.height
     }
 
-    // How long to hold the outgoing hit region, per transition. Each sits just
-    // past its animation's duration so the region never shrinks while pixels
-    // are still moving.
-    private static let expandSettle: TimeInterval = 0.42
-    private static let collapseSettle: TimeInterval = 0.34
-    private static let hudSettle: TimeInterval = 0.30
 
     /// Start or stop the HUD stack. We only show our own readout once we can
     /// actually suppress the system one — otherwise the user gets two HUDs,

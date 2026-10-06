@@ -85,9 +85,9 @@ struct ModulesTab: View {
                     }
                 }
             }
-            .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+            .animation(Motion.contentFade,
                        value: settings.showHUD)
-            .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+            .animation(Motion.contentFade,
                        value: settings.showDeviceEvents)
         }
     }

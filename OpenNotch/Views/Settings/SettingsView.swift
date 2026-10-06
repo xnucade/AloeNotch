@@ -128,7 +128,7 @@ struct SettingsView: View {
         let order = Tab.allCases
         travellingForward =
             (order.firstIndex(of: t) ?? 0) > (order.firstIndex(of: tab) ?? 0)
-        withAnimation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)) {
+        withAnimation(Motion.contentFade) {
             tab = t
         }
     }
@@ -187,7 +187,7 @@ private struct SettingsTabButton: View {
             }
         }
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: a11y.reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }

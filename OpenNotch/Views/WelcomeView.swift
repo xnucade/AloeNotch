@@ -163,8 +163,7 @@ struct WelcomeView: View {
                 SettingsDivider()
                 SettingsRow("Liquid Glass", symbol: "square.on.square.dashed",
                             description: "Translucent windows. Turn it off if you'd rather have solid panels.") {
-                    Toggle("", isOn: $settings.useGlass.animation(
-                        Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)))
+                    Toggle("", isOn: $settings.useGlass.animation(Motion.contentFade))
                         .labelsHidden()
                 }
             }
@@ -227,7 +226,7 @@ struct WelcomeView: View {
                     .scaleEffect(s == step && !a11y.reduceMotion ? 1.25 : 1)
             }
         }
-        .animation(Motion.resolve(Motion.micro, reduceMotion: a11y.reduceMotion), value: step)
+        .animation(Motion.micro, value: step)
     }
 
     private var next: Step { Step(rawValue: step.rawValue + 1) ?? .finish }
@@ -235,7 +234,7 @@ struct WelcomeView: View {
 
     private func go(to destination: Step) {
         goingBack = destination < step
-        withAnimation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)) {
+        withAnimation(Motion.contentFade) {
             step = destination
         }
     }

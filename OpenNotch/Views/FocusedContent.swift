@@ -145,7 +145,7 @@ private struct SwitcherPill: View {
         .accessibilityLabel(module.label)
         .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -301,7 +301,7 @@ private struct FocusedTransportButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -335,7 +335,7 @@ private struct FocusedScrubber: View {
                     .frame(maxHeight: .infinity, alignment: .center)
                     .contentShape(Rectangle())
                     .onHover { inside in
-                        withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                        withAnimation(Motion.micro) {
                             hovering = inside
                         }
                     }
@@ -352,7 +352,7 @@ private struct FocusedScrubber: View {
                     )
                 }
                 .frame(height: 10)
-                .animation(.linear(duration: dragging ? 0 : 0.5), value: fraction)
+                .animation(dragging ? nil : Motion.playbackProgress, value: fraction)
 
                 HStack {
                     Text(time(elapsed))

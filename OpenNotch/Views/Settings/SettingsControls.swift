@@ -156,11 +156,11 @@ struct SettingsRow<Control: View>: View {
         .contentShape(.rect)
         .onHover { inside in
             guard highlightsOnHover else { return }
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: a11y.reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
-        .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+        .animation(Motion.contentFade,
                    value: description)
     }
 }

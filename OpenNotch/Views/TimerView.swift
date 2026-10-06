@@ -215,7 +215,7 @@ private struct CountdownRing: View {
                 // "barely started". Hidden until the arc is at least as long
                 // as the cap is wide and therefore looks like an arc.
                 .opacity(progress > minimumVisibleArc ? 1 : 0)
-                .animation(.linear(duration: 0.25), value: progress)
+                .animation(Motion.ringProgress, value: progress)
 
             Text(CountdownState.clock(remaining))
                 .font(.system(size: size * 0.26, weight: .semibold, design: .rounded))
@@ -226,7 +226,7 @@ private struct CountdownRing: View {
         }
         .frame(width: size, height: size)
         .scaleEffect(pulse)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.5), value: Int(remaining.rounded(.up)))
+        .animation(reduceMotion ? nil : Motion.finishedPulse, value: Int(remaining.rounded(.up)))
         .opacity(paused ? 0.75 : 1)
     }
 
@@ -267,7 +267,7 @@ private struct PresetChip: View {
         }
         .buttonStyle(PressableButtonStyle())
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -300,7 +300,7 @@ private struct TimerControl: View {
         }
         .buttonStyle(PressableButtonStyle())
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }

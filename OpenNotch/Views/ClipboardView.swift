@@ -151,7 +151,7 @@ private struct ClipboardRow: View {
         .help(copied ? "Copied" : "Copy again: \(shown)")
         .accessibilityHint("Copies it again")
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
