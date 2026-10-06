@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 /// The tools behind the hidden debug section of the menu bar dropdown
 /// (⌥-click the icon): slow motion, a state cycler, and a frame-time overlay.
@@ -28,6 +29,80 @@ final class DebugTools: ObservableObject {
     /// Anything left switched on. Keeps the section visible without ⌥, so a
     /// tool can always be turned back off.
     var isActive: Bool { slowMotion != 1 || showFrameTimes || step != nil }
+
+    // MARK: Benchmark
+
+    /// The last benchmark's summary, one line per style.
+    @Published private(set) var benchmark: String?
+    @Published private(set) var isBenchmarking = false
+    private var collected: [FrameBudget.Result] = []
+    private var collecting: AnyCancellable?
+
+    /// Opens and closes the panel a few times as Solid, then as Glass, and
+    /// reports frame times and the app's own CPU time for each. The cost of
+    /// glass was a guess until this.
+    func runBenchmark(cycles: Int = 3) {
+        guard let viewModel, !isBenchmarking else { return }
+        clear(viewModel)
+        step = nil
+        isBenchmarking = true
+        benchmark = nil
+
+        let settings = AppSettings.shared
+        let original = settings.notchStyle
+        let budget = FrameBudget.shared
+        budget.forceEnabled = true
+        collecting = budget.$last.compactMap { $0 }.sink { [weak self] in self?.collected.append($0) }
+
+        Task { @MainActor in
+            var lines: [String] = []
+            let open = Motion.settle(Motion.Duration.expand) + 0.3
+            let close = Motion.settle(Motion.Duration.collapse) + 0.3
+            for style in NotchStyle.allCases {
+                settings.notchStyle = style
+                try? await Task.sleep(for: .seconds(0.4))
+                collected = []
+                let cpuBefore = Self.cpuTime()
+                for _ in 0..<cycles {
+                    viewModel.debugPin(true)
+                    try? await Task.sleep(for: .seconds(open))
+                    viewModel.debugPin(false)
+                    try? await Task.sleep(for: .seconds(close))
+                }
+                let cpu = (Self.cpuTime() - cpuBefore) * 1000 / Double(cycles)
+                lines.append(Self.summary(style.title, collected, cpuPerCycle: cpu))
+            }
+            settings.notchStyle = original
+            budget.forceEnabled = false
+            collecting = nil
+            if AccessibilityPreferences.shared.reduceTransparency {
+                lines.append("Reduce Transparency is on, so Glass drew as Solid.")
+            }
+            benchmark = lines.joined(separator: "\n")
+            isBenchmarking = false
+            NSLog("AloeNotch benchmark:\n%@", benchmark ?? "")
+        }
+    }
+
+    private static func summary(_ name: String, _ results: [FrameBudget.Result], cpuPerCycle: Double) -> String {
+        func worst(_ rs: [FrameBudget.Result]) -> String {
+            String(format: "%.1f", rs.map(\.worstMs).max() ?? 0)
+        }
+        let opens = results.filter { $0.label.hasSuffix("expanded") }
+        let closes = results.filter { !$0.label.hasSuffix("expanded") }
+        let drops = results.reduce(0) { $0 + $1.drops }
+        let budget = String(format: "%.1f", results.first?.budgetMs ?? 0)
+        return "\(name): open \(worst(opens)) / close \(worst(closes)) ms worst (budget \(budget)), "
+            + "\(drops) dropped, \(String(format: "%.0f", cpuPerCycle)) ms CPU per cycle"
+    }
+
+    /// User plus system CPU time used by this process so far, in seconds.
+    private static func cpuTime() -> Double {
+        var usage = rusage()
+        getrusage(RUSAGE_SELF, &usage)
+        func seconds(_ t: timeval) -> Double { Double(t.tv_sec) + Double(t.tv_usec) / 1_000_000 }
+        return seconds(usage.ru_utime) + seconds(usage.ru_stime)
+    }
 
     /// Every panel state, then the one-shot modifiers that play on top of a
     /// state. Each step leaves the panel where the next one expects it.

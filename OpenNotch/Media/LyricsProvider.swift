@@ -20,8 +20,16 @@ final class LyricsProvider: ObservableObject {
     private var task: URLSessionDataTask?
     private var playing: Track?
     /// A miss is cached as nil, so replaying a song LRCLIB doesn't have
-    /// doesn't ask again.
+    /// doesn't ask again. Bounded: a day of shuffle is hundreds of tracks,
+    /// and only the recent ones are likely to come round again.
     private var cache: [Track: SyncedLyrics?] = [:]
+    private var cacheOrder: [Track] = []
+    private static let cacheLimit = 64
+
+    private func remember(_ lyrics: SyncedLyrics?, for track: Track) {
+        if cache.updateValue(lyrics, forKey: track) == nil { cacheOrder.append(track) }
+        if cacheOrder.count > Self.cacheLimit { cache[cacheOrder.removeFirst()] = nil }
+    }
 
     private static let session: URLSession = {
         let config = URLSessionConfiguration.ephemeral
@@ -80,7 +88,7 @@ final class LyricsProvider: ObservableObject {
                     return
                 }
                 // Only remember real answers; a network failure retries next play.
-                if status == 200 || status == 404 { self.cache[track] = found }
+                if status == 200 || status == 404 { self.remember(found, for: track) }
                 self.lyrics = found
             }
         }
