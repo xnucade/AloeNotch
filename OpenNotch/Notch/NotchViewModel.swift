@@ -110,6 +110,15 @@ final class NotchViewModel: ObservableObject {
     /// open spring is the one animation in charge of that frame.
     @Published private(set) var isAnticipating = false
     private var intentWorkItem: DispatchWorkItem?
+    private var swellWorkItem: DispatchWorkItem?
+    /// The open delay that restarts whenever the pointer is still passing
+    /// through, or nil when nothing is being decided. See `HoverIntent`.
+    private var pendingIntent: TimeInterval??
+    private var hoverIntent = HoverIntent()
+    /// How long the pointer has to have settled before the swell starts.
+    /// Short enough to read as immediate on a deliberate arrival; long
+    /// enough that a sweep across the strip never starts one.
+    private static let swellSettle: TimeInterval = 0.04
 
     /// Held open by the keyboard shortcut, until it is pressed again.
     @Published private(set) var isPinnedOpen = false
@@ -332,33 +341,25 @@ final class NotchViewModel: ObservableObject {
     // is never an accident.
     func hoverChanged(_ inside: Bool, immediate: Bool = false) {
         collapseWorkItem?.cancel()
-        intentWorkItem?.cancel()
+        cancelIntent()
         if inside {
             // Coming back inside the close grace period, or already open:
             // nothing to decide.
             let delay = immediate || isHovering || panelState.isExpanded
                 ? 0 : settings.openTrigger.intentDelay
-            guard let delay else {
-                isAnticipating = true   // click mode: swell and wait
-                return
-            }
             if delay == 0 {
                 isHovering = true
                 refreshState()
                 return
             }
-            isAnticipating = true
-            let work = DispatchWorkItem { [weak self] in
-                guard let self else { return }
-                self.isHovering = true
-                self.refreshState()
-            }
-            intentWorkItem = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+            // Hover waits for the pointer to settle; click mode swells once
+            // it has and then waits for the click.
+            pendingIntent = .some(delay)
+            hoverIntent.reset()
+            armIntent()
         } else {
             // Relax the swell now. It is only drawn while closed, so if the
             // panel is open this changes nothing until the close below.
-            isAnticipating = false
             guard isHovering || isPinnedOpen else { return }
             let work = DispatchWorkItem { [weak self] in
                 guard let self else { return }
@@ -376,11 +377,53 @@ final class NotchViewModel: ObservableObject {
         }
     }
 
+    /// The pointer moved over the surface. While the panel is deciding
+    /// whether to open, a pointer still travelling restarts the decision, so
+    /// it only opens once the pointer settles.
+    func pointerMoved(to point: CGPoint) {
+        guard pendingIntent != nil,
+              hoverIntent.isTravelling(at: point, time: CACurrentMediaTime()) == true
+        else { return }
+        armIntent()
+    }
+
+    /// (Re)start the swell and, in the hover modes, the open.
+    private func armIntent() {
+        guard let delay = pendingIntent else { return }
+        intentWorkItem?.cancel()
+        swellWorkItem?.cancel()
+        isAnticipating = false
+
+        let swell = DispatchWorkItem { [weak self] in self?.isAnticipating = true }
+        swellWorkItem = swell
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.swellSettle, execute: swell)
+
+        guard let delay else { return }
+        let open = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.pendingIntent = nil
+            self.isHovering = true
+            self.refreshState()
+        }
+        intentWorkItem = open
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: open)
+    }
+
+    /// `keepSwell` when the panel is about to open: the swell is only drawn
+    /// while closed, and relaxing it in the same moment would hand the
+    /// frame a second animation to follow besides the open spring.
+    private func cancelIntent(keepSwell: Bool = false) {
+        intentWorkItem?.cancel()
+        swellWorkItem?.cancel()
+        pendingIntent = nil
+        if !keepSwell { isAnticipating = false }
+    }
+
     /// A click on the closed notch. Opens it in every mode — in click mode
     /// it is the only way in, and in the hover modes it just skips the wait.
     func notchClicked() {
         guard !panelState.isExpanded else { return }
-        intentWorkItem?.cancel()
+        cancelIntent(keepSwell: true)
         isHovering = true
         refreshState()
     }
@@ -514,9 +557,8 @@ final class NotchViewModel: ObservableObject {
     /// Close without the pointer leaving: a swipe up, or VoiceOver, which
     /// opens the panel without the pointer ever entering it.
     func dismiss() {
-        intentWorkItem?.cancel()
+        cancelIntent()
         collapseWorkItem?.cancel()
-        isAnticipating = false
         isHovering = false
         isPinnedOpen = false
         refreshState()

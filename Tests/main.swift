@@ -19,6 +19,7 @@ func expect(_ condition: Bool, _ description: String) {
 
 testPanelState()
 testActivityQueue()
+testHoverIntent()
 testSemanticVersion()
 testUpdateComparison()
 testClipboardHistory()
