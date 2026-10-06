@@ -473,6 +473,10 @@ enum Metrics {
         static let verticalPadding: CGFloat = 5
         /// Between a pill's glyph and its text.
         static let iconGap: CGFloat = 5
+        /// The same gap beside a glyph drawn edge to edge, like the battery.
+        /// SF Symbols carry their own side bearing; a drawn shape doesn't,
+        /// so it needs the extra points to look the same distance away.
+        static let drawnIconGap: CGFloat = 7
     }
 }
 
