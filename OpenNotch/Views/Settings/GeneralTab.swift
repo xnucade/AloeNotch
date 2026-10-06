@@ -86,22 +86,26 @@ struct GeneralTab: View {
                        value: hotKeys.isRegistered)
 
             SettingsSection("Where it opens", index: 2) {
-                SettingsSliderRow(
-                    title: "Horizontal offset",
-                    symbol: "arrow.left.and.right",
-                    description: "Nudges the panel left or right. Leave at 0 to keep the collapsed strip aligned with the hardware notch.",
-                    value: $settings.positionOffset,
-                    range: -400...400,
-                    valueLabel: "\(Int(settings.positionOffset)) pt",
-                    accessory: AnyView(
-                        Button("Center") { settings.positionOffset = 0 }
-                            .controlSize(.small)
-                            .glassButtonStyle(settings.useGlass)
-                            .disabled(settings.positionOffset == 0)
+                // Only where there's no notch to sit on. On a real notch the
+                // strip has to hug the cutout, so an offset could only break it.
+                if !NotchGeometry.metrics(for: NotchGeometry.preferredScreen()).hasHardwareNotch {
+                    SettingsSliderRow(
+                        title: "Horizontal offset",
+                        symbol: "arrow.left.and.right",
+                        description: "Moves the notch left or right on this display, which has no notch of its own.",
+                        value: $settings.positionOffset,
+                        range: -400...400,
+                        valueLabel: "\(Int(settings.positionOffset)) pt",
+                        accessory: AnyView(
+                            Button("Center") { settings.positionOffset = 0 }
+                                .controlSize(.small)
+                                .glassButtonStyle(settings.useGlass)
+                                .disabled(settings.positionOffset == 0)
+                        )
                     )
-                )
 
-                SettingsDivider()
+                    SettingsDivider()
+                }
 
                 SettingsSliderRow(
                     title: "Width",

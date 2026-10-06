@@ -150,8 +150,8 @@ final class AppSettings: ObservableObject {
     /// people find it harder to read than a solid panel.
     @Published var useGlass: Bool { didSet { save(useGlass, "useGlass") } }
 
-    /// Horizontal nudge of the panel from screen-center, in points (−400…400).
-    /// 0 keeps the collapsed strip aligned with the hardware notch.
+    /// Horizontal nudge of the simulated notch from screen-center, in points
+    /// (−400…400). Displays with a hardware notch ignore it.
     @Published var positionOffset: Double { didSet { defaults.set(positionOffset, forKey: "positionOffset") } }
 
     /// Whether the one-time welcome has been shown. Calendar/weather hold off
