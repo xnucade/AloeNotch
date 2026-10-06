@@ -184,6 +184,7 @@ final class NotchViewModel: ObservableObject {
 
         media.start()
         lyrics.attach(to: media)
+        observeTrackChanges()
         battery.start()
 
         // Calendar and weather follow their toggles so a disabled feature does
@@ -751,6 +752,43 @@ final class NotchViewModel: ObservableObject {
                 self.updateHUDPipeline(enabled: self.settings.showHUD)
             }
         }
+    }
+
+    /// Announce a new song when one track gives way to another. Not when
+    /// playback starts from nothing — whoever pressed play knows what they
+    /// picked — and not under the open panel, which already shows it. Waits
+    /// for the payload to finish applying, so `isPlaying` is current.
+    private func observeTrackChanges() {
+        media.$current
+            .map { TrackIdentity(title: $0.title, artist: $0.artist) }
+            .removeDuplicates()
+            .scan((previous: TrackIdentity?.none, current: TrackIdentity?.none)) { ($0.current, $1) }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] change in
+                guard let self, self.settings.peekOnTrackChange,
+                      let before = change.previous, !before.title.isEmpty,
+                      let now = change.current, !now.title.isEmpty,
+                      self.media.isPlaying, !self.panelState.isExpanded
+                else { return }
+                self.activities.present(LiveActivity(
+                    kind: "media.track",
+                    symbol: "music.note",
+                    showsArtwork: true,
+                    spokenName: now.artist.isEmpty
+                        ? String(localized: "Now playing \(now.title)")
+                        : String(localized: "Now playing \(now.title) by \(now.artist)"),
+                    trailing: .track(title: now.title, artist: now.artist),
+                    size: .track,
+                    duration: 3,
+                    priority: LiveActivity.Priority.ambient
+                ))
+            }
+            .store(in: &cancellables)
+    }
+
+    private struct TrackIdentity: Equatable {
+        let title: String
+        let artist: String
     }
 
     /// Briefly widen the strip to acknowledge the charger being connected.

@@ -44,6 +44,8 @@ enum PanelState: Equatable {
         case regular
         /// A symbol and a bar, or a name long enough to need room.
         case wide
+        /// A cover and a song title, which need more room than any name.
+        case track
     }
 
     var isExpanded: Bool { self == .expanded }
@@ -69,9 +71,11 @@ enum PanelState: Equatable {
         case .peek(.activity(.compact)):  "peek(activity/compact)"
         case .peek(.activity(.regular)):  "peek(activity/regular)"
         case .peek(.activity(.wide)):     "peek(activity/wide)"
+        case .peek(.activity(.track)):    "peek(activity/track)"
         case .peek(.split(.compact)):     "peek(split/compact)"
         case .peek(.split(.regular)):     "peek(split/regular)"
         case .peek(.split(.wide)):        "peek(split/wide)"
+        case .peek(.split(.track)):       "peek(split/track)"
         case .expanded:                   "expanded"
         }
     }

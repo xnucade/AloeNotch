@@ -22,6 +22,11 @@ struct NowPlaying: Equatable {
     /// track, so it doesn't churn `current`; elapsed time is interpolated
     /// separately via `liveElapsed()`.
     var duration: Double = 0
+    /// What the player reports for shuffle and repeat, or nil when it says
+    /// nothing. Browsers mostly don't, and a control for a mode the player
+    /// won't honour is worse than no control.
+    var shuffle: ShuffleMode? = nil
+    var repeatMode: RepeatMode? = nil
 
     var hasContent: Bool { !title.isEmpty || !artist.isEmpty }
 }
@@ -115,6 +120,29 @@ final class NowPlayingManager: ObservableObject {
         return min(current.duration, max(0, elapsedBase + advance))
     }
 
+    /// Shuffle on or off. Shuffling by album counts as on.
+    func toggleShuffle() {
+        guard let mode = current.shuffle else { return }
+        let next = mode.toggled
+        current.shuffle = next
+        holdModes()
+        adapter?.setShuffle(next.rawValue)
+    }
+
+    func cycleRepeat() {
+        guard let mode = current.repeatMode else { return }
+        let next = mode.next
+        current.repeatMode = next
+        holdModes()
+        adapter?.setRepeat(next.rawValue)
+    }
+
+    /// The button changes at once, but the player takes a payload or two to
+    /// agree, and those in-between payloads still carry the old mode. Without
+    /// this the button flicks back and forth.
+    private var modesHeldUntil = Date.distantPast
+    private func holdModes() { modesHeldUntil = Date().addingTimeInterval(1.5) }
+
     /// Seek to a position in seconds. Updates the local estimate immediately so
     /// the bar responds without waiting for the next payload.
     func seek(to seconds: Double) {
@@ -169,6 +197,14 @@ final class NowPlayingManager: ObservableObject {
         }
 
         np.duration = payload["duration"] as? Double ?? 0
+
+        if Date() < modesHeldUntil {
+            np.shuffle = current.shuffle
+            np.repeatMode = current.repeatMode
+        } else {
+            np.shuffle = ShuffleMode(payload: payload["shuffleMode"])
+            np.repeatMode = RepeatMode(payload: payload["repeatMode"])
+        }
 
         let playing = (payload["playing"] as? NSNumber)?.boolValue ?? false
         // Capture the elapsed baseline so liveElapsed() can advance from it.

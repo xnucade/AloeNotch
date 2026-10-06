@@ -107,7 +107,7 @@ final class DebugTools: ObservableObject {
     /// Every panel state, then the one-shot modifiers that play on top of a
     /// state. Each step leaves the panel where the next one expects it.
     enum Step: Int, CaseIterable, Identifiable {
-        case compact, regular, wide, split, expanded, limitPush, gulp, pull, collapsed
+        case compact, regular, wide, track, split, expanded, limitPush, gulp, pull, collapsed
 
         var id: Int { rawValue }
 
@@ -116,6 +116,7 @@ final class DebugTools: ObservableObject {
             case .compact:   "Peek · compact"
             case .regular:   "Peek · regular"
             case .wide:      "Peek · wide"
+            case .track:     "Peek · song change"
             case .split:     "Split (needs music playing)"
             case .expanded:  "Expanded"
             case .limitPush: "Level pushed past its stop"
@@ -145,6 +146,14 @@ final class DebugTools: ObservableObject {
         case .wide:
             clear(viewModel)
             activities.present(demo(symbol: "speaker.wave.2.fill", trailing: .level(0.6), size: .wide))
+        case .track:
+            clear(viewModel)
+            var song = demo(symbol: "music.note",
+                            trailing: .track(title: "A Title Long Enough That It Has to Scroll",
+                                             artist: "The Placeholders"),
+                            size: .track)
+            song.showsArtwork = true
+            activities.present(song)
         case .split:
             clear(viewModel)
             activities.setResident(LiveActivity(
