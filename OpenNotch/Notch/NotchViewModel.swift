@@ -128,6 +128,11 @@ final class NotchViewModel: ObservableObject {
     /// reach it without the app in front losing its place.
     @Published private(set) var hasKeyboardFocus = false
 
+    /// Another app is full screen on the notch's display and the user has
+    /// asked the notch to stay out of its way. Re-read when it can change —
+    /// the pointer arriving, a Space switching — never on a timer.
+    @Published private(set) var isOutOfTheWay = false
+
 
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
@@ -163,6 +168,20 @@ final class NotchViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
+        FullScreenDetector.warmUp()
+        // A full-screen app is its own Space, so switching to or from one
+        // is a Space change. The window list lags the notification a beat.
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
+            .delay(for: .milliseconds(400), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshFullScreen() }
+            .store(in: &cancellables)
+        settings.$hideInFullScreen
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshFullScreen() }
+            .store(in: &cancellables)
+
         media.start()
         lyrics.attach(to: media)
         battery.start()
@@ -348,6 +367,9 @@ final class NotchViewModel: ObservableObject {
         collapseWorkItem?.cancel()
         cancelIntent()
         if inside {
+            // A file dragged here is deliberate even over a full-screen app.
+            refreshFullScreen()
+            if isOutOfTheWay && !immediate { return }
             // Coming back inside the close grace period, or already open:
             // nothing to decide.
             let delay = immediate || isHovering || panelState.isExpanded
@@ -597,14 +619,28 @@ final class NotchViewModel: ObservableObject {
     /// tested without standing up a view model and all seven of its managers.
     /// This function's only job is gathering the inputs.
     private func targetState() -> PanelState {
-        PanelStateReducer.state(for: .init(
+        // Over a full-screen app only a readout for a key being pressed gets
+        // through: the keys are swallowed for the HUD, so without it a
+        // volume change would show nothing at all.
+        let activity = activities.showing.flatMap { shown in
+            isOutOfTheWay && shown.priority < LiveActivity.Priority.direct ? nil : shown
+        }
+        return PanelStateReducer.state(for: .init(
             isHovering: isHovering,
             isPinned: isPinnedOpen,
-            activity: activities.showing?.size,
-            activityIsResident: activities.showing?.isResident ?? false,
-            mediaPlaying: media.isPlaying,
+            activity: activity?.size,
+            activityIsResident: activity?.isResident ?? false,
+            mediaPlaying: media.isPlaying && !isOutOfTheWay,
             showMedia: settings.showMedia
         ))
+    }
+
+    private func refreshFullScreen() {
+        let outOfTheWay = settings.hideInFullScreen
+            && (metrics?.screen).map(FullScreenDetector.isFullScreen(on:)) ?? false
+        guard outOfTheWay != isOutOfTheWay else { return }
+        isOutOfTheWay = outOfTheWay
+        refreshState()
     }
 
     /// Open or close from the keyboard.
