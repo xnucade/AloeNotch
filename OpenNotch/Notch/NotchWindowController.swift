@@ -57,6 +57,49 @@ final class NotchWindowController {
             .store(in: &cancellables)
     }
 
+    /// Keyboard focus. The panel is non-activating, so taking key status
+    /// leaves the app in front active; but while the panel is key, typing
+    /// goes to it. So it takes focus only when opened with the shortcut, and
+    /// gives it back whenever it finishes closing — including after a click
+    /// on one of its buttons, which makes it key too.
+    private func observeKeyboardFocus(of panel: NotchPanel) {
+        panel.onCancel = { [weak viewModel] in viewModel?.cancelFromKeyboard() }
+
+        viewModel.$hasKeyboardFocus
+            .removeDuplicates()
+            .filter { $0 }
+            .sink { [weak panel] _ in panel?.makeKey() }
+            .store(in: &cancellables)
+
+        NotificationCenter.default
+            .publisher(for: NSWindow.didResignKeyNotification, object: panel)
+            .sink { [weak viewModel] _ in viewModel?.keyboardFocusLost() }
+            .store(in: &cancellables)
+
+        viewModel.$panelState
+            .map(\.isExpanded)
+            .removeDuplicates()
+            .filter { !$0 }
+            .sink { [weak self] _ in
+                // Once the close has played out: ordering the window out and
+                // back mid-close would blink the whole panel.
+                DispatchQueue.main.asyncAfter(deadline: .now() + Motion.settle(Motion.Duration.collapse)) {
+                    self?.releaseKeyFocus()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    /// Hand keyboard focus back to the app in front. A window can't resign
+    /// key on request; leaving the screen is what returns focus, so the
+    /// panel steps out and straight back in. By now it is only the strip,
+    /// black on the black of the notch.
+    private func releaseKeyFocus() {
+        guard let panel, panel.isKeyWindow, !viewModel.panelState.isExpanded else { return }
+        panel.orderOut(nil)
+        panel.orderFrontRegardless()
+    }
+
     /// The window frame with the user's horizontal offset applied.
     private func positionedFrame() -> CGRect {
         var frame = metrics.windowFrame
@@ -114,6 +157,8 @@ final class NotchWindowController {
 
         self.panel = panel
         self.hostingView = host
+
+        observeKeyboardFocus(of: panel)
 
         // The window server can move or shrink the panel on its own while
         // displays reconfigure — sleep, clamshell, a monitor coming and going —
