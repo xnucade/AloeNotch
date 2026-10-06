@@ -134,19 +134,8 @@ struct AppearanceTab: View {
                             description: "A thin line of the artwork's color hugging the panel edge.") {
                     Toggle("", isOn: $settings.ambientGlow).labelsHidden()
                 }
-                SettingsDivider()
-                SettingsSliderRow(
-                    title: "Animation speed",
-                    symbol: "speedometer",
-                    description: "Scales every transition in the app.",
-                    value: $settings.animationSpeed,
-                    range: 0.5...2.0,
-                    step: 0.1,
-                    valueLabel: String(format: "%.1f×", settings.animationSpeed),
-                    isDisabled: a11y.reduceMotion
-                )
                 if a11y.reduceMotion {
-                    SettingsNote("Reduce Motion is on in System Settings, so animations are shortened to plain fades regardless of this setting.")
+                    SettingsNote("Reduce Motion is on in System Settings, so animations are plain fades and bounce has no effect.")
                 }
             }
 

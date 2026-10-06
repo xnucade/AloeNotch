@@ -105,10 +105,6 @@ final class AppSettings: ObservableObject {
     @Published var hudVolumeHex: String     { didSet { save(hudVolumeHex, "hudVolumeHex") } }
     @Published var hudBrightnessHex: String { didSet { save(hudBrightnessHex, "hudBrightnessHex") } }
 
-    /// Multiplier on every animation duration: >1 faster, <1 slower.
-    @Published var animationSpeed: Double {
-        didSet { defaults.set(animationSpeed, forKey: "animationSpeed") }
-    }
 
     /// How the expanded panel arranges its modules. Changing it also moves the
     /// width to that layout's default, because a width chosen for three
@@ -207,7 +203,6 @@ final class AppSettings: ObservableObject {
             "windowTheme": WindowTheme.system.rawValue,
             "panelLayout": PanelLayout.columns.rawValue,
             "openTrigger": OpenTrigger.hover.rawValue,
-            "animationSpeed": 1.0,
             // Today's behaviour, so nobody's notch changes under them on update.
             "motionBounce": MotionPersonality.standard.bounce,
             "hudTintMode": HUDTintMode.monochrome.rawValue,
@@ -251,7 +246,9 @@ final class AppSettings: ObservableObject {
         openTrigger = OpenTrigger(rawValue: defaults.string(forKey: "openTrigger") ?? "") ?? .hover
         displayChoice = DisplayChoice(rawValue: defaults.string(forKey: "displayChoice") ?? "") ?? .automatic
         pinnedDisplay = defaults.string(forKey: "pinnedDisplay")
-        animationSpeed = defaults.double(forKey: "animationSpeed")
+        // Animation speed was a setting until 0.14; it is a debug tool now
+        // (⌥-click the menu bar icon) and deliberately not remembered.
+        defaults.removeObject(forKey: "animationSpeed")
         motionBounce = MotionPersonality.clamp(defaults.double(forKey: "motionBounce"))
         hudTintMode = HUDTintMode(rawValue: defaults.string(forKey: "hudTintMode") ?? "") ?? .monochrome
         hudVolumeHex = defaults.string(forKey: "hudVolumeHex") ?? AccentPalette.default

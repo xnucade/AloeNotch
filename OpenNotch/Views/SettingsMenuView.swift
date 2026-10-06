@@ -8,6 +8,10 @@ import SwiftUI
 struct SettingsMenuView: View {
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var updates = UpdateChecker.shared
+    @ObservedObject private var debug = DebugTools.shared
+    /// ⌥ held when the dropdown opened. Read each time its window becomes
+    /// key, since the window is reused rather than rebuilt on every click.
+    @State private var optionHeld = false
     let onReposition: () -> Void
     let onOpenSettings: () -> Void
 
@@ -48,8 +52,17 @@ struct SettingsMenuView: View {
                     }
                     .padding(11)
                     .panelSurface(cornerRadius: 16, glass: settings.useGlass)
+
+                    if optionHeld || debug.isActive {
+                        DebugSection()
+                            .padding(11)
+                            .panelSurface(cornerRadius: 16, glass: settings.useGlass)
+                    }
                 }
             .padding(12)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            optionHeld = NSEvent.modifierFlags.contains(.option)
         }
         .frame(width: 268)
         .frostedWindowBackground(settings.useGlass)
@@ -110,6 +123,57 @@ struct SettingsMenuView: View {
             button.keyboardShortcut(KeyEquivalent(shortcut), modifiers: .command)
         } else {
             button
+        }
+    }
+}
+
+/// Hidden behind ⌥: tools for looking at motion, not features.
+private struct DebugSection: View {
+    @ObservedObject private var debug = DebugTools.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("Debug", systemImage: "ladybug")
+                    .font(.callout.weight(.semibold))
+                Spacer()
+                Button("Reset") { debug.reset() }
+                    .font(.callout)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .disabled(!debug.isActive)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Slow motion").font(.callout)
+                    Spacer()
+                    Text(String(format: "%.2g×", debug.slowMotion))
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $debug.slowMotion, in: DebugTools.slowMotionRange, step: 0.05)
+                    .controlSize(.mini)
+            }
+
+            Toggle(isOn: $debug.showFrameTimes) {
+                Text("Frame-time overlay").font(.callout)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+
+            HStack(spacing: 8) {
+                Button("Next state") { debug.advance() }
+                    .controlSize(.small)
+                Menu(debug.step?.title ?? "Jump to…") {
+                    ForEach(DebugTools.Step.allCases) { step in
+                        Button(step.title) { debug.run(step) }
+                    }
+                }
+                .controlSize(.small)
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
         }
     }
 }

@@ -32,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         self.viewModel = vm
         self.notchController = controller
+        DebugTools.shared.viewModel = vm
 
         // Re-place the panel when the screen arrangement changes
         // (display connected/disconnected, resolution change, etc.).
