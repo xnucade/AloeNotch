@@ -142,10 +142,10 @@ private struct ClipboardRow: View {
             .padding(.horizontal, 8)
             .padding(.vertical, compact ? 5 : 7)
             .background {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: Metrics.controlRadius, style: .continuous)
                     .fill(copied ? Ink.fillBright : (hovering ? Ink.fillStrong : Ink.fill))
             }
-            .contentShape(.rect(cornerRadius: 8))
+            .contentShape(.rect(cornerRadius: Metrics.controlRadius))
         }
         .buttonStyle(PressableButtonStyle())
         .help(copied ? "Copied" : "Copy again: \(shown)")
@@ -177,7 +177,7 @@ private struct ClipboardRow: View {
                     // 16pt is small, but a recognisable screenshot or photo
                     // is still recognisable at 16pt.
                     .blur(radius: redacted ? 4 : 0, opaque: true)
-                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: Metrics.artworkRadius(16), style: .continuous))
             } else {
                 Image(systemName: item.symbol)
                     .font(Typography.icon(11, .medium))

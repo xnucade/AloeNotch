@@ -222,24 +222,24 @@ private struct FocusedMedia: View {
                             .id(media.current.artworkToken)
                             .transition(.artworkSkip(media.skipDirection, reduceMotion: reduceMotion))
                     }
-                    .frame(width: 82, height: 82)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .frame(width: Metrics.focusedArtworkSize, height: Metrics.focusedArtworkSize)
+                    .clipShape(RoundedRectangle(cornerRadius: Metrics.focusedArtworkRadius, style: .continuous))
                     .animation(Motion.contentFade, value: media.current.artworkToken)
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
                 } else if media.current.artwork == nil {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: Metrics.focusedArtworkRadius, style: .continuous)
                         .fill(Ink.fill)
                         .overlay(Image(systemName: "music.note")
                             .foregroundStyle(Ink.tertiary))
-                        .frame(width: 82, height: 82)
+                        .frame(width: Metrics.focusedArtworkSize, height: Metrics.focusedArtworkSize)
                 }
             }
-            .frame(width: 82, height: 82)
+            .frame(width: Metrics.focusedArtworkSize, height: Metrics.focusedArtworkSize)
             .background {
                 if let art = media.current.artwork {
                     Image(nsImage: art)
                         .resizable().scaledToFill()
-                        .frame(width: 82, height: 82)
+                        .frame(width: Metrics.focusedArtworkSize, height: Metrics.focusedArtworkSize)
                         .scaleEffect(1.35)
                         .blur(radius: 26)
                         .opacity(0.55)
@@ -251,8 +251,8 @@ private struct FocusedMedia: View {
                 Image(nsImage: icon)
                     .resizable()
                     .frame(width: 22, height: 22)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .clipShape(RoundedRectangle(cornerRadius: Metrics.artworkRadius(22), style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Metrics.artworkRadius(22), style: .continuous)
                         .stroke(.black.opacity(0.25), lineWidth: 0.5))
                     .shadow(color: .black.opacity(0.4), radius: 2, y: 1)
                     .offset(x: -6, y: 6)
