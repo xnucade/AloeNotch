@@ -157,6 +157,7 @@ private struct SwitcherPill: View {
 /// Now Playing given the whole panel: larger artwork, a full-width scrubber,
 /// and transport controls big enough to hit without aiming.
 private struct FocusedMedia: View {
+    @Environment(\.notchPanelOpen) private var panelOpen
     @ObservedObject var media: NowPlayingManager
     let morph: Namespace.ID
     @Environment(\.notchReduceMotion) private var reduceMotion
@@ -211,7 +212,9 @@ private struct FocusedMedia: View {
     private var artwork: some View {
         ZStack(alignment: .bottomLeading) {
             Group {
-                if let art = media.current.artwork {
+                // Handed back to the strip as soon as the panel starts closing,
+                // so the matched pair can morph while this layer fades.
+                if panelOpen, let art = media.current.artwork {
                     ZStack {
                         Image(nsImage: art)
                             .resizable()
@@ -223,7 +226,7 @@ private struct FocusedMedia: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .animation(Motion.contentFade, value: media.current.artworkToken)
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
-                } else {
+                } else if media.current.artwork == nil {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Ink.fill)
                         .overlay(Image(systemName: "music.note")
@@ -297,6 +300,7 @@ private struct FocusedTransportButton: View {
                                   ? (hovering ? Ink.fillBright : Ink.fillStrong)
                                   : (hovering ? Ink.fillStrong : .clear))
                 }
+                .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.06 : 1))
         }
         .buttonStyle(PressableButtonStyle())

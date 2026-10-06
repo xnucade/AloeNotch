@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MediaView: View {
+    @Environment(\.notchPanelOpen) private var panelOpen
     @ObservedObject var media: NowPlayingManager
     @ObservedObject var lyrics: LyricsProvider
     /// Namespace for the matched artwork pair, owned by NotchRootView.
@@ -66,7 +67,9 @@ struct MediaView: View {
     private var artwork: some View {
         ZStack(alignment: .bottomLeading) {
             Group {
-                if let art = media.current.artwork {
+                // Handed back to the strip as soon as the panel starts closing,
+                // so the matched pair can morph while this layer fades.
+                if panelOpen, let art = media.current.artwork {
                     // Half of the matched pair — the other half is the 15pt
                     // artwork in the peek strip (NotchRootView.CollapsedContent).
                     // SwiftUI interpolates the frame between the two, so the
@@ -97,7 +100,7 @@ struct MediaView: View {
                     }
                     .animation(Motion.contentFade, value: media.current.artworkToken)
                     .matchedGeometryEffect(id: NotchRootView.artworkID, in: morph)
-                } else {
+                } else if media.current.artwork == nil {
                     RoundedRectangle(cornerRadius: Metrics.expandedArtworkRadius, style: .continuous)
                         .fill(Ink.fill)
                         .overlay(Image(systemName: "music.note").foregroundStyle(Ink.tertiary))
@@ -196,6 +199,8 @@ private struct TransportButton: View {
                 .foregroundStyle(hovering ? .white : Ink.primary)
                 .frame(width: 27, height: 27)
                 .background(hovering ? Ink.fillStrong : .clear, in: Circle())
+                // Play and pause trade places rather than cutting.
+                .contentTransition(.symbolEffect(.replace))
                 // The lift is travel, so Reduce Motion drops it and lets the
                 // brightness and fill changes carry the hover on their own.
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.08 : 1))

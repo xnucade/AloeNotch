@@ -139,6 +139,12 @@ struct NotchRootView: View {
         state.isExpanded && settings.notchStyle == .glass && !a11y.reduceTransparency
     }
 
+    /// Whether the open panel's content is mounted: while open, and until a
+    /// collapse has settled.
+    private var showsPanelContent: Bool {
+        state.isExpanded || viewModel.hitTestState.isExpanded
+    }
+
     private var shoulder: CGFloat {
         Metrics.shoulder(for: state, hardwareNotch: hasHardwareNotch)
     }
@@ -148,45 +154,60 @@ struct NotchRootView: View {
         return ZStack {
             panelFill
 
-            Group {
-                if state.isExpanded {
-                    Group {
-                        if settings.panelLayout == .focused {
-                            FocusedContent(viewModel: viewModel, morph: morph)
-                        } else {
-                            ExpandedContent(viewModel: viewModel, morph: morph)
-                        }
+            // The open panel's content is a layer, not a branch. It mounts
+            // on opening and stays mounted until the collapse has finished
+            // (`hitTestState` trails the shape for exactly that long), and
+            // in between its opacity and scale follow the state spring.
+            //
+            // As an inserted/removed branch it could not be interrupted:
+            // SwiftUI never revives a view mid-removal, so hovering out and
+            // back in quickly built a second copy of the panel while the first
+            // was still fading out, and both showed at once. An animated value
+            // retargets instead — reverse halfway and it simply turns around.
+            if showsPanelContent {
+                Group {
+                    if settings.panelLayout == .focused {
+                        FocusedContent(viewModel: viewModel, morph: morph)
+                    } else {
+                        ExpandedContent(viewModel: viewModel, morph: morph)
                     }
-                        .padding(.horizontal, Metrics.panelHorizontalInset)
-                        // Clear the physical notch.
-                        .padding(.top, stripHeight + Metrics.contentTopGap)
-                        .padding(.bottom, Metrics.panelBottomInset)
-                        // Laid out once, at the open size, whatever size the
-                        // surface happens to be mid-spring. Fitted to the
-                        // animating frame instead, every column rode the
-                        // spring: the shape's leading edge overshoots left on
-                        // a bouncy open, and the content slid in from the left
-                        // and bounced with it. Now the shape reveals content
-                        // that holds still, pinned to the top edge.
-                        .frame(width: expandedSize.width, height: expandedSize.height)
-                        // Insert as identity so the rows' own staggered
-                        // arrivals are visible (see NotchEntrance).
-                        //
-                        // Leaving, everything goes at once — a reverse cascade
-                        // reads as the panel struggling to close. The scale
-                        // matters more than it looks: with a plain opacity
-                        // removal the content was gone while the pill was still
-                        // at full size, leaving an empty black rectangle to
-                        // shrink on its own. Scaling toward the notch on the
-                        // same curve as the container keeps the contents
-                        // attached to the shape that is carrying them.
-                        .transition(.asymmetric(
-                            insertion: .identity,
-                            removal: .opacity
-                                .combined(with: .scale(scale: 0.94, anchor: .top))
-                                .animation(Motion.collapse)
-                        ))
-                } else if case .peek(.activity) = state {
+                }
+                    .padding(.horizontal, Metrics.panelHorizontalInset)
+                    // Clear the physical notch.
+                    .padding(.top, stripHeight + Metrics.contentTopGap)
+                    .padding(.bottom, Metrics.panelBottomInset)
+                    // Laid out once, at the open size, whatever size the
+                    // surface happens to be mid-spring. Fitted to the
+                    // animating frame instead, every column rode the
+                    // spring: the shape's leading edge overshoots left on
+                    // a bouncy open, and the content slid in from the left
+                    // and bounced with it. Now the shape reveals content
+                    // that holds still, pinned to the top edge.
+                    .frame(width: expandedSize.width, height: expandedSize.height)
+                    // Closing, everything goes at once — a reverse cascade
+                    // reads as the panel struggling to close. The scale
+                    // matters more than it looks: fading at full size left
+                    // an empty black rectangle to shrink on its own. Scaling
+                    // toward the notch on the same curve as the container
+                    // keeps the contents attached to the shape carrying them.
+                    // Opening needs neither: the rows stagger in on their own
+                    // (see NotchEntrance), and the layer is mounted at full
+                    // opacity unless it is reversing a close.
+                    .opacity(state.isExpanded ? 1 : 0)
+                    .scaleEffect(state.isExpanded || a11y.reduceMotion ? 1 : 0.94, anchor: .top)
+                    .allowsHitTesting(state.isExpanded)
+                    .accessibilityHidden(!state.isExpanded)
+                    // The artwork still morphs as a matched insert/remove
+                    // pair with the strip's, so it follows this flag rather
+                    // than the layer's lifetime.
+                    .environment(\.notchPanelOpen, state.isExpanded)
+                    .transition(.identity)
+            }
+
+            // The strip's own content, closed or peeking. Brief readouts, so
+            // these stay ordinary transitions.
+            Group {
+                if case .peek(.activity) = state {
                     // Every transient announcement — volume, brightness,
                     // charging, a device connecting — draws through here.
                     // Keyed on the state rather than on the centre having
@@ -199,7 +220,7 @@ struct NotchRootView: View {
                     .padding(.horizontal, hasHardwareNotch ? Metrics.hudInsetHardware
                                                            : Metrics.hudInsetSimulated)
                     .transition(.activityEntrance(reduceMotion: a11y.reduceMotion))
-                } else {
+                } else if !state.isExpanded {
                     // On a hardware notch this only draws while media plays (in
                     // the wings that peek out either side); otherwise it renders
                     // nothing and the strip stays invisible.
@@ -1106,6 +1127,7 @@ private struct WeatherPill: View {
                     Image(systemName: snapshot.symbolName)
                         .symbolRenderingMode(.multicolor)
                         .font(Typography.icon(12, .medium))
+                        .contentTransition(.symbolEffect(.replace))
                     Text(snapshot.temperatureText)
                         .font(Typography.body(.semibold))
                         .monospacedDigit()
@@ -1150,6 +1172,7 @@ private struct WeatherForecastRow: View {
                     Image(systemName: snapshot.symbolName)
                         .symbolRenderingMode(.multicolor)
                         .font(Typography.icon(12, .medium))
+                        .contentTransition(.symbolEffect(.replace))
                     Text(snapshot.summary)
                         .font(Typography.micro(.semibold))
                         .foregroundStyle(Ink.secondary)
