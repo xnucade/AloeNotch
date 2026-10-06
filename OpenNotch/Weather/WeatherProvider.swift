@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import Network
 import Combine
 
 struct WeatherSnapshot: Equatable {
@@ -42,13 +43,30 @@ struct WeatherSnapshot: Equatable {
 
 /// Publishes current conditions for the user's location. Uses CoreLocation for
 /// a coarse position and the keyless Open-Meteo API for conditions, so it works
-/// without a WeatherKit entitlement. When location access is denied the UI
-/// simply hides the weather pill.
+/// without a WeatherKit entitlement.
 final class WeatherProvider: NSObject, ObservableObject {
     @Published private(set) var current: WeatherSnapshot?
 
+    /// What the pill should say while there's no snapshot to show.
+    enum Status: Equatable {
+        /// Waiting on the first location fix and fetch.
+        case loading
+        case ready
+        /// The fetch or the location fix failed and there is nothing older
+        /// to show. A failure after a success keeps the last snapshot.
+        case unavailable
+        /// Location access is denied or restricted. The pill stays hidden:
+        /// that was the user's choice, and Settings → Access has the route
+        /// back if they change their mind.
+        case denied
+    }
+    @Published private(set) var status: Status = .loading
+
     private let manager = CLLocationManager()
     private var timer: Timer?
+    /// Only while unavailable: refetches the moment the network comes back
+    /// rather than on the next 20-minute tick.
+    private var pathMonitor: NWPathMonitor?
     private var isRunning = false
     private let refreshInterval: TimeInterval = 20 * 60
 
@@ -69,6 +87,8 @@ final class WeatherProvider: NSObject, ObservableObject {
         timer?.invalidate()
         timer = nil
         current = nil
+        status = .loading
+        stopWaitingForNetwork()
     }
 
     /// Fetch as soon as location access is granted from elsewhere, rather than
@@ -85,8 +105,38 @@ final class WeatherProvider: NSObject, ObservableObject {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
         default:
-            break // denied/restricted: weather stays hidden
+            status = .denied
+            return
         }
+        if status == .denied { status = current == nil ? .loading : .ready }
+    }
+
+    private func failed() {
+        guard current == nil else { return }
+        status = .unavailable
+        waitForNetwork()
+    }
+
+    /// Retry once the connection comes back. Only on a change from offline
+    /// to online: the monitor reports the current path as soon as it starts,
+    /// and retrying on that would turn a server-side failure into a loop.
+    private func waitForNetwork() {
+        guard pathMonitor == nil else { return }
+        let monitor = NWPathMonitor()
+        var wasOffline = false
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard path.status == .satisfied else { wasOffline = true; return }
+            guard wasOffline else { return }
+            self?.stopWaitingForNetwork()
+            self?.requestLocationIfAuthorized()
+        }
+        monitor.start(queue: .main)
+        pathMonitor = monitor
+    }
+
+    private func stopWaitingForNetwork() {
+        pathMonitor?.cancel()
+        pathMonitor = nil
     }
 
     // MARK: - Fetch
@@ -111,7 +161,10 @@ final class WeatherProvider: NSObject, ObservableObject {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let data,
                   let response = try? JSONDecoder().decode(OpenMeteoResponse.self, from: data)
-            else { return }
+            else {
+                DispatchQueue.main.async { self?.failed() }
+                return
+            }
 
             let c = response.current
             let (symbol, summary) = Self.condition(for: c.weather_code, isDay: c.is_day == 1)
@@ -121,7 +174,11 @@ final class WeatherProvider: NSObject, ObservableObject {
                 summary: summary,
                 hourly: Self.hours(from: response.hourly)
             )
-            DispatchQueue.main.async { self?.current = snapshot }
+            DispatchQueue.main.async {
+                self?.current = snapshot
+                self?.status = .ready
+                self?.stopWaitingForNetwork()
+            }
         }.resume()
     }
 
@@ -201,6 +258,8 @@ extension WeatherProvider: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // Keep the last snapshot; try again on the next timer tick.
+        // Keep the last snapshot if there is one; try again on the next
+        // timer tick, or sooner if the network was what was missing.
+        failed()
     }
 }

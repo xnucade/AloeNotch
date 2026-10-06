@@ -1112,7 +1112,9 @@ private struct AudioDeviceChip: View {
     }
 }
 
-/// Small capsule with the current conditions; hidden until a snapshot arrives.
+/// Small capsule with the current conditions. Until a snapshot arrives it
+/// holds the same space as a placeholder, so the header doesn't jump when the
+/// weather lands; hidden only when location access is denied.
 ///
 /// Clickable only when a forecast actually came back. A temperature on its own
 /// provokes exactly one question — do I need a jacket, is it going to rain —
@@ -1141,19 +1143,7 @@ private struct WeatherPill: View {
                         .monospacedDigit()
                         .contentTransition(.numericText())
                 }
-                .padding(.horizontal, Metrics.Pill.horizontalPadding)
-                .padding(.vertical, Metrics.Pill.verticalPadding)
-                .background(hovering && interactive ? Ink.fillStrong : Ink.fill, in: Capsule())
-                // On glass, a pill of glass: a lit edge, brighter along the top.
-                .overlay {
-                    if glass {
-                        Capsule().strokeBorder(
-                            LinearGradient(colors: [Ink.tertiary, Ink.fill],
-                                           startPoint: .top, endPoint: .bottom),
-                            lineWidth: 0.75)
-                    }
-                }
-                .contentShape(.capsule)
+                .modifier(PillChrome(fill: hovering && interactive ? Ink.fillStrong : Ink.fill, glass: glass))
             }
             .buttonStyle(PressableButtonStyle())
             .disabled(!interactive)
@@ -1164,7 +1154,53 @@ private struct WeatherPill: View {
                 }
             }
             .transition(.blurReplace)
+        } else if weather.status == .loading || weather.status == .unavailable {
+            placeholder(unavailable: weather.status == .unavailable)
+                .transition(.blurReplace)
         }
+    }
+
+    /// The pill's shape with nothing to report yet. Loading is redacted, as a
+    /// widget is before its timeline arrives; unavailable is a dim dash, and
+    /// says why on hover.
+    private func placeholder(unavailable: Bool) -> some View {
+        HStack(spacing: Metrics.Pill.iconGap) {
+            Image(systemName: unavailable ? "cloud" : "cloud.fill")
+                .font(Typography.icon(12, .medium))
+            Text("--°")
+                .font(Typography.body(.semibold))
+                .monospacedDigit()
+        }
+        .foregroundStyle(Ink.tertiary)
+        .redacted(reason: unavailable ? [] : .placeholder)
+        .modifier(PillChrome(fill: Ink.fill, glass: glass))
+        .help(unavailable ? "Weather unavailable. It updates when you're back online."
+                          : "Getting the weather…")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(unavailable ? "Weather unavailable" : "Loading weather")
+    }
+}
+
+/// A header pill's capsule: the padding, the fill and, on glass, a lit edge
+/// that is brighter along the top.
+private struct PillChrome: ViewModifier {
+    let fill: Color
+    let glass: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, Metrics.Pill.horizontalPadding)
+            .padding(.vertical, Metrics.Pill.verticalPadding)
+            .background(fill, in: Capsule())
+            .overlay {
+                if glass {
+                    Capsule().strokeBorder(
+                        LinearGradient(colors: [Ink.tertiary, Ink.fill],
+                                       startPoint: .top, endPoint: .bottom),
+                        lineWidth: 0.75)
+                }
+            }
+            .contentShape(.capsule)
     }
 }
 
