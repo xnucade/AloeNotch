@@ -31,6 +31,20 @@ final class VolumeMonitor {
         mElement: kAudioObjectPropertyElementMain
     )
 
+    // CoreAudio removes a listener only when handed the very block it was
+    // added with, so each is made once and kept. Removing with a fresh no-op
+    // block, as this used to, quietly removed nothing: every output switch
+    // left the old device's listeners firing, and stop() never stopped.
+    private lazy var deviceHandler: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+        self?.report()
+    }
+    private lazy var defaultDeviceHandler: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+        guard let self, self.running else { return }
+        self.detachListeners()
+        self.primed = false          // don't fire a HUD just for switching
+        self.attachToDefaultDevice()
+    }
+
     func start() {
         guard !running else { return }
         running = true
@@ -38,13 +52,7 @@ final class VolumeMonitor {
 
         // Re-attach when the user switches output (headphones, AirPlay, …).
         AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject), &defaultDeviceAddress, .main
-        ) { [weak self] _, _ in
-            guard let self, self.running else { return }
-            self.detachListeners()
-            self.primed = false          // don't fire a HUD just for switching
-            self.attachToDefaultDevice()
-        }
+            AudioObjectID(kAudioObjectSystemObject), &defaultDeviceAddress, .main, defaultDeviceHandler)
     }
 
     func stop() {
@@ -52,8 +60,7 @@ final class VolumeMonitor {
         running = false
         detachListeners()
         AudioObjectRemovePropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject), &defaultDeviceAddress, .main
-        ) { _, _ in }
+            AudioObjectID(kAudioObjectSystemObject), &defaultDeviceAddress, .main, defaultDeviceHandler)
     }
 
     // MARK: - Wiring
@@ -62,20 +69,16 @@ final class VolumeMonitor {
         guard let id = currentDefaultOutputDevice() else { return }
         deviceID = id
 
-        let handler: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            self?.report()
-        }
-        AudioObjectAddPropertyListenerBlock(deviceID, &volumeAddress, .main, handler)
-        AudioObjectAddPropertyListenerBlock(deviceID, &muteAddress, .main, handler)
+        AudioObjectAddPropertyListenerBlock(deviceID, &volumeAddress, .main, deviceHandler)
+        AudioObjectAddPropertyListenerBlock(deviceID, &muteAddress, .main, deviceHandler)
 
         report()   // primes the baseline without emitting
     }
 
     private func detachListeners() {
         guard deviceID != AudioObjectID(kAudioObjectUnknown) else { return }
-        let noop: AudioObjectPropertyListenerBlock = { _, _ in }
-        AudioObjectRemovePropertyListenerBlock(deviceID, &volumeAddress, .main, noop)
-        AudioObjectRemovePropertyListenerBlock(deviceID, &muteAddress, .main, noop)
+        AudioObjectRemovePropertyListenerBlock(deviceID, &volumeAddress, .main, deviceHandler)
+        AudioObjectRemovePropertyListenerBlock(deviceID, &muteAddress, .main, deviceHandler)
         deviceID = AudioObjectID(kAudioObjectUnknown)
     }
 
