@@ -46,8 +46,8 @@ struct AppearanceTab: View {
                     .pickerStyle(.segmented)
                 }
                 SettingsDivider()
-                SettingsRow("Liquid Glass", symbol: "square.on.square.dashed",
-                            description: "Translucent settings, welcome and menu bar panels that pick up the desktop behind them.") {
+                SettingsRow("Windows and menus", symbol: "square.on.square.dashed",
+                            description: "Settings, the welcome window and the menu bar dropdown in Liquid Glass, picking up the desktop behind them.") {
                     Toggle("", isOn: $settings.useGlass.animation(motion)).labelsHidden()
                 }
                 SettingsDivider()

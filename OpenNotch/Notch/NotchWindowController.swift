@@ -100,10 +100,14 @@ final class NotchWindowController {
         panel.orderFrontRegardless()
     }
 
-    /// The window frame with the user's horizontal offset applied.
+    /// The window frame, with the user's horizontal offset applied on a
+    /// display without a notch. On a real notch the offset is ignored: the
+    /// strip has to sit exactly on the cutout, and any nudge breaks that.
     private func positionedFrame() -> CGRect {
         var frame = metrics.windowFrame
-        frame.origin.x += CGFloat(settings.positionOffset)
+        if !metrics.hasHardwareNotch {
+            frame.origin.x += CGFloat(settings.positionOffset)
+        }
         return frame
     }
 
