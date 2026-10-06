@@ -10,7 +10,7 @@ import Combine
 /// third would have meant repeating all five. Everything transient now goes
 /// through one type and one queue, so a new announcement is a `LiveActivity`
 /// value and a detector, not a new special case.
-struct LiveActivity: Identifiable, Equatable {
+struct LiveActivity: Identifiable, Equatable, QueueableActivity {
     /// What sits on the right-hand wing, opposite the symbol.
     enum Trailing: Equatable {
         case none
@@ -108,9 +108,9 @@ final class LiveActivityCenter: ObservableObject {
     /// A standing condition — a timer counting down, say. Transients display
     /// over it and it comes back when they expire.
     ///
-    /// Without a second slot a running timer would be evicted the first time
-    /// the user touched a volume key and never return, because the center
-    /// deliberately keeps no queue. The two are different in kind, not in
+    /// Kept out of the announcement queue: a running timer is not news that
+    /// waits its turn and expires, it is a standing fact that transients play
+    /// over and give back to. The two are different in kind, not in
     /// priority: one announces that something happened, the other reports that
     /// something still is.
     @Published private(set) var resident: LiveActivity?
@@ -128,28 +128,47 @@ final class LiveActivityCenter: ObservableObject {
         limitPush = LimitPush(count: limitPush.count + 1, direction: direction)
     }
 
+    /// Decides what shows and for how long — see `ActivityQueue` for the
+    /// rules. This class only owns the clock and publishes the result.
+    private var queue = ActivityQueue<LiveActivity>(directPriority: LiveActivity.Priority.direct)
     private var expiry: DispatchWorkItem?
 
     func present(_ activity: LiveActivity) {
         guard !activity.isResident else { return setResident(activity) }
+        queue.present(activity, now: Date())
+        sync()
+    }
 
-        if let current, activity.priority < current.priority, activity.kind != current.kind {
-            return
+    /// True while the panel is expanded and covering the strip. Announcements
+    /// stop counting down until it closes, so none is spent unseen.
+    func setPaused(_ paused: Bool) {
+        queue.setPaused(paused, now: Date())
+        sync()
+    }
+
+    /// Publish what the queue decided and arm the one timer for its next
+    /// change.
+    private func sync() {
+        let next = queue.current
+        if next?.id != current?.id {
+            // Volume and brightness are left to the system, which already
+            // speaks them; announcing each step on top would talk over it.
+            if let next, next.kind != current?.kind, next.priority < LiveActivity.Priority.direct {
+                Self.announce(next)
+            }
+            current = next
         }
+
         expiry?.cancel()
-        // Volume and brightness are left to the system, which already speaks
-        // them; announcing each step on top would talk over it.
-        if current?.kind != activity.kind, activity.priority < LiveActivity.Priority.direct {
-            Self.announce(activity)
-        }
-        current = activity
-
+        expiry = nil
+        guard let deadline = queue.nextDeadline else { return }
         let work = DispatchWorkItem { [weak self] in
-            guard let self, self.current?.id == activity.id else { return }
-            self.current = nil
+            guard let self else { return }
+            self.queue.advance(now: Date())
+            self.sync()
         }
         expiry = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + activity.duration, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(0, deadline.timeIntervalSinceNow), execute: work)
     }
 
     /// The panel is a borderless window VoiceOver users rarely have focus
@@ -176,9 +195,7 @@ final class LiveActivityCenter: ObservableObject {
     /// Clear immediately — used when the thing being announced stops being true
     /// (the HUD pipeline shutting down, a device disconnecting mid-readout).
     func dismiss(kind: String? = nil) {
-        if let kind, current?.kind != kind { return }
-        expiry?.cancel()
-        expiry = nil
-        current = nil
+        queue.dismiss(kind: kind, now: Date())
+        sync()
     }
 }

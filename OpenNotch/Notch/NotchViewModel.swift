@@ -580,6 +580,12 @@ final class NotchViewModel: ObservableObject {
         // already honor Reduce Motion.
         stateAnimation = animation
         panelState = new
+        // An open panel covers the strip, so announcements stop counting
+        // down under it. Deferred: pausing can change what is showing, which
+        // feeds back into this function, and it must not re-enter mid-step.
+        if old.isExpanded != new.isExpanded {
+            DispatchQueue.main.async { [activities] in activities.setPaused(new.isExpanded) }
+        }
         FrameBudget.shared.watch("\(old.debugName) → \(new.debugName)", on: metrics?.screen, for: settle + 0.1)
 
         // The invariant: the clickable region is never smaller than what is
