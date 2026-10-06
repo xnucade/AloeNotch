@@ -22,6 +22,8 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         /// anyone re-presenting the activity every second — a running timer
         /// would otherwise restart its arrival beat sixty times a minute.
         case countdown(Date)
+        /// Counts up from a date — a stopwatch. Same reasoning as `countdown`.
+        case elapsed(Date)
         /// A song: the title, scrolling if it has to, over the artist.
         case track(title: String, artist: String)
     }
@@ -66,6 +68,7 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         case .level(let level): "\(Int((min(1, max(0, level)) * 100).rounded())) percent"
         case .text(let text): text
         case .countdown(let deadline): "\(CountdownState.clock(deadline.timeIntervalSinceNow)) remaining"
+        case .elapsed(let origin): "\(StopwatchState.clock(-origin.timeIntervalSinceNow)) elapsed"
         case .track: nil
         }
         return [name, value].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")

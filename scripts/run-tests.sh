@@ -36,6 +36,7 @@ SOURCES=(
     OpenNotch/Design/SemanticVersion.swift
     OpenNotch/System/ClipboardHistory.swift
     OpenNotch/Timer/CountdownState.swift
+    OpenNotch/Timer/StopwatchState.swift
     OpenNotch/Design/MotionPersonality.swift
     OpenNotch/Notch/SwipeTracker.swift
     OpenNotch/Notch/DisplayChoice.swift
