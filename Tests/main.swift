@@ -34,6 +34,7 @@ testHeadphoneBattery()
 testSyncedLyrics()
 testSpectrumBands()
 testPlaybackModes()
+testLowBatteryAlert()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

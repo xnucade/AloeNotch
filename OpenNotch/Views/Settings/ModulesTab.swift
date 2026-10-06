@@ -36,7 +36,7 @@ struct ModulesTab: View {
                           description: "Local conditions in the panel header.",
                           binding: $settings.showWeather),
                     .init(title: "Battery", symbol: "battery.100",
-                          description: "Charge level, plus charging and low hints on the collapsed strip.",
+                          description: "Charge level in the panel, and a word in the notch when you plug in, at 20% and 10%, and when Low Power Mode changes.",
                           binding: $settings.showBattery),
                 ])
             }
@@ -67,6 +67,20 @@ struct ModulesTab: View {
                 if settings.showHUD {
                     SettingsDivider()
                     accessibilityNote
+
+                    SettingsDivider()
+
+                    SettingsRow("Caps Lock", symbol: "capslock",
+                                description: "A brief note when it turns on or off. Uses the same Accessibility access.") {
+                        Toggle("", isOn: $settings.showCapsLock).labelsHidden()
+                    }
+                }
+
+                SettingsDivider()
+
+                SettingsRow("Microphone mute", symbol: "mic.slash",
+                            description: "A brief note when the microphone's mute switch flips. Reads the switch only — the microphone is never opened.") {
+                    Toggle("", isOn: $settings.showMicMute).labelsHidden()
                 }
 
                 SettingsDivider()

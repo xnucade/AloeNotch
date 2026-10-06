@@ -44,6 +44,12 @@
     "A brief note in the notch when headphones connect or a drive mounts or ejects." : {
 
     },
+    "A brief note when it turns on or off. Uses the same Accessibility access." : {
+
+    },
+    "A brief note when the microphone's mute switch flips. Reads the switch only — the microphone is never opened." : {
+
+    },
     "A calmer panel, if you want it" : {
 
     },
@@ -113,6 +119,9 @@
     "Album art now travels out of the notch and grows into the panel, instead of the small and large versions swapping over." : {
 
     },
+    "All" : {
+
+    },
     "All at once" : {
 
     },
@@ -179,6 +188,9 @@
     "Battery" : {
 
     },
+    "Battery low" : {
+
+    },
     "Benchmark solid vs glass" : {
 
     },
@@ -212,10 +224,19 @@
     "Cancel timer" : {
 
     },
+    "Caps Lock" : {
+
+    },
+    "Caps Lock off" : {
+
+    },
+    "Caps Lock on" : {
+
+    },
     "Center" : {
 
     },
-    "Charge level, plus charging and low hints on the collapsed strip." : {
+    "Charge level in the panel, and a word in the notch when you plug in, at 20% and 10%, and when Low Power Mode changes." : {
 
     },
     "Charging" : {
@@ -551,6 +572,15 @@
     "Location" : {
 
     },
+    "Low Power" : {
+
+    },
+    "Low Power Mode off" : {
+
+    },
+    "Low Power Mode on" : {
+
+    },
     "Lyrics" : {
 
     },
@@ -564,6 +594,15 @@
 
     },
     "Medium" : {
+
+    },
+    "Microphone mute" : {
+
+    },
+    "Microphone muted" : {
+
+    },
+    "Microphone on" : {
 
     },
     "Modules" : {
@@ -582,6 +621,9 @@
 
     },
     "Moves the notch left or right on this display, which has no notch of its own." : {
+
+    },
+    "Muted" : {
 
     },
     "Needed to catch the volume keys first. Without it macOS keeps drawing its own HUD, so AloeNotch stays out of the way." : {
@@ -629,6 +671,19 @@
     "Now Playing works again" : {
 
     },
+    "Now playing %@" : {
+
+    },
+    "Now playing %@ by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Now playing %1$@ by %2$@"
+          }
+        }
+      }
+    },
     "Off" : {
 
     },
@@ -654,6 +709,9 @@
 
     },
     "One object, reshaping" : {
+
+    },
+    "One song" : {
 
     },
     "One tap in the header holds off display sleep, and another lets go. It releases itself if AloeNotch ever stops running." : {
@@ -758,6 +816,9 @@
     "Remove from shelf" : {
 
     },
+    "Repeat" : {
+
+    },
     "Replaces the macOS HUD with a readout in the notch." : {
 
     },
@@ -818,6 +879,9 @@
     "Shows your next event in the panel. Nothing leaves your Mac." : {
 
     },
+    "Shuffle" : {
+
+    },
     "Slow motion" : {
 
     },
@@ -834,6 +898,9 @@
 
     },
     "Solid" : {
+
+    },
+    "Song changes" : {
 
     },
     "Sound now on %@" : {
@@ -912,6 +979,9 @@
 
     },
     "The media helper didn't start. Relaunching AloeNotch usually fixes it." : {
+
+    },
+    "The new song's cover and name, for a moment, when the track changes on its own or from the keyboard." : {
 
     },
     "The notch disappears until you launch it again." : {
