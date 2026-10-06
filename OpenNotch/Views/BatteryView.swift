@@ -38,6 +38,7 @@ struct BatteryBolt: View {
 struct BatteryView: View {
     @ObservedObject var battery: BatteryMonitor
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @Environment(\.notchDifferentiateWithoutColor) private var differentiateWithoutColor
 
     private var percent: Int { Int((battery.level * 100).rounded()) }
 
@@ -68,6 +69,13 @@ struct BatteryView: View {
                 .animation(Motion.contentFade, value: percent)
             if battery.isCharging {
                 Image(systemName: "bolt.fill")
+                    .font(Typography.icon(10, .bold))
+                    .foregroundStyle(.green)
+                    .transition(.blurReplace)
+            } else if battery.isPluggedIn && differentiateWithoutColor {
+                // Plugged in but held (full, or optimised charging) is
+                // otherwise only the green fill.
+                Image(systemName: "powerplug.fill")
                     .font(Typography.icon(10, .bold))
                     .foregroundStyle(.green)
                     .transition(.blurReplace)
