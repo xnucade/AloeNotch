@@ -9,9 +9,7 @@ struct SettingsMenuView: View {
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var updates = UpdateChecker.shared
     @ObservedObject private var debug = DebugTools.shared
-    /// ⌥ held when the dropdown opened. Read each time its window becomes
-    /// key, since the window is reused rather than rebuilt on every click.
-    @State private var optionHeld = false
+    @StateObject private var option = OptionKeyWatcher()
     let onReposition: () -> Void
     let onOpenSettings: () -> Void
 
@@ -53,7 +51,7 @@ struct SettingsMenuView: View {
                     .padding(11)
                     .panelSurface(cornerRadius: 16, glass: settings.useGlass)
 
-                    if optionHeld || debug.isActive {
+                    if option.revealed || debug.isActive {
                         DebugSection()
                             .padding(11)
                             .panelSurface(cornerRadius: 16, glass: settings.useGlass)
@@ -61,8 +59,10 @@ struct SettingsMenuView: View {
                 }
             .padding(12)
         }
+        .onAppear { option.start() }
+        .onDisappear { option.stop() }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            optionHeld = NSEvent.modifierFlags.contains(.option)
+            option.start()
         }
         .frame(width: 268)
         .frostedWindowBackground(settings.useGlass)
@@ -176,4 +176,29 @@ private struct DebugSection: View {
             }
         }
     }
+}
+
+/// Whether ⌥ has been held since the dropdown opened — at the click, or at
+/// any point while it is open, the way a system menu swaps in its ⌥ items.
+/// Stays revealed until the dropdown closes so the key can be let go.
+private final class OptionKeyWatcher: ObservableObject {
+    @Published private(set) var revealed = false
+    private var monitor: Any?
+
+    func start() {
+        if NSEvent.modifierFlags.contains(.option) { revealed = true }
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            if event.modifierFlags.contains(.option) { self?.revealed = true }
+            return event
+        }
+    }
+
+    func stop() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        revealed = false
+    }
+
+    deinit { stop() }
 }
