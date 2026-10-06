@@ -26,11 +26,14 @@ final class FrameBudget: NSObject, ObservableObject {
     /// The most recent finished transition, for the overlay.
     @Published private(set) var last: Result?
 
+    /// Set by the debug menu's benchmark for the length of a run.
+    var forceEnabled = false
+
     private var isEnabled: Bool {
         #if DEBUG
         true
         #else
-        DebugTools.shared.showFrameTimes
+        forceEnabled || DebugTools.shared.showFrameTimes
         #endif
     }
 

@@ -174,6 +174,20 @@ private struct DebugSection: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
             }
+
+            Button(debug.isBenchmarking ? "Benchmarking…" : "Benchmark solid vs glass") {
+                debug.runBenchmark()
+            }
+            .controlSize(.small)
+            .disabled(debug.isBenchmarking)
+
+            if let report = debug.benchmark {
+                Text(report)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

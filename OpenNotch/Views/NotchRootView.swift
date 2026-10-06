@@ -12,6 +12,7 @@ struct NotchRootView: View {
     /// does not populate `\.accessibilityReduceMotion` here. This view both
     /// reads the values and republishes them to its children.
     @ObservedObject private var a11y = AccessibilityPreferences.shared
+    @ObservedObject private var power = PowerState.shared
     @State private var isDropTargeted = false
 
     /// Namespace for the shared artwork element. See `sharedArtwork`.
@@ -346,7 +347,7 @@ struct NotchRootView: View {
                              // shoulders' flare.
                              clearTop: shoulder + 4,
                              accent: viewModel.media.isPlaying ? viewModel.media.current.accent : nil,
-                             drifting: viewModel.media.isPlaying && !a11y.reduceMotion)
+                             drifting: viewModel.media.isPlaying && !a11y.reduceMotion && !power.isLowPower)
                         .transition(.opacity)
                 } else if state.isExpanded {
                     NotchShape(cornerRadius: radius)
@@ -760,6 +761,10 @@ private struct WaveformGlyph: View {
     @Environment(\.notchReduceMotion) private var reduceMotion
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var audio = AudioLevels.shared
+    @ObservedObject private var power = PowerState.shared
+
+    /// Reduce Motion and Low Power Mode both hold the bars still.
+    private var still: Bool { reduceMotion || power.isLowPower }
 
     private let heights: [CGFloat] = [5, 11, 7, 9]
     private let restHeight: CGFloat = 3
@@ -768,7 +773,7 @@ private struct WaveformGlyph: View {
     /// Bars only move when there is sound *and* the user hasn't asked for less
     /// motion. Under Reduce Motion they hold at their full heights instead of
     /// collapsing, so the glyph still reads as "audio" without moving.
-    private var isDancing: Bool { isPlaying && animating && !reduceMotion }
+    private var isDancing: Bool { isPlaying && animating && !still }
 
     /// Real levels are wanted only while they'd be seen moving.
     private var wantsLive: Bool { settings.liveEqualizer && isDancing }
@@ -805,7 +810,7 @@ private struct WaveformGlyph: View {
         if let level = live?[safe: index] {
             return restHeight + CGFloat(level) * (fullHeight - restHeight)
         }
-        return isDancing ? height : (reduceMotion && isPlaying ? height : restHeight)
+        return isDancing ? height : (still && isPlaying ? height : restHeight)
     }
 
     private func animation(_ index: Int) -> Animation? {
