@@ -130,6 +130,11 @@ struct NotchRootView: View {
             notchSurface
             Spacer(minLength: 0)
         }
+        // `Ink` reads Increase Contrast directly rather than through the
+        // environment, so views that didn't otherwise change would keep the
+        // old shades. A new identity redraws everything with the new ones;
+        // it's a setting changed once, so losing transient state is fine.
+        .id(a11y.increaseContrast)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .withAccessibilityPreferences()
     }
@@ -351,7 +356,7 @@ struct NotchRootView: View {
                         .transition(.opacity)
                 } else if state.isExpanded {
                     NotchShape(cornerRadius: radius)
-                        .stroke(Ink.fill, lineWidth: 1)
+                        .stroke(Ink.edge, lineWidth: 1)
                         .mask(alignment: .bottom) {
                             Rectangle().padding(.top, shoulder + 1)
                         }
@@ -1080,6 +1085,7 @@ private struct AudioDeviceChip: View {
     @ObservedObject private var settings = AppSettings.shared
     @State private var hovering = false
     @Environment(\.notchReduceMotion) private var reduceMotion
+    @Environment(\.notchDifferentiateWithoutColor) private var differentiateWithoutColor
 
     var body: some View {
         Button(action: action) {
@@ -1089,6 +1095,10 @@ private struct AudioDeviceChip: View {
                 Text(device.name)
                     .font(Typography.micro(.semibold))
                     .lineLimit(1)
+                if isActive && differentiateWithoutColor {
+                    Image(systemName: "checkmark")
+                        .font(Typography.icon(9, .bold))
+                }
             }
             .foregroundStyle(isActive ? settings.accent : (hovering ? .white : Ink.secondary))
             .padding(.horizontal, Metrics.Pill.horizontalPadding)

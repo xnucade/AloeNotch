@@ -497,21 +497,31 @@ enum Metrics {
 /// 0.5 on black, but it can tell when nothing lines up — so there are five
 /// steps and nothing in between. `run-tests.sh` fails on a raw
 /// `.white.opacity(` anywhere else.
+///
+/// With Increase Contrast on, every step moves up, the way system colors do:
+/// the faintest text becomes clearly readable and resting fills become
+/// visible edges. The root view rebuilds when the setting changes, so these
+/// are read fresh.
 enum Ink {
+    private static var high: Bool { AccessibilityPreferences.shared.increaseContrast }
+
     /// Titles, active values, glyphs you press.
-    static let primary = Color.white.opacity(0.9)
+    static var primary: Color { .white.opacity(high ? 1 : 0.9) }
     /// Artist, event titles, anything read second.
-    static let secondary = Color.white.opacity(0.65)
+    static var secondary: Color { .white.opacity(high ? 0.85 : 0.65) }
     /// Labels, times, inactive glyphs.
-    static let tertiary = Color.white.opacity(0.45)
+    static var tertiary: Color { .white.opacity(high ? 0.7 : 0.45) }
     /// Placeholders, disabled, the faintest readable thing.
-    static let quaternary = Color.white.opacity(0.28)
+    static var quaternary: Color { .white.opacity(high ? 0.5 : 0.28) }
     /// Resting capsules, wells and hairlines.
-    static let fill = Color.white.opacity(0.08)
+    static var fill: Color { .white.opacity(high ? 0.16 : 0.08) }
     /// Hovered or selected capsules, dividers that need to be seen.
-    static let fillStrong = Color.white.opacity(0.14)
+    static var fillStrong: Color { .white.opacity(high ? 0.26 : 0.14) }
     /// Pressed, copied, or the hovered state of an already-strong fill.
-    static let fillBright = Color.white.opacity(0.2)
+    static var fillBright: Color { .white.opacity(high ? 0.36 : 0.2) }
+    /// The open panel's edge. A hairline normally; with Increase Contrast,
+    /// an outline that holds the panel's shape over a dark wallpaper.
+    static var edge: Color { .white.opacity(high ? 0.55 : 0.08) }
 }
 
 enum Typography {
@@ -767,12 +777,22 @@ final class AccessibilityPreferences: ObservableObject {
     /// so there is one fallback to maintain rather than two.
     @Published private(set) var reduceTransparency: Bool
 
+    /// Stronger text and edges. (macOS turns Reduce Transparency on with it,
+    /// so glass is already out of the way.)
+    @Published private(set) var increaseContrast: Bool
+
+    /// State must not be told by color alone: an active device or a
+    /// plugged-in battery gets a glyph as well as a tint.
+    @Published private(set) var differentiateWithoutColor: Bool
+
     private var observer: NSObjectProtocol?
 
     private init() {
         let ws = NSWorkspace.shared
         reduceMotion = ws.accessibilityDisplayShouldReduceMotion
         reduceTransparency = ws.accessibilityDisplayShouldReduceTransparency
+        increaseContrast = ws.accessibilityDisplayShouldIncreaseContrast
+        differentiateWithoutColor = ws.accessibilityDisplayShouldDifferentiateWithoutColor
 
         observer = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
@@ -783,6 +803,8 @@ final class AccessibilityPreferences: ObservableObject {
             let ws = NSWorkspace.shared
             self.reduceMotion = ws.accessibilityDisplayShouldReduceMotion
             self.reduceTransparency = ws.accessibilityDisplayShouldReduceTransparency
+            self.increaseContrast = ws.accessibilityDisplayShouldIncreaseContrast
+            self.differentiateWithoutColor = ws.accessibilityDisplayShouldDifferentiateWithoutColor
         }
     }
 
@@ -801,6 +823,10 @@ private struct ReduceTransparencyKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct DifferentiateWithoutColorKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 extension EnvironmentValues {
     /// Prefer this over SwiftUI's `\.accessibilityReduceMotion`: that one is
     /// not reliably populated for views hosted in a plain `NSHostingView`
@@ -814,6 +840,11 @@ extension EnvironmentValues {
     var notchReduceTransparency: Bool {
         get { self[ReduceTransparencyKey.self] }
         set { self[ReduceTransparencyKey.self] = newValue }
+    }
+
+    var notchDifferentiateWithoutColor: Bool {
+        get { self[DifferentiateWithoutColorKey.self] }
+        set { self[DifferentiateWithoutColorKey.self] = newValue }
     }
 }
 
@@ -833,6 +864,7 @@ private struct AccessibilityPreferenceInjector: ViewModifier {
         content
             .environment(\.notchReduceMotion, prefs.reduceMotion)
             .environment(\.notchReduceTransparency, prefs.reduceTransparency)
+            .environment(\.notchDifferentiateWithoutColor, prefs.differentiateWithoutColor)
     }
 }
 
