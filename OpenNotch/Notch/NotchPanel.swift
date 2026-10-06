@@ -29,6 +29,16 @@ final class NotchPanel: NSPanel {
     override var canBecomeKey: Bool { true }   // needed so buttons/drag targets work
     override var canBecomeMain: Bool { false }
 
+    /// Esc. Arrives through `cancelOperation` when the hosting view
+    /// interprets the key, or as a bare key-down when nothing inside does.
+    var onCancel: (() -> Void)?
+
+    override func cancelOperation(_ sender: Any?) { onCancel?() }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 { onCancel?() } else { super.keyDown(with: event) }
+    }
+
     /// The frame is computed to the point from the notch's geometry; AppKit's
     /// idea of a sensible window position (below the menu bar, inside the
     /// visible frame) would knock it off the cutout.

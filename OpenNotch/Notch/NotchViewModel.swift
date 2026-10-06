@@ -123,6 +123,11 @@ final class NotchViewModel: ObservableObject {
     /// Held open by the keyboard shortcut, until it is pressed again.
     @Published private(set) var isPinnedOpen = false
 
+    /// True from opening the panel with the shortcut until it closes. The
+    /// window controller makes the panel key for that long, so Tab and Esc
+    /// reach it without the app in front losing its place.
+    @Published private(set) var hasKeyboardFocus = false
+
 
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
@@ -370,6 +375,7 @@ final class NotchViewModel: ObservableObject {
                 // user forgot they opened it with a key, and the obvious
                 // gesture for closing it — mousing away — does nothing.
                 self.isPinnedOpen = false
+                self.hasKeyboardFocus = false
                 self.refreshState()
             }
             collapseWorkItem = work
@@ -561,7 +567,24 @@ final class NotchViewModel: ObservableObject {
         collapseWorkItem?.cancel()
         isHovering = false
         isPinnedOpen = false
+        hasKeyboardFocus = false
         refreshState()
+    }
+
+    /// Esc. Closes however the panel was opened, including with the pointer
+    /// still on it: Esc is the explicit request, and the panel reopens the
+    /// next time the pointer arrives.
+    func cancelFromKeyboard() {
+        guard panelState.isExpanded else { return }
+        dismiss()
+    }
+
+    /// The panel lost key focus while the shortcut held it open: the user
+    /// clicked into another window. Close, as a menu or Spotlight would,
+    /// rather than leave a panel open that no longer hears the keyboard.
+    func keyboardFocusLost() {
+        guard hasKeyboardFocus else { return }
+        dismiss()
     }
 
     /// Grace period before an un-hover closes the panel, so brushing past the
@@ -592,6 +615,7 @@ final class NotchViewModel: ObservableObject {
     /// you happen to mouse over and away" is not.
     func toggleFromKeyboard() {
         isPinnedOpen.toggle()
+        hasKeyboardFocus = isPinnedOpen
         // Cancel any pending hover-out collapse, or a stale one could shut a
         // panel the user has just deliberately opened.
         collapseWorkItem?.cancel()
