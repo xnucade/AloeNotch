@@ -202,7 +202,7 @@ private struct TransportButton: View {
         }
         .buttonStyle(PressableButtonStyle())
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -251,7 +251,7 @@ private struct ProgressScrubber: View {
                     .frame(maxHeight: .infinity, alignment: .center)
                     .contentShape(Rectangle())
                     .onHover { inside in
-                        withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                        withAnimation(Motion.micro) {
                             hovering = inside
                         }
                     }
@@ -268,11 +268,11 @@ private struct ProgressScrubber: View {
                     )
                 }
                 .frame(height: 9)
-                // Linear, and pinned to the TimelineView's 0.5s tick above rather
-                // than to a Motion token: this is interpolation between two
+                // Linear, and pinned to the TimelineView's 0.5s tick above (see
+                // `Motion.playbackProgress`): this is interpolation between two
                 // samples of a real value, not an expressive curve. Easing it
                 // would make playback appear to speed up and slow down.
-                .animation(.linear(duration: dragging ? 0 : 0.5), value: fraction)
+                .animation(dragging ? nil : Motion.playbackProgress, value: fraction)
 
                 HStack {
                     Text(timeString(elapsed))

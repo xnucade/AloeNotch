@@ -80,9 +80,9 @@ struct GeneralTab: View {
             // The combination row and its warning slide in and out rather than
             // popping, so switching the shortcut off doesn't make the card
             // below it jump up the window.
-            .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+            .animation(Motion.contentFade,
                        value: settings.hotKeyEnabled)
-            .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+            .animation(Motion.contentFade,
                        value: hotKeys.isRegistered)
 
             SettingsSection("Where it opens", index: 2) {

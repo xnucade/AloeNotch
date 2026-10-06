@@ -48,7 +48,7 @@ struct NotchRootView: View {
         )
         .opacity(reduceMotion && !split ? 0 : 1)
         .allowsHitTesting(split)
-        .animation(Motion.resolve(Motion.detach, reduceMotion: reduceMotion), value: split)
+        .animation(Motion.detach, value: split)
         // Leading edge on the strip's trailing edge.
         .alignmentGuide(.trailing) { _ in 0 }
         .onChange(of: state.bubble) { _, new in if let new { lastBubble = new } }
@@ -245,12 +245,12 @@ struct NotchRootView: View {
         // A dropped file is swallowed: one small scale from the top edge.
         .scaleEffect(viewModel.gulping ? 0.98 : 1, anchor: .top)
         .animation(viewModel.stateAnimation, value: state)
-        .animation(Motion.resolve(Motion.hud, reduceMotion: a11y.reduceMotion),
+        .animation(Motion.hud,
                    value: viewModel.dragReach)
-        .animation(Motion.resolve(Motion.anticipate, reduceMotion: a11y.reduceMotion),
+        .animation(Motion.anticipate,
                    value: viewModel.isAnticipating)
         // 1:1 while the fingers move; a spring only on the way back.
-        .animation(viewModel.pull == 0 ? Motion.resolve(Motion.hud, reduceMotion: a11y.reduceMotion) : nil,
+        .animation(viewModel.pull == 0 ? Motion.hud : nil,
                    value: viewModel.pull)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
@@ -715,8 +715,8 @@ private struct RubberBand: ViewModifier {
                 bar.scaleEffect(x: stretch, y: 1 - (stretch - 1) * 2.5,
                                 anchor: push.direction > 0 ? .leading : .trailing)
             } keyframes: { _ in
-                SpringKeyframe(1.1, duration: 0.09, spring: .snappy)
-                SpringKeyframe(1, duration: 0.45, spring: .bouncy(extraBounce: 0.1))
+                SpringKeyframe(1.1, duration: 0.09, spring: Motion.rubberBandReach)
+                SpringKeyframe(1, duration: 0.45, spring: Motion.rubberBandSettle)
             }
         }
     }
@@ -992,7 +992,7 @@ private struct CaffeineButton: View {
         .accessibilityLabel("Keep awake")
         .accessibilityValue(caffeine.isActive ? "On" : "Off")
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -1076,7 +1076,7 @@ private struct AudioDeviceChip: View {
         .help(isActive ? "\(device.name) — currently playing here" : "Send sound to \(device.name)")
         .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }
@@ -1129,7 +1129,7 @@ private struct WeatherPill: View {
             .disabled(!interactive)
             .help(interactive ? "\(snapshot.summary) — see the next few hours" : snapshot.summary)
             .onHover { inside in
-                withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+                withAnimation(Motion.micro) {
                     hovering = inside
                 }
             }

@@ -175,7 +175,7 @@ private struct UtilityTab: View {
         .accessibilityLabel(tool.label)
         .accessibilityAddTraits(isActive ? .isSelected : [])
         .onHover { inside in
-            withAnimation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion)) {
+            withAnimation(Motion.micro) {
                 hovering = inside
             }
         }

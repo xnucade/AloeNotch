@@ -32,7 +32,7 @@ struct TrayView: View {
                 // this sits inside a fixed-height panel, so anything bigger
                 // would push the neighbouring columns around mid-drag.
                 .scaleEffect(isTargeted && !reduceMotion ? 1.03 : 1)
-                .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion),
+                .animation(Motion.micro,
                            value: isTargeted)
         }
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
@@ -255,6 +255,6 @@ private struct TrayChip: View {
             Button("Remove from Shelf", systemImage: "xmark", role: .destructive, action: onRemove)
         }
         .onHover { hovering = $0 }
-        .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion), value: hovering)
+        .animation(Motion.micro, value: hovering)
     }
 }

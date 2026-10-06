@@ -136,16 +136,16 @@ struct NotchGestureDemo: View {
     /// because that is the causal order the demo is teaching — reversing them
     /// would show a panel that opens on its own.
     private func advance() {
-        withAnimation(.smooth(duration: 0.55)) { phase = .approaching }
+        withAnimation(Motion.Demo.pointerTravel) { phase = .approaching }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.snappy(duration: 0.45, extraBounce: 0.12)) { phase = .open }
+            withAnimation(Motion.Demo.open) { phase = .open }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-            withAnimation(.smooth(duration: 0.45)) { phase = .leaving }
+            withAnimation(Motion.Demo.close) { phase = .leaving }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
-            withAnimation(.easeOut(duration: 0.2)) { phase = .idle }
+            withAnimation(Motion.Demo.reset) { phase = .idle }
         }
     }
 }

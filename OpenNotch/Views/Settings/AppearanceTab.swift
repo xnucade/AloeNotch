@@ -10,9 +10,7 @@ struct AppearanceTab: View {
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var a11y = AccessibilityPreferences.shared
 
-    private var motion: Animation? {
-        Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion)
-    }
+    private var motion: Animation { Motion.contentFade }
 
     /// Intensity applies to both kinds of glass, so it's live if either is.
     private var anyGlass: Bool { settings.useGlass || settings.notchStyle == .glass }

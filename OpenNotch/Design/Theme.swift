@@ -23,9 +23,9 @@ import Combine
 /// critically-damped fluid spring — `extraBounce` above 0 lets it overshoot a
 /// touch, which reads as weight.
 ///
-/// Ask for these through `Motion.resolve(_:reduceMotion:)` rather than using
-/// them raw, so Reduce Motion is honored in one place instead of at every call
-/// site.
+/// The responsive tokens honor Reduce Motion themselves, so using one is
+/// enough. The data-tracking and ambient values below them don't, and say what
+/// their callers must do instead.
 enum Motion {
     /// User-facing speed multiplier: >1 is faster, <1 slower.
     ///
@@ -39,6 +39,33 @@ enum Motion {
 
     private static func scaled(_ duration: Double) -> Double { duration / speed }
 
+    private static var reduceMotion: Bool { AccessibilityPreferences.shared.reduceMotion }
+
+    /// Every responsive token goes through here, so Reduce Motion is honored
+    /// by asking for the token at all — a call site can't forget it.
+    private static func responsive(_ animation: @autoclosure () -> Animation) -> Animation {
+        reduceMotion ? reduced : animation()
+    }
+
+    /// Base durations, before the speed preference. Named so the code that
+    /// has to wait for an animation (the hit-test trail) reads the same number
+    /// the curve was built from, instead of a hand-copied one that drifts.
+    enum Duration {
+        static let expand = 0.40
+        static let collapse = 0.32
+        static let detach = 0.52
+        static let hud = 0.28
+        static let anticipate = 0.18
+        static let micro = 0.20
+        static let press = 0.15
+        static let accentShift = 0.80
+        static let contentFade = 0.30
+        static let arrival = 0.34
+        static let readout = 0.18
+        static let gulp = 0.07
+        static let reduced = 0.20
+    }
+
     /// How much the panel overshoots on the way open. 0 lands flat, 0.40 is
     /// about as lively as the category gets.
     ///
@@ -46,13 +73,15 @@ enum Motion {
     /// it: a system-level request for less movement is not a taste setting the
     /// app gets to outvote.
     private static var bounce: Double {
-        if AccessibilityPreferences.shared.reduceMotion { return 0 }
+        if reduceMotion { return 0 }
         return MotionPersonality.clamp(AppSettings.shared.motionBounce)
     }
 
     /// Opening: a little overshoot, so the panel arrives with momentum rather
     /// than easing politely into place.
-    static var expand: Animation { .smooth(duration: scaled(0.40), extraBounce: bounce) }
+    static var expand: Animation {
+        responsive(.smooth(duration: scaled(Duration.expand), extraBounce: bounce))
+    }
 
     /// Closing: no bounce, and **not configurable**. A spring with overshoot
     /// undershoots its target before settling, so on the way *in* the strip
@@ -61,7 +90,7 @@ enum Motion {
     /// invisible. Expanding overshoots outward, into space the app already
     /// owns, which is why `expand` can carry any bounce the user likes and this
     /// cannot carry any at all.
-    static var collapse: Animation { .smooth(duration: scaled(0.32)) }
+    static var collapse: Animation { responsive(.smooth(duration: scaled(Duration.collapse))) }
 
     /// The split island's bubble pinching off and merging back. Longer than
     /// `hud` because the bubble actually travels, and bouncier than the
@@ -69,27 +98,31 @@ enum Motion {
     /// momentum. Overshoot is safe in both directions — out, it carries the
     /// bubble away from the strip; in, it happens behind the strip.
     static var detach: Animation {
-        .smooth(duration: scaled(0.52), extraBounce: min(0.4, bounce + 0.14))
+        responsive(.smooth(duration: scaled(Duration.detach), extraBounce: min(0.4, bounce + 0.14)))
     }
 
     /// Transient readouts and the collapsed strip's width changes (wings
     /// growing for media or a HUD). Quicker, because nothing is travelling far.
-    static var hud: Animation { .smooth(duration: scaled(0.28)) }
+    static var hud: Animation { responsive(.smooth(duration: scaled(Duration.hud))) }
 
     /// The swell while the pointer rests on the notch. No bounce: it is a
     /// lean, not an arrival, and the open spring picks up from wherever it
     /// got to.
-    static var anticipate: Animation { .smooth(duration: scaled(0.18)) }
+    static var anticipate: Animation { responsive(.smooth(duration: scaled(Duration.anticipate))) }
 
     /// Small state flips on controls — hover, press, selection.
-    static var micro: Animation { .snappy(duration: scaled(0.20)) }
+    static var micro: Animation { responsive(.snappy(duration: scaled(Duration.micro))) }
+
+    /// A button going down and coming back up. Quicker than `micro`: the
+    /// finger is still on the trackpad, so the feedback has to land first.
+    static var press: Animation { responsive(.snappy(duration: scaled(Duration.press))) }
 
     /// Artwork colour drifting from one track's accent to the next. Slow on
     /// purpose: this is ambient light, and light does not snap.
-    static var accentShift: Animation { .smooth(duration: scaled(0.80)) }
+    static var accentShift: Animation { responsive(.smooth(duration: scaled(Duration.accentShift))) }
 
     /// Content that fades rather than travels.
-    static var contentFade: Animation { .smooth(duration: scaled(0.30)) }
+    static var contentFade: Animation { responsive(.smooth(duration: scaled(Duration.contentFade))) }
 
     /// A transient element announcing itself — the charging bolt, a badge.
     /// Bouncier than anything else here on purpose: it should feel like it
@@ -98,16 +131,48 @@ enum Motion {
     /// together: a transient should always read as livelier than the panel it
     /// arrives in, whatever the panel is set to.
     static var arrival: Animation {
-        .snappy(duration: scaled(0.34), extraBounce: min(0.5, bounce + 0.25))
+        responsive(.snappy(duration: scaled(Duration.arrival), extraBounce: min(0.5, bounce + 0.25)))
     }
 
     /// A value ticking inside an already-visible readout (a HUD level bar).
     /// Short, because the container is not moving and the eye is on the number.
-    static var readout: Animation { .smooth(duration: scaled(0.18)) }
+    static var readout: Animation { responsive(.smooth(duration: scaled(Duration.readout))) }
+
+    /// The quick inward press when a dropped file is swallowed. The release
+    /// back out is `arrival`. Callers skip the gulp entirely under Reduce
+    /// Motion; it has no fade-only equivalent worth keeping.
+    static var gulp: Animation { .easeOut(duration: scaled(Duration.gulp)) }
+
+    /// The volume/brightness bar stretching when pushed past its limit: a
+    /// fast reach out, then a slightly springy settle. Keyframe springs, so
+    /// they can't go through `responsive`; the caller skips the stretch under
+    /// Reduce Motion instead.
+    static let rubberBandReach = Spring.snappy
+    static let rubberBandSettle = Spring.bouncy(extraBounce: 0.1)
+
+    // Values that track data rather than respond to an action — playback
+    // position, a countdown ring, live audio levels. Not scaled by the speed
+    // preference and not swapped under Reduce Motion: they interpolate between
+    // readings so a moving value doesn't step, and a 0.5s glide of a progress
+    // bar isn't the kind of motion Reduce Motion is about.
+
+    /// A playback scrubber joining up its half-second position updates.
+    static let playbackProgress = Animation.linear(duration: 0.5)
+
+    /// A countdown ring joining up its quarter-second updates.
+    static let ringProgress = Animation.linear(duration: 0.25)
+
+    /// Live bars between level updates, which arrive about 30 times a second:
+    /// just long enough to join them up.
+    static let equalizerLive = Animation.linear(duration: 0.05)
 
     // Ambient loops. Deliberately *not* scaled by the speed preference: these
     // are continuous background motion rather than responses to an action, and
-    // speeding them up reads as agitation rather than responsiveness.
+    // speeding them up reads as agitation rather than responsiveness. Callers
+    // must not start them unless `loopsAllowed`.
+
+    /// Whether continuous decorative motion may run at all.
+    static var loopsAllowed: Bool { !reduceMotion }
 
     /// The charging bolt breathing.
     static let ambientPulse = Animation.easeInOut(duration: 0.9)
@@ -115,15 +180,28 @@ enum Motion {
     /// One equalizer bar's rise and fall. Callers stagger their own phase.
     static let equalizerBar = Animation.easeInOut(duration: 0.5)
 
-    /// Live bars between level updates, which arrive about 30 times a second:
-    /// just long enough to join them up.
-    static let equalizerLive = Animation.linear(duration: 0.05)
-
     /// One slow turn of the glass notch's colours round its edge.
     static let rimDrift = Animation.linear(duration: 18)
 
     /// The highlight sweeping across a charging battery fill.
     static let chargeShimmer = Animation.linear(duration: 1.2)
+
+    /// A finished timer's digits breathing until it is dismissed.
+    static let finishedPulse = Animation.easeInOut(duration: 0.5)
+
+    /// A long title's marquee: the leading edge fading in before the scroll.
+    static let marqueeLead = Animation.easeOut(duration: 0.25)
+
+    /// The onboarding demo of a pointer opening the notch. A miniature, so it
+    /// runs at fixed speed and its own slightly slower pace to be readable,
+    /// but it borrows the real curves' character: a lively open, a settled
+    /// close. Under Reduce Motion the demo doesn't loop at all.
+    enum Demo {
+        static let pointerTravel = Animation.smooth(duration: 0.55)
+        static let open = Animation.snappy(duration: 0.45, extraBounce: 0.12)
+        static let close = Animation.smooth(duration: 0.45)
+        static let reset = Animation.easeOut(duration: 0.2)
+    }
 
     // MARK: Choreography
     //
@@ -144,15 +222,19 @@ enum Motion {
         reduceMotion ? 0 : contentLag + Double(index) * stagger
     }
 
+    /// How long an animation built from `base` keeps pixels moving, under the
+    /// current speed and Reduce Motion, plus a frame or two of margin. The hit
+    /// region waits this long before shrinking, so it can never pull out from
+    /// under a surface that is still visibly there.
+    static func settle(_ base: Double) -> TimeInterval {
+        (reduceMotion ? Duration.reduced : scaled(base)) + 0.02
+    }
+
     /// Reduce Motion replacement: a plain cross-fade with no travel, scale or
     /// bounce. The system asks for *less motion*, not *no feedback*, so state
     /// changes still register — they just stop moving through space.
-    static let reduced = Animation.easeInOut(duration: 0.20)
+    static let reduced = Animation.easeInOut(duration: Duration.reduced)
 
-    /// The single gate for Reduce Motion. Pass any token through this.
-    static func resolve(_ animation: Animation, reduceMotion: Bool) -> Animation {
-        reduceMotion ? reduced : animation
-    }
 }
 
 // MARK: - Transitions
@@ -234,7 +316,7 @@ struct NotchEntrance: ViewModifier {
             .onAppear {
                 guard !shown else { return }
                 withAnimation(
-                    Motion.resolve(Motion.contentFade, reduceMotion: reduceMotion)
+                    Motion.contentFade
                         .delay(Motion.entranceDelay(index, reduceMotion: reduceMotion))
                 ) { shown = true }
             }
@@ -770,7 +852,7 @@ struct HoverLift: ViewModifier {
             // The lift is pure travel, so Reduce Motion drops it and lets the
             // brightness change carry the affordance on its own.
             .scaleEffect(reduceMotion ? 1 : (hovering ? scale : 1))
-            .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion),
+            .animation(Motion.micro,
                        value: hovering)
             .onHover { hovering = $0 }
     }
@@ -798,7 +880,7 @@ struct PressableButtonStyle: ButtonStyle {
             .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? pressedScale : 1))
             .opacity(reduceMotion && configuration.isPressed ? 0.7 : 1)
             .animation(
-                Motion.resolve(.snappy(duration: 0.15), reduceMotion: reduceMotion),
+                Motion.press,
                 value: configuration.isPressed
             )
     }

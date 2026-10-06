@@ -83,7 +83,7 @@ struct MarqueeText: View {
             let travel = overflow + Self.fade
             let duration = max(1.2, Double(travel / Self.speed))
             scrolling = true
-            withAnimation(.easeOut(duration: 0.25)) { leadFade = Self.fade }
+            withAnimation(Motion.marqueeLead) { leadFade = Self.fade }
             withAnimation(.linear(duration: duration)) { offset = -travel }
             try? await Task.sleep(for: .seconds(duration) + Self.pause)
             guard !Task.isCancelled else { return }

@@ -68,7 +68,7 @@ struct AccentPicker: View {
         }
         .buttonStyle(PressableButtonStyle())
         .help(swatch.name)
-        .animation(Motion.resolve(Motion.micro, reduceMotion: reduceMotion), value: selected)
+        .animation(Motion.micro, value: selected)
     }
 }
 
@@ -100,7 +100,7 @@ struct UpdateRow: View {
         }
         // The glyph swaps between four states as a check runs, and a cut
         // between them makes a two-second network call look like a glitch.
-        .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+        .animation(Motion.contentFade,
                    value: updates.state)
     }
 
@@ -203,7 +203,7 @@ struct PermissionRow: View {
         // Granting a permission is the one moment in this window where
         // something changes because of an answer given somewhere else. The tick
         // arriving on its own, with a beat, is what confirms it landed.
-        .animation(Motion.resolve(Motion.contentFade, reduceMotion: a11y.reduceMotion),
+        .animation(Motion.contentFade,
                    value: status)
     }
 }

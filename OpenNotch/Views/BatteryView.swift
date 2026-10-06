@@ -1,19 +1,35 @@
 import SwiftUI
 
 /// A small animated lightning bolt shown in the collapsed strip while charging.
+/// Under Reduce Motion it holds still at full strength. The two states are
+/// separate views, so turning the setting on mid-pulse drops the running
+/// loop with the view rather than leaving it to finish.
 struct BatteryBolt: View {
-    @State private var pulse = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
+        if reduceMotion { glyph } else { Pulsing(glyph: glyph) }
+    }
+
+    private var glyph: some View {
         Image(systemName: "bolt.fill")
             .font(Typography.icon(10, .bold))
             .foregroundStyle(.green)
-            .opacity(pulse ? 1.0 : 0.4)
-            .onAppear {
-                withAnimation(Motion.ambientPulse.repeatForever(autoreverses: true)) {
-                    pulse = true
+    }
+
+    private struct Pulsing<Glyph: View>: View {
+        let glyph: Glyph
+        @State private var pulse = false
+
+        var body: some View {
+            glyph
+                .opacity(pulse ? 1.0 : 0.4)
+                .onAppear {
+                    withAnimation(Motion.ambientPulse.repeatForever(autoreverses: true)) {
+                        pulse = true
+                    }
                 }
-            }
+        }
     }
 }
 
@@ -21,7 +37,7 @@ struct BatteryBolt: View {
 /// charging, plus the percentage.
 struct BatteryView: View {
     @ObservedObject var battery: BatteryMonitor
-    @State private var shimmer = false
+    @Environment(\.notchReduceMotion) private var reduceMotion
 
     private var percent: Int { Int((battery.level * 100).rounded()) }
 
@@ -86,21 +102,31 @@ struct BatteryView: View {
         }
     }
 
+    /// The sweep is decoration, not information — the bolt beside the
+    /// percentage already says "charging" — so Reduce Motion drops it.
     @ViewBuilder
     private var chargingShimmer: some View {
-        if battery.isCharging {
-            LinearGradient(
-                colors: [.clear, Ink.tertiary, .clear],
-                startPoint: .leading, endPoint: .trailing
-            )
-            .frame(width: 12)
-            .offset(x: shimmer ? 24 : -24)
-            .onAppear {
-                withAnimation(Motion.chargeShimmer.repeatForever(autoreverses: false)) {
-                    shimmer = true
-                }
+        if battery.isCharging && !reduceMotion {
+            ChargingShimmer()
+                .mask(RoundedRectangle(cornerRadius: 2))
+        }
+    }
+}
+
+private struct ChargingShimmer: View {
+    @State private var shimmer = false
+
+    var body: some View {
+        LinearGradient(
+            colors: [.clear, Ink.tertiary, .clear],
+            startPoint: .leading, endPoint: .trailing
+        )
+        .frame(width: 12)
+        .offset(x: shimmer ? 24 : -24)
+        .onAppear {
+            withAnimation(Motion.chargeShimmer.repeatForever(autoreverses: false)) {
+                shimmer = true
             }
-            .mask(RoundedRectangle(cornerRadius: 2))
         }
     }
 }
