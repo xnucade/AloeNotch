@@ -93,6 +93,9 @@ extension LiveActivity {
         /// Something that happened on its own: a device connected, a download
         /// finished.
         static let ambient = 30
+        /// Something on a schedule nobody started by hand — a meeting coming
+        /// up. Yields the strip to any clock the user did start.
+        static let scheduled = 20
     }
 }
 
