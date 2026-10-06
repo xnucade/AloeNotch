@@ -32,8 +32,8 @@ enum HotKeyCombo: String, CaseIterable, Identifiable {
     /// fails to register is at least explicable.
     var caution: String? {
         switch self {
-        case .optionSpace:  "Often taken by Spotlight alternatives."
-        case .controlSpace: "macOS uses this for input sources."
+        case .optionSpace:  String(localized: "Often taken by Spotlight alternatives.")
+        case .controlSpace: String(localized: "macOS uses this for input sources.")
         default:            nil
         }
     }

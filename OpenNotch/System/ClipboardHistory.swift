@@ -110,9 +110,9 @@ struct ClipItem: Identifiable, Equatable {
         switch kind {
         case .text(let s):
             let n = s.count
-            return n == 1 ? "1 char" : "\(n) chars"
-        case .image:  return "Image"
-        case .files:  return "Files"
+            return n == 1 ? String(localized: "1 char") : String(localized: "\(n) chars")
+        case .image:  return String(localized: "Image")
+        case .files:  return String(localized: "Files")
         }
     }
 }

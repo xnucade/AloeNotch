@@ -113,7 +113,7 @@ final class TimerModel: ObservableObject {
             kind: Self.doneKind,
             symbol: "bell.fill",
             tint: .orange,
-            title: "Time's up",
+            title: String(localized: "Time's up"),
             size: .regular,
             duration: 6,
             priority: LiveActivity.Priority.action

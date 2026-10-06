@@ -9,18 +9,17 @@ import SwiftUI
 enum WhatsNew {
     struct Entry {
         let version: String
-        let headline: String
+        let headline: LocalizedStringKey
         let items: [Item]
     }
 
-    struct Item: Identifiable {
+    struct Item {
         let symbol: String
-        let title: String
-        let detail: String
+        let title: LocalizedStringKey
+        let detail: LocalizedStringKey
         /// An opt-in feature this item can switch on from the sheet. Without
         /// it, anything off by default is announced and then never found.
         var setting: Setting? = nil
-        var id: String { title }
     }
 
     enum Setting {
@@ -244,7 +243,7 @@ struct WhatsNewView: View {
                     .padding(.top, 34)
 
                     VStack(alignment: .leading, spacing: 16) {
-                        ForEach(entry.items) { item in
+                        ForEach(Array(entry.items.enumerated()), id: \.offset) { _, item in
                             HStack(alignment: .top, spacing: 13) {
                                 Image(systemName: item.symbol)
                                     .font(.title3.weight(.medium))

@@ -35,14 +35,14 @@ enum SettingsMetrics {
 
 /// A titled group of rows on a single surface, mirroring System Settings.
 struct SettingsSection<Content: View>: View {
-    let title: String?
+    let title: LocalizedStringKey?
     /// Position in the pane, for the staggered entrance. Nil opts out.
     var index: Int?
     @ViewBuilder var content: Content
 
     @ObservedObject private var settings = AppSettings.shared
 
-    init(_ title: String? = nil, index: Int? = nil, @ViewBuilder content: () -> Content) {
+    init(_ title: LocalizedStringKey? = nil, index: Int? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
         self.index = index
         self.content = content()
@@ -75,11 +75,11 @@ struct SettingsSection<Content: View>: View {
 /// description growing to three lines doesn't drag the switch down away from
 /// the thing it is labelling.
 struct SettingsRow<Control: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     var symbol: String?
     /// Overrides the glyph's colour — used by rows that report a state.
     var symbolTint: Color?
-    var description: String?
+    var description: LocalizedStringKey?
     /// A small status glyph beside the title, for rows that have a state to
     /// report (a permission granted, an update waiting).
     var badge: (symbol: String, tint: Color)?
@@ -93,10 +93,10 @@ struct SettingsRow<Control: View>: View {
     @State private var hovering = false
     @ObservedObject private var a11y = AccessibilityPreferences.shared
 
-    init(_ title: String,
+    init(_ title: LocalizedStringKey,
          symbol: String? = nil,
          symbolTint: Color? = nil,
-         description: String? = nil,
+         description: LocalizedStringKey? = nil,
          badge: (symbol: String, tint: Color)? = nil,
          highlightsOnHover: Bool = false,
          @ViewBuilder control: () -> Control) {
@@ -171,9 +171,9 @@ struct SettingsRow<Control: View>: View {
 /// padding, which is why they never quite lined up with anything. This makes the
 /// pairing one thing.
 struct SettingsSliderRow: View {
-    let title: String
+    let title: LocalizedStringKey
     var symbol: String?
-    var description: String?
+    var description: LocalizedStringKey?
     @Binding var value: Double
     let range: ClosedRange<Double>
     var step: Double = 1
@@ -223,14 +223,14 @@ struct SettingsSliderRow: View {
 /// two-line explanation into four short ragged ones. Under it, the text gets
 /// the full width and the control gets a consistent home.
 struct SettingsStackedRow<Control: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     var symbol: String?
-    var description: String?
+    var description: LocalizedStringKey?
     @ViewBuilder var control: Control
 
-    init(_ title: String,
+    init(_ title: LocalizedStringKey,
          symbol: String? = nil,
-         description: String? = nil,
+         description: LocalizedStringKey? = nil,
          @ViewBuilder control: () -> Control) {
         self.title = title
         self.symbol = symbol
@@ -268,19 +268,18 @@ struct SettingsDivider: View {
 /// each one is a thing you eventually forget — which had already happened
 /// between two rows by the time this was written.
 struct SettingsToggleList: View {
-    struct Item: Identifiable {
-        let title: String
+    struct Item {
+        let title: LocalizedStringKey
         let symbol: String
-        let description: String
+        let description: LocalizedStringKey
         let binding: Binding<Bool>
-        var id: String { title }
     }
 
     let items: [Item]
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 if index > 0 { SettingsDivider() }
                 SettingsRow(item.title, symbol: item.symbol, description: item.description) {
                     Toggle("", isOn: item.binding).labelsHidden()
@@ -312,10 +311,10 @@ struct SettingsNote: View {
         }
     }
 
-    let text: String
+    let text: LocalizedStringKey
     var tone: Tone = .info
 
-    init(_ text: String, tone: Tone = .info) {
+    init(_ text: LocalizedStringKey, tone: Tone = .info) {
         self.text = text
         self.tone = tone
     }

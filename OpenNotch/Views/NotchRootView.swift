@@ -243,6 +243,9 @@ struct NotchRootView: View {
                     .transition(.notchEntrance(reduceMotion: a11y.reduceMotion))
                 }
             }
+            // The strip is placed around the hardware notch, which doesn't
+            // mirror, so its wings don't either. The open panel does.
+            .environment(\.layoutDirection, .leftToRight)
         }
         .environment(\.notchGlass, glassOpen)
         .modifier(SurfaceFrame(size: surfaceSize))
@@ -1344,8 +1347,8 @@ private struct CalendarWeekStrip: View {
     }
 
     private var subtitle: String {
-        if !calendar.isAuthorized { return "Allow Calendar in Settings → Access" }
-        if let next = calendar.upcoming.first { return "\(next.timeText) · \(next.title)" }
-        return "Nothing for today"
+        if !calendar.isAuthorized { return String(localized: "Allow Calendar in Settings → Access") }
+        if let next = calendar.upcoming.first { return String(localized: "\(next.timeText) · \(next.title)") }
+        return String(localized: "Nothing for today")
     }
 }

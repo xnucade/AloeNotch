@@ -25,9 +25,9 @@ struct UtilityColumn: View {
 
         var label: String {
             switch self {
-            case .shelf:     "Shelf"
-            case .clipboard: "Clipboard"
-            case .timer:     "Timer"
+            case .shelf:     String(localized: "Shelf")
+            case .clipboard: String(localized: "Clipboard")
+            case .timer:     String(localized: "Timer")
             }
         }
         var symbol: String {

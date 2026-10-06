@@ -108,6 +108,8 @@ struct BatteryView: View {
                 .frame(width: 2, height: 6)
                 .offset(x: 3)
         }
+        // A picture of a battery, terminal on the right, as the menu bar's is.
+        .environment(\.layoutDirection, .leftToRight)
     }
 
     /// The sweep is decoration, not information — the bolt beside the

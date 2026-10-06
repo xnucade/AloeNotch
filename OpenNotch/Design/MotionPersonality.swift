@@ -21,9 +21,9 @@ enum MotionPersonality: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .calm:     "Calm"
-        case .standard: "Standard"
-        case .lively:   "Lively"
+        case .calm:     String(localized: "Calm")
+        case .standard: String(localized: "Standard")
+        case .lively:   String(localized: "Lively")
         }
     }
 
@@ -47,9 +47,9 @@ enum MotionPersonality: String, CaseIterable, Identifiable {
 
     var detail: String {
         switch self {
-        case .calm:     "Lands flat, like the rest of macOS."
-        case .standard: "A little overshoot. The default."
-        case .lively:   "Visible bounce, still settles fast."
+        case .calm:     String(localized: "Lands flat, like the rest of macOS.")
+        case .standard: String(localized: "A little overshoot. The default.")
+        case .lively:   String(localized: "Visible bounce, still settles fast.")
         }
     }
 
@@ -83,19 +83,19 @@ enum HUDTintMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .monochrome: "White"
-        case .accent:     "Accent"
-        case .perKind:    "Custom"
-        case .artwork:    "Artwork"
+        case .monochrome: String(localized: "White")
+        case .accent:     String(localized: "Accent")
+        case .perKind:    String(localized: "Custom")
+        case .artwork:    String(localized: "Artwork")
         }
     }
 
     var detail: String {
         switch self {
-        case .monochrome: "The readouts stay white."
-        case .accent:     "They follow the accent color above."
-        case .perKind:    "Volume and brightness get their own colors."
-        case .artwork:    "They take the color of whatever is playing, and go back to white when nothing is."
+        case .monochrome: String(localized: "The readouts stay white.")
+        case .accent:     String(localized: "They follow the accent color above.")
+        case .perKind:    String(localized: "Volume and brightness get their own colors.")
+        case .artwork:    String(localized: "They take the color of whatever is playing, and go back to white when nothing is.")
         }
     }
 }

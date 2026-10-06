@@ -231,16 +231,16 @@ final class WeatherProvider: NSObject, ObservableObject {
     /// Maps WMO weather codes to an SF Symbol + short description.
     private static func condition(for code: Int, isDay: Bool) -> (String, String) {
         switch code {
-        case 0:          return (isDay ? "sun.max.fill" : "moon.stars.fill", "Clear")
-        case 1, 2:       return (isDay ? "cloud.sun.fill" : "cloud.moon.fill", "Partly cloudy")
-        case 3:          return ("cloud.fill", "Overcast")
-        case 45, 48:     return ("cloud.fog.fill", "Fog")
-        case 51...57:    return ("cloud.drizzle.fill", "Drizzle")
-        case 61...67:    return ("cloud.rain.fill", "Rain")
-        case 71...77:    return ("cloud.snow.fill", "Snow")
-        case 80...82:    return ("cloud.heavyrain.fill", "Showers")
-        case 85, 86:     return ("cloud.snow.fill", "Snow showers")
-        case 95...99:    return ("cloud.bolt.rain.fill", "Thunderstorm")
+        case 0:          return (isDay ? "sun.max.fill" : "moon.stars.fill", String(localized: "Clear"))
+        case 1, 2:       return (isDay ? "cloud.sun.fill" : "cloud.moon.fill", String(localized: "Partly cloudy"))
+        case 3:          return ("cloud.fill", String(localized: "Overcast"))
+        case 45, 48:     return ("cloud.fog.fill", String(localized: "Fog"))
+        case 51...57:    return ("cloud.drizzle.fill", String(localized: "Drizzle"))
+        case 61...67:    return ("cloud.rain.fill", String(localized: "Rain"))
+        case 71...77:    return ("cloud.snow.fill", String(localized: "Snow"))
+        case 80...82:    return ("cloud.heavyrain.fill", String(localized: "Showers"))
+        case 85, 86:     return ("cloud.snow.fill", String(localized: "Snow showers"))
+        case 95...99:    return ("cloud.bolt.rain.fill", String(localized: "Thunderstorm"))
         default:         return ("cloud.fill", "—")
         }
     }

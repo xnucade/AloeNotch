@@ -9,15 +9,15 @@ enum NotchStyle: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .solid: "Solid"
-        case .glass: "Glass"
+        case .solid: String(localized: "Solid")
+        case .glass: String(localized: "Glass")
         }
     }
 
     var detail: String {
         switch self {
-        case .solid: "Black, like the notch it grows out of."
-        case .glass: "The open panel frosts the desktop behind it and picks up a color-shifting edge. It stays black where it meets the camera, and whenever it's closed."
+        case .solid: String(localized: "Black, like the notch it grows out of.")
+        case .glass: String(localized: "The open panel frosts the desktop behind it and picks up a color-shifting edge. It stays black where it meets the camera, and whenever it's closed.")
         }
     }
 }
