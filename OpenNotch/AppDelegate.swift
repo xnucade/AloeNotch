@@ -82,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 onShowWelcome: { [weak self] in self?.showWelcome() }
             )
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-            window.title = "AloeNotch Settings"
+            window.title = String(localized: "AloeNotch Settings")
             window.styleMask = [.titled, .closable, .miniaturizable]
             // Without this the window paints its own opaque backing and the
             // behind-window frost has nothing to show through.
@@ -105,7 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if welcomeWindow == nil {
             let view = WelcomeView(onDone: { [weak self] in self?.finishWelcome() })
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-            window.title = "Welcome to AloeNotch"
+            window.title = String(localized: "Welcome to AloeNotch")
             window.styleMask = [.titled, .closable]
             window.configureForGlass()
             window.isReleasedWhenClosed = false
@@ -136,7 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self?.finishWhatsNew()
             }
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-            window.title = "What's New"
+            window.title = String(localized: "What's New")
             window.styleMask = [.titled, .closable]
             window.configureForGlass()
             window.isReleasedWhenClosed = false

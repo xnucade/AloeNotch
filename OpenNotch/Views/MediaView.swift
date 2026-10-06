@@ -272,6 +272,10 @@ private struct ProgressScrubber: View {
                             }
                     )
                 }
+                // The bar is drawn and scrubbed with x offsets that don't mirror, so
+                // it stays left to right in right-to-left languages rather than
+                // having its knob and fill come apart.
+                .environment(\.layoutDirection, .leftToRight)
                 .frame(height: 9)
                 // Linear, and pinned to the TimelineView's 0.5s tick above (see
                 // `Motion.playbackProgress`): this is interpolation between two

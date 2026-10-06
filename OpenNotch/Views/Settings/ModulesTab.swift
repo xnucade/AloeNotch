@@ -103,7 +103,7 @@ struct ModulesTab: View {
         )
     }
 
-    private var batteryDetail: String {
+    private var batteryDetail: LocalizedStringKey {
         switch battery.authorization {
         case .denied, .restricted:
             return "Bluetooth access is off for AloeNotch. Turn it on in System Settings › Privacy & Security › Bluetooth."

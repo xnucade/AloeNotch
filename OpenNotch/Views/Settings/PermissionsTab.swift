@@ -78,7 +78,7 @@ struct PermissionsTab: View {
 
     // MARK: Rationales
 
-    private var calendarRationale: String {
+    private var calendarRationale: LocalizedStringKey {
         switch permissions.calendarStatus {
         case .fullAccess:
             "Granted. Your next event shows in the panel."
@@ -89,7 +89,7 @@ struct PermissionsTab: View {
         }
     }
 
-    private var locationRationale: String {
+    private var locationRationale: LocalizedStringKey {
         switch permissions.locationStatus {
         case .authorized, .authorizedAlways:
             "Granted. Local conditions show in the panel header."

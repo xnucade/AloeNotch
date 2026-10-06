@@ -35,11 +35,11 @@ struct FocusedContent: View {
         }
         var label: String {
             switch self {
-            case .media:    "Now Playing"
-            case .calendar: "Calendar"
-            case .shelf:    "Shelf"
-            case .clipboard: "Clipboard"
-            case .timer:    "Timer"
+            case .media:    String(localized: "Now Playing")
+            case .calendar: String(localized: "Calendar")
+            case .shelf:    String(localized: "Shelf")
+            case .clipboard: String(localized: "Clipboard")
+            case .timer:    String(localized: "Timer")
             }
         }
     }
@@ -355,6 +355,10 @@ private struct FocusedScrubber: View {
                             }
                     )
                 }
+                // The bar is drawn and scrubbed with x offsets that don't mirror, so
+                // it stays left to right in right-to-left languages rather than
+                // having its knob and fill come apart.
+                .environment(\.layoutDirection, .leftToRight)
                 .frame(height: 10)
                 .animation(dragging ? nil : Motion.playbackProgress, value: fraction)
 

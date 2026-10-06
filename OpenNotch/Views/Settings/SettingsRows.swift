@@ -121,12 +121,12 @@ struct UpdateRow: View {
         }
     }
 
-    private var title: String {
+    private var title: LocalizedStringKey {
         if case .available(let v, _) = updates.state { return "Version \(v) is available" }
         return "AloeNotch \(updates.currentVersion)"
     }
 
-    private var detail: String {
+    private var detail: LocalizedStringKey {
         switch updates.state {
         case .available:
             "Opens the release page, where you can download the new version."
@@ -135,7 +135,7 @@ struct UpdateRow: View {
         case .checking:
             "Checking…"
         case .failed(let why) where !why.isEmpty:
-            why
+            LocalizedStringKey(why)
         default:
             "Last checked \(lastChecked)."
         }
@@ -143,7 +143,7 @@ struct UpdateRow: View {
 
     private var lastChecked: String {
         let d = settings.lastUpdateCheck
-        guard d > .distantPast else { return "never" }
+        guard d > .distantPast else { return String(localized: "never") }
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .full
         return f.localizedString(for: d, relativeTo: Date())
@@ -176,15 +176,15 @@ struct PermissionRow: View {
         }
     }
 
-    let title: String
+    let title: LocalizedStringKey
     let symbol: String
     /// Why this is needed, in plain language. Shown always, not just on denial:
     /// the moment to explain a permission is before it is asked for.
-    let rationale: String
+    let rationale: LocalizedStringKey
     let status: Status
     /// Nil once granted — there is nothing left to do.
     var action: (() -> Void)?
-    var actionTitle: String = "Grant…"
+    var actionTitle: LocalizedStringKey = "Grant…"
 
     @ObservedObject private var settings = AppSettings.shared
     @ObservedObject private var a11y = AccessibilityPreferences.shared

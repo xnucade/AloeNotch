@@ -31,11 +31,11 @@ struct SettingsView: View {
 
         var title: String {
             switch self {
-            case .general:     "General"
-            case .modules:     "Modules"
-            case .appearance:  "Appearance"
-            case .permissions: "Access"
-            case .about:       "About"
+            case .general:     String(localized: "General")
+            case .modules:     String(localized: "Modules")
+            case .appearance:  String(localized: "Appearance")
+            case .permissions: String(localized: "Access")
+            case .about:       String(localized: "About")
             }
         }
         var symbol: String {

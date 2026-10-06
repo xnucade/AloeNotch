@@ -14,7 +14,7 @@ struct GeneralTab: View {
     let onReposition: () -> Void
     let onShowWelcome: () -> Void
 
-    private var displayDetail: String {
+    private var displayDetail: LocalizedStringKey {
         switch settings.displayChoice {
         case .automatic: "Your Mac's built-in display while it's open, the main display when the lid is closed."
         case .main:      "Always the display with the menu bar."
@@ -33,7 +33,7 @@ struct GeneralTab: View {
 
             SettingsSection("Opening the panel", index: 1) {
                 SettingsRow("Open on", symbol: "cursorarrow.rays",
-                            description: settings.openTrigger.detail) {
+                            description: LocalizedStringKey(settings.openTrigger.detail)) {
                     Picker("", selection: $settings.openTrigger) {
                         ForEach(OpenTrigger.allCases) { trigger in
                             Text(trigger.title).tag(trigger)
@@ -55,7 +55,7 @@ struct GeneralTab: View {
                     SettingsDivider()
 
                     SettingsRow("Combination", symbol: "command",
-                                description: settings.hotKeyCombo.caution) {
+                                description: settings.hotKeyCombo.caution.map { LocalizedStringKey($0) }) {
                         Picker("", selection: $settings.hotKeyCombo) {
                             ForEach(HotKeyCombo.allCases) { combo in
                                 Text(combo.title).tag(combo)

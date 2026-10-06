@@ -82,7 +82,7 @@ struct AboutTab: View {
 
     /// The whole row opens the link, not just the little arrow — a 12pt glyph
     /// is a needlessly small target for something whose entire job is "go here".
-    private func linkRow(_ title: String, _ symbol: String, _ url: String) -> some View {
+    private func linkRow(_ title: LocalizedStringKey, _ symbol: String, _ url: String) -> some View {
         Link(destination: URL(string: url)!) {
             SettingsRow(title, symbol: symbol, highlightsOnHover: true) {
                 Image(systemName: "arrow.up.forward")
@@ -93,10 +93,11 @@ struct AboutTab: View {
         .buttonStyle(.plain)
     }
 
-    private var diagnosticsDetail: String {
+    private var diagnosticsDetail: LocalizedStringKey {
         let n = diagnostics.reportCount
-        let held = n == 0 ? "No crash reports so far." : n == 1 ? "1 crash or hang report." : "\(n) crash or hang reports."
-        return "\(held) Copies your version and any reports, to paste into an issue. Never sent anywhere."
+        return n == 0
+            ? "No crash reports so far. Copies your version and any reports, to paste into an issue. Never sent anywhere."
+            : "^[\(n) crash or hang report](inflect: true). Copies your version and any reports, to paste into an issue. Never sent anywhere."
     }
 
     private var version: String {

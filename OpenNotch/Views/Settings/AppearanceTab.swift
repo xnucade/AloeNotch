@@ -38,7 +38,7 @@ struct AppearanceTab: View {
 
             SettingsSection("Glass", index: 2) {
                 SettingsStackedRow("Notch", symbol: "capsule.portrait.tophalf.filled",
-                                   description: settings.notchStyle.detail) {
+                                   description: LocalizedStringKey(settings.notchStyle.detail)) {
                     Picker("", selection: $settings.notchStyle.animation(motion)) {
                         ForEach(NotchStyle.allCases) { Text($0.title).tag($0) }
                     }
@@ -72,7 +72,7 @@ struct AppearanceTab: View {
 
             SettingsSection("Layout", index: 3) {
                 SettingsStackedRow("Panel", symbol: "rectangle.split.3x1",
-                                   description: settings.panelLayout.detail) {
+                                   description: LocalizedStringKey(settings.panelLayout.detail)) {
                     // Deliberately not animated. Both layouts contain the
                     // artwork's matchedGeometryEffect, so animating the swap
                     // lets the outgoing and incoming panels exist at once with
@@ -141,7 +141,7 @@ struct AppearanceTab: View {
 
             SettingsSection("Readouts", index: 5) {
                 SettingsRow("Color", symbol: "slider.horizontal.below.square.filled.and.square",
-                            description: settings.hudTintMode.detail) {
+                            description: LocalizedStringKey(settings.hudTintMode.detail)) {
                     Picker("", selection: $settings.hudTintMode) {
                         ForEach(HUDTintMode.allCases) { Text($0.title).tag($0) }
                     }
@@ -175,9 +175,11 @@ struct AppearanceTab: View {
 
     /// The description under the personality picker: the chosen preset's own
     /// line, or the raw number when the user has dialled something between two.
-    private var personalityDetail: String {
-        MotionPersonality.matching(settings.motionBounce)?.detail
-            ?? String(format: "A custom amount of overshoot (%.2f).", settings.motionBounce)
+    private var personalityDetail: LocalizedStringKey {
+        if let preset = MotionPersonality.matching(settings.motionBounce) {
+            return LocalizedStringKey(preset.detail)
+        }
+        return "A custom amount of overshoot (\(settings.motionBounce, format: .number.precision(.fractionLength(2))))."
     }
 
     /// The segmented control writes a preset's scalar; a custom value shows as

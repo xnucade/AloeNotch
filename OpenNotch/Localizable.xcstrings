@@ -1,0 +1,1117 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+      "shouldTranslate" : false
+    },
+    "%@ call" : {
+
+    },
+    "%@ connected" : {
+
+    },
+    "%@ ejected" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ — currently playing here" : {
+
+    },
+    "%lld chars" : {
+
+    },
+    "%lld%%" : {
+      "shouldTranslate" : false
+    },
+    "--°" : {
+      "shouldTranslate" : false
+    },
+    "1 char" : {
+
+    },
+    "A Dynamic Island for your MacBook. Free and open source." : {
+
+    },
+    "A brief note in the notch when headphones connect or a drive mounts or ejects." : {
+
+    },
+    "A calmer panel, if you want it" : {
+
+    },
+    "A countdown that takes over the collapsed notch while it runs." : {
+
+    },
+    "A custom amount of overshoot (%@)." : {
+
+    },
+    "A few optional permissions" : {
+
+    },
+    "A glass notch" : {
+
+    },
+    "A little overshoot. The default." : {
+
+    },
+    "A real settings window" : {
+
+    },
+    "A real type scale replaces the dozen slightly-different sizes that had accumulated, with nothing under 10pt, and spacing on a consistent rhythm." : {
+
+    },
+    "A thin line of the artwork's color hugging the panel edge." : {
+
+    },
+    "A timer and your music, side by side" : {
+
+    },
+    "A timer in the notch" : {
+
+    },
+    "About" : {
+
+    },
+    "Accent" : {
+
+    },
+    "Access" : {
+
+    },
+    "Accessibility" : {
+
+    },
+    "Add a minute" : {
+
+    },
+    "After a volume or brightness readout the notch could stay stretched wide with nothing in it, and the playback visualizer would vanish. Every state change was landing one step behind." : {
+
+    },
+    "AirDrop" : {
+
+    },
+    "AirDrop all %lld files" : {
+
+    },
+    "AirDrop this file" : {
+
+    },
+    "AirDrop…" : {
+
+    },
+    "AirPods battery" : {
+
+    },
+    "Album art now travels out of the notch and grows into the panel, instead of the small and large versions swapping over." : {
+
+    },
+    "All at once" : {
+
+    },
+    "Allow Calendar in Settings → Access" : {
+
+    },
+    "AloeNotch" : {
+
+    },
+    "AloeNotch %@" : {
+
+    },
+    "AloeNotch Settings" : {
+
+    },
+    "AloeNotch checks for updates" : {
+
+    },
+    "AloeNotch has no account and no analytics. It only goes online for three things: the weather for your approximate location, lyrics for the song that's playing (when Lyrics is on), and a daily check with GitHub for a newer release. Each can be switched off. Everything else stays on this Mac." : {
+
+    },
+    "AloeNotch starts with your Mac and stays out of the Dock." : {
+
+    },
+    "AloeNotch was testing its media helper with a command that could never succeed, so it disabled itself even when everything was fine." : {
+
+    },
+    "Always the display with the menu bar." : {
+
+    },
+    "Ambient glow" : {
+
+    },
+    "An equalizer that listens" : {
+
+    },
+    "Announcements" : {
+
+    },
+    "Another app is already using %@. Pick a different combination." : {
+
+    },
+    "Appearance" : {
+
+    },
+    "Applies to this window, the welcome screen and the menu bar panel. The notch has its own style below." : {
+
+    },
+    "Artwork" : {
+
+    },
+    "Asks GitHub once a day whether a newer release exists. Sends nothing but a version number." : {
+
+    },
+    "Automatic" : {
+
+    },
+    "Back" : {
+
+    },
+    "Bars that follow the music instead of a loop. Asks to record system audio, which is measured and never kept; macOS may show its recording indicator while the bars are on screen." : {
+
+    },
+    "Battery" : {
+
+    },
+    "Benchmark solid vs glass" : {
+
+    },
+    "Benchmarking…" : {
+
+    },
+    "Black, like the notch it grows out of." : {
+
+    },
+    "Bluetooth access is off for AloeNotch. Turn it on in System Settings › Privacy & Security › Bluetooth." : {
+
+    },
+    "Bounce" : {
+
+    },
+    "Brightness" : {
+
+    },
+    "Calendar" : {
+
+    },
+    "Calendar and Location were missing two entitlements needed to request them, and macOS refuses those requests silently — no prompt, no error." : {
+
+    },
+    "Calm" : {
+
+    },
+    "Cancel the timer" : {
+
+    },
+    "Cancel timer" : {
+
+    },
+    "Center" : {
+
+    },
+    "Charge level, plus charging and low hints on the collapsed strip." : {
+
+    },
+    "Charging" : {
+
+    },
+    "Check Now" : {
+
+    },
+    "Check automatically" : {
+
+    },
+    "Checking…" : {
+
+    },
+    "Choose how much it bounces" : {
+
+    },
+    "Choose your screen" : {
+
+    },
+    "Clear" : {
+
+    },
+    "Clear clipboard history" : {
+
+    },
+    "Click" : {
+
+    },
+    "Click one to copy it again. History is kept in memory only — never written to disk, cleared when AloeNotch quits, and anything a password manager marks as private is skipped entirely." : {
+
+    },
+    "Clipboard" : {
+
+    },
+    "Close" : {
+
+    },
+    "Closing never bounces" : {
+
+    },
+    "Closing never bounces — the collapsed strip has to land on the hardware notch exactly." : {
+
+    },
+    "Color" : {
+
+    },
+    "Color the volume and brightness bars" : {
+
+    },
+    "Combination" : {
+
+    },
+    "Connecting the charger briefly shows a bolt and your charge level in the notch." : {
+
+    },
+    "Continue" : {
+
+    },
+    "Controls for whatever your Mac is playing." : {
+
+    },
+    "Copied" : {
+
+    },
+    "Copies it again" : {
+
+    },
+    "Copy" : {
+
+    },
+    "Copy again: %@" : {
+
+    },
+    "Counting down" : {
+
+    },
+    "Cover art is decoded off the main thread, so skipping a track no longer costs a frame just as the artwork is crossfading." : {
+
+    },
+    "Custom" : {
+
+    },
+    "Custom amount" : {
+
+    },
+    "Custom color" : {
+
+    },
+    "Dark" : {
+
+    },
+    "Debug" : {
+
+    },
+    "Demonstration: moving the pointer to the notch opens the panel." : {
+
+    },
+    "Denied. You can allow it later in System Settings → Privacy & Security." : {
+
+    },
+    "Denied. macOS won't ask again, so this has to be changed in System Settings → Privacy & Security → Calendars." : {
+
+    },
+    "Denied. macOS won't ask again, so this has to be changed in System Settings → Privacy & Security → Location Services." : {
+
+    },
+    "Device events" : {
+
+    },
+    "Diagnostic report" : {
+
+    },
+    "Display" : {
+
+    },
+    "Drag all" : {
+
+    },
+    "Drag all %lld files out together" : {
+
+    },
+    "Drag files onto the notch to park them." : {
+
+    },
+    "Drizzle" : {
+
+    },
+    "Drop files here" : {
+
+    },
+    "Easier to read" : {
+
+    },
+    "Empty the shelf" : {
+
+    },
+    "Every earlier release was signed in a way that made macOS treat each update as a different app, so Calendar, Location and Accessibility were forgotten every time you updated. Grant them once after this update and they'll stick from now on." : {
+
+    },
+    "Every one of these is optional, and each only switches off a single feature. You can change them any time in Settings." : {
+
+    },
+    "Files" : {
+
+    },
+    "Five tabs, with accent color, panel width, glass intensity and animation speed — plus every module toggled individually." : {
+
+    },
+    "Five things it couldn't do before" : {
+
+    },
+    "Fixed: a wide, empty strip" : {
+
+    },
+    "Fog" : {
+
+    },
+    "Forget everything copied so far" : {
+
+    },
+    "Frame times: waiting for a transition" : {
+
+    },
+    "Frame-time overlay" : {
+
+    },
+    "Full changelog" : {
+
+    },
+    "Full screen" : {
+
+    },
+    "General" : {
+
+    },
+    "Get It…" : {
+
+    },
+    "Get Started" : {
+
+    },
+    "Getting the weather…" : {
+
+    },
+    "Glass" : {
+
+    },
+    "Glass, lyrics, and a notch that listens" : {
+
+    },
+    "Granted — the macOS HUD is replaced." : {
+
+    },
+    "Granted. Local conditions show in the panel header." : {
+
+    },
+    "Granted. Volume and brightness show in the notch instead of the macOS HUD." : {
+
+    },
+    "Granted. Your next event shows in the panel." : {
+
+    },
+    "Grant…" : {
+
+    },
+    "Grouped so related things sit together, aligned on one grid, and animated — panes slide in from the side you clicked. Modules is now three named groups instead of one long list." : {
+
+    },
+    "Headphone battery" : {
+
+    },
+    "Headphones connecting and drives mounting or ejecting now get the same brief announcement volume and charging already had." : {
+
+    },
+    "Heavy" : {
+
+    },
+    "Hide clipboard during calls" : {
+
+    },
+    "Hide from screen captures" : {
+
+    },
+    "History stays in memory and is cleared when AloeNotch quits." : {
+
+    },
+    "Horizontal offset" : {
+
+    },
+    "Hover" : {
+
+    },
+    "Hover and press feedback throughout, the shelf opens to catch a dragged file, and the trackpad taps on drop and on volume steps." : {
+
+    },
+    "Hover instantly" : {
+
+    },
+    "Hover the notch" : {
+
+    },
+    "How much frost sits between you and the desktop — here and on a glass notch." : {
+
+    },
+    "How wide the panel opens." : {
+
+    },
+    "Image" : {
+
+    },
+    "In the panel" : {
+
+    },
+    "Intensity" : {
+
+    },
+    "It notices more" : {
+
+    },
+    "It responds to you" : {
+
+    },
+    "It runs quietly in the menu bar." : {
+
+    },
+    "Join" : {
+
+    },
+    "Join %@ call" : {
+
+    },
+    "Join calls from the notch" : {
+
+    },
+    "Join on %@" : {
+
+    },
+    "Keep awake" : {
+
+    },
+    "Keep the panel on whichever screen the pointer is on now." : {
+
+    },
+    "Keep this Mac awake" : {
+
+    },
+    "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS." : {
+
+    },
+    "Keyboard shortcut" : {
+
+    },
+    "Lands flat, like the rest of macOS." : {
+
+    },
+    "Last checked %@." : {
+
+    },
+    "Layout" : {
+
+    },
+    "Let this Mac sleep again" : {
+
+    },
+    "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD. Without it, macOS keeps drawing its own and AloeNotch stays out of the way." : {
+
+    },
+    "Lets AloeNotch show volume and brightness in the notch instead of the macOS HUD." : {
+
+    },
+    "Light" : {
+
+    },
+    "Links" : {
+
+    },
+    "Liquid Glass" : {
+
+    },
+    "Live equalizer" : {
+
+    },
+    "Lively" : {
+
+    },
+    "Loading weather" : {
+
+    },
+    "Local conditions in the panel header." : {
+
+    },
+    "Location" : {
+
+    },
+    "Lyrics" : {
+
+    },
+    "Lyrics in the notch" : {
+
+    },
+    "Main display" : {
+
+    },
+    "Media, calendar and your tools side by side." : {
+
+    },
+    "Medium" : {
+
+    },
+    "Modules" : {
+
+    },
+    "More room" : {
+
+    },
+    "Motion" : {
+
+    },
+    "Motion you can dial" : {
+
+    },
+    "Move Here" : {
+
+    },
+    "Moves the notch left or right on this display, which has no notch of its own." : {
+
+    },
+    "Needed to catch the volume keys first. Without it macOS keeps drawing its own HUD, so AloeNotch stays out of the way." : {
+
+    },
+    "Next state" : {
+
+    },
+    "Next track" : {
+
+    },
+    "No crash reports so far. Copies your version and any reports, to paste into an issue. Never sent anywhere." : {
+
+    },
+    "No more stutter on track changes" : {
+
+    },
+    "Notch" : {
+
+    },
+    "Nothing about you is sent" : {
+
+    },
+    "Nothing changed unless you ask" : {
+
+    },
+    "Nothing copied yet" : {
+
+    },
+    "Nothing for today" : {
+
+    },
+    "Nothing playing" : {
+
+    },
+    "Nothing playing means no artwork color, so the readouts stay white until something is." : {
+
+    },
+    "Now Playing" : {
+
+    },
+    "Now Playing unavailable" : {
+
+    },
+    "Now Playing works again" : {
+
+    },
+    "Off" : {
+
+    },
+    "Often taken by Spotlight alternatives." : {
+
+    },
+    "On" : {
+
+    },
+    "On purpose. A spring that overshoots also undershoots, which would briefly make the collapsed strip smaller than the hardware notch and show wallpaper around it. Opening overshoots outward, where there's room." : {
+
+    },
+    "Onboarding" : {
+
+    },
+    "Once a day, quietly. If something newer exists it shows up in the menu bar and in Settings → About. It never interrupts, and you can switch it off." : {
+
+    },
+    "One at a time" : {
+
+    },
+    "One module, larger, with pills to switch between them." : {
+
+    },
+    "One object, reshaping" : {
+
+    },
+    "One tap in the header holds off display sleep, and another lets go. It releases itself if AloeNotch ever stops running." : {
+
+    },
+    "One thing, or everything" : {
+
+    },
+    "Open" : {
+
+    },
+    "Open Settings…" : {
+
+    },
+    "Open at login" : {
+
+    },
+    "Open it without the mouse" : {
+
+    },
+    "Open on" : {
+
+    },
+    "Opening the panel" : {
+
+    },
+    "Opens after a moment's pause, so passing the notch on the way to the menu bar doesn't open it." : {
+
+    },
+    "Opens and closes the panel from anywhere, and keeps it open until you press it again." : {
+
+    },
+    "Opens the moment the pointer touches the notch." : {
+
+    },
+    "Opens the release page, where you can download the new version." : {
+
+    },
+    "Overcast" : {
+
+    },
+    "Panel" : {
+
+    },
+    "Partly cloudy" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Pause timer" : {
+
+    },
+    "Paused" : {
+
+    },
+    "Permissions" : {
+
+    },
+    "Permissions that stay put" : {
+
+    },
+    "Personality" : {
+
+    },
+    "Play" : {
+
+    },
+    "Plugging in says so" : {
+
+    },
+    "Previous track" : {
+
+    },
+    "Quick Look" : {
+
+    },
+    "Quit" : {
+
+    },
+    "Quit AloeNotch" : {
+
+    },
+    "Rain" : {
+
+    },
+    "Readouts" : {
+
+    },
+    "Reduce Motion and Reduce Transparency are both honoured now, live, without a relaunch." : {
+
+    },
+    "Reduce Motion is on in System Settings, so animations are plain fades and bounce has no effect." : {
+
+    },
+    "Reduce Transparency is on in System Settings, so panels are solid regardless of these options." : {
+
+    },
+    "Remove from Shelf" : {
+
+    },
+    "Remove from shelf" : {
+
+    },
+    "Replaces the macOS HUD with a readout in the notch." : {
+
+    },
+    "Report an issue" : {
+
+    },
+    "Reset" : {
+
+    },
+    "Respects Reduce Motion" : {
+
+    },
+    "Resume timer" : {
+
+    },
+    "Screen sharing" : {
+
+    },
+    "See how charged your AirPods or Beats are when they connect." : {
+
+    },
+    "Send sound to %@" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Settings → Appearance → Layout now offers \"One at a time\": a single module filling the panel, with pills to switch. Bigger artwork, transport you don't have to aim at, and three upcoming events instead of one truncated line." : {
+
+    },
+    "Settings → Appearance → Motion. Calm lands flat, Lively overshoots the way the paid apps do, and Standard is exactly what you had. There's a custom slider if you want the value in between." : {
+
+    },
+    "Settings, rebuilt" : {
+
+    },
+    "Settings, the welcome window and the menu bar dropdown in Liquid Glass, picking up the desktop behind them." : {
+
+    },
+    "Shelf" : {
+
+    },
+    "Show" : {
+
+    },
+    "Show AirPods and Beats battery when they connect. Asks for Bluetooth access." : {
+
+    },
+    "Show in Finder" : {
+
+    },
+    "Show on" : {
+
+    },
+    "Showers" : {
+
+    },
+    "Shows your next event in the panel. Nothing leaves your Mac." : {
+
+    },
+    "Slow motion" : {
+
+    },
+    "Smoother, and yours to tune" : {
+
+    },
+    "Snow" : {
+
+    },
+    "Snow showers" : {
+
+    },
+    "Softer corners" : {
+
+    },
+    "Solid" : {
+
+    },
+    "Sound now on %@" : {
+
+    },
+    "Sound output" : {
+
+    },
+    "Sound output: %@" : {
+
+    },
+    "Source on GitHub" : {
+
+    },
+    "Standard" : {
+
+    },
+    "Start a timer" : {
+
+    },
+    "Start one from the panel and it takes over the collapsed strip while it counts down. Pause it, add a minute, or let it ring." : {
+
+    },
+    "Start something in Music, Spotify or a browser." : {
+
+    },
+    "Startup" : {
+
+    },
+    "Stay out of full-screen apps" : {
+
+    },
+    "Swipe on the notch" : {
+
+    },
+    "Switch where sound goes" : {
+
+    },
+    "Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with one." : {
+
+    },
+    "System" : {
+
+    },
+    "That's the whole gesture. AloeNotch stays completely invisible until your pointer reaches the top of the screen." : {
+
+    },
+    "The Grant buttons actually grant" : {
+
+    },
+    "The bars follow the actual music. macOS asks before AloeNotch can hear system audio, which is measured and never recorded." : {
+
+    },
+    "The check asks GitHub which release is newest and sends only a version number. Settings → Access spells out every network request AloeNotch makes." : {
+
+    },
+    "The curves are continuous now, the way macOS draws its own rounded shapes — no pinch where the curve meets the straight edge." : {
+
+    },
+    "The default panel is wider so the columns aren't fighting for space. If you've set your own width, yours is kept — widen it in Settings → General if things feel tight." : {
+
+    },
+    "The display you picked. Automatic while it isn't connected." : {
+
+    },
+    "The first-run introduction, including the hover demo." : {
+
+    },
+    "The last 24 things you copied" : {
+
+    },
+    "The line being sung, right under the track title. Looks up the song's name on LRCLIB." : {
+
+    },
+    "The line being sung, under the track title. Looks up the track's name on LRCLIB, a free lyrics database." : {
+
+    },
+    "The media helper didn't start. Relaunching AloeNotch usually fixes it." : {
+
+    },
+    "The notch disappears until you launch it again." : {
+
+    },
+    "The notch grows first and its contents follow a beat behind, cascading in rather than arriving all at once. Closing reverses it, so nothing pops." : {
+
+    },
+    "The notch is live. Hover it whenever you want it." : {
+
+    },
+    "The notch swells when you point at it, and opens when you click." : {
+
+    },
+    "The open panel frosts the desktop behind it and picks up a color-shifting edge. It stays black where it meets the camera, and whenever it's closed." : {
+
+    },
+    "The open panel frosts the desktop behind it, with a color-shifting edge. It stays black over the camera." : {
+
+    },
+    "The panel moves as one piece" : {
+
+    },
+    "The panel opens as one piece" : {
+
+    },
+    "The readouts stay white." : {
+
+    },
+    "The side-by-side layout is still the default. Seeing everything at once and seeing one thing clearly are both reasonable things to want, so it's a choice rather than a replacement." : {
+
+    },
+    "Theme" : {
+
+    },
+    "These share one column, as tabs. Whichever are switched on appear there; a running timer brings its own tab forward." : {
+
+    },
+    "They follow the accent color above." : {
+
+    },
+    "They take the color of whatever is playing, and go back to white when nothing is." : {
+
+    },
+    "Thunderstorm" : {
+
+    },
+    "Time's up" : {
+
+    },
+    "Timer" : {
+
+    },
+    "Tints controls, the selected tab and today's date in the calendar. The glow around album art keeps following the artwork." : {
+
+    },
+    "Tools" : {
+
+    },
+    "Translucent windows. Turn it off if you'd rather have solid panels." : {
+
+    },
+    "Try it after you finish setting up." : {
+
+    },
+    "Two fingers down to open, up to close, and sideways to skip tracks." : {
+
+    },
+    "Updates" : {
+
+    },
+    "Used at reduced accuracy for local weather — roughly your city, not your address." : {
+
+    },
+    "Used at reduced accuracy to fetch local weather — roughly your city, not your address." : {
+
+    },
+    "Version %@" : {
+
+    },
+    "Version %@ is available" : {
+
+    },
+    "Visible bounce, still settles fast." : {
+
+    },
+    "Volume" : {
+
+    },
+    "Volume & Brightness" : {
+
+    },
+    "Volume and brightness get their own colors." : {
+
+    },
+    "Volume muted" : {
+
+    },
+    "Weather" : {
+
+    },
+    "Weather unavailable" : {
+
+    },
+    "Weather unavailable. It updates when you're back online." : {
+
+    },
+    "Website" : {
+
+    },
+    "Welcome screen" : {
+
+    },
+    "Welcome to AloeNotch" : {
+
+    },
+    "What's New" : {
+
+    },
+    "What's new" : {
+
+    },
+    "What's new in AloeNotch" : {
+
+    },
+    "When more than one output is available, a speaker button appears in the panel header. Pick a device and everything follows." : {
+
+    },
+    "Where it opens" : {
+
+    },
+    "While a game or video is full screen, the pointer won't open the notch and only volume and brightness appear. The shortcut still opens it." : {
+
+    },
+    "While both are running, the timer pinches off into its own bubble beside the notch." : {
+
+    },
+    "While your microphone is in use, clipboard rows show only what kind of thing they are." : {
+
+    },
+    "White" : {
+
+    },
+    "White as before, or follow your accent, or pick each one, or let them take the color of whatever's playing — the same color the glow is already using." : {
+
+    },
+    "Width" : {
+
+    },
+    "Windows" : {
+
+    },
+    "Windows and menus" : {
+
+    },
+    "With more than one display, pick where the notch lives in Settings → General." : {
+
+    },
+    "You'll grant permissions one last time" : {
+
+    },
+    "You'll hear about the next one" : {
+
+    },
+    "You're on the latest release." : {
+
+    },
+    "You're set" : {
+
+    },
+    "Your Mac's built-in display while it's open, the main display when the lid is closed." : {
+
+    },
+    "Your MacBook's notch, turned into something useful." : {
+
+    },
+    "Your last 24 copies. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped." : {
+
+    },
+    "Your week, and the next event." : {
+
+    },
+    "Zoom, Meet, Teams and more get a Join button ten minutes before they start." : {
+
+    },
+    "^[%lld crash or hang report](inflect: true). Copies your version and any reports, to paste into an issue. Never sent anywhere." : {
+
+    },
+    "macOS uses this for input sources." : {
+
+    },
+    "never" : {
+
+    },
+    "⌃⌥N opens and closes the panel from anywhere, and it stays open until you press it again. Change or switch off the shortcut in Settings → General." : {
+
+    },
+    "⌘%@" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.0"
+}

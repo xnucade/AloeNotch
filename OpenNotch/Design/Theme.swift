@@ -585,9 +585,9 @@ enum GlassIntensity: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .light:  "Light"
-        case .medium: "Medium"
-        case .heavy:  "Heavy"
+        case .light:  String(localized: "Light")
+        case .medium: String(localized: "Medium")
+        case .heavy:  String(localized: "Heavy")
         }
     }
 
@@ -673,17 +673,17 @@ enum OpenTrigger: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .hover:   "Hover"
-        case .instant: "Hover instantly"
-        case .click:   "Click"
+        case .hover:   String(localized: "Hover")
+        case .instant: String(localized: "Hover instantly")
+        case .click:   String(localized: "Click")
         }
     }
 
     var detail: String {
         switch self {
-        case .hover:   "Opens after a moment's pause, so passing the notch on the way to the menu bar doesn't open it."
-        case .instant: "Opens the moment the pointer touches the notch."
-        case .click:   "The notch swells when you point at it, and opens when you click."
+        case .hover:   String(localized: "Opens after a moment's pause, so passing the notch on the way to the menu bar doesn't open it.")
+        case .instant: String(localized: "Opens the moment the pointer touches the notch.")
+        case .click:   String(localized: "The notch swells when you point at it, and opens when you click.")
         }
     }
 
@@ -715,15 +715,15 @@ enum PanelLayout: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .columns: "All at once"
-        case .focused: "One at a time"
+        case .columns: String(localized: "All at once")
+        case .focused: String(localized: "One at a time")
         }
     }
 
     var detail: String {
         switch self {
-        case .columns: "Media, calendar and your tools side by side."
-        case .focused: "One module, larger, with pills to switch between them."
+        case .columns: String(localized: "Media, calendar and your tools side by side.")
+        case .focused: String(localized: "One module, larger, with pills to switch between them.")
         }
     }
 
@@ -742,9 +742,9 @@ enum WindowTheme: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .system: "System"
-        case .light:  "Light"
-        case .dark:   "Dark"
+        case .system: String(localized: "System")
+        case .light:  String(localized: "Light")
+        case .dark:   String(localized: "Dark")
         }
     }
 

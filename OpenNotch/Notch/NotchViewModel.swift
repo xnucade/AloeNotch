@@ -36,8 +36,8 @@ enum NotchHUD: Equatable {
     /// is playing.
     private var spokenName: String {
         switch self {
-        case .volume(_, let muted): muted ? "Volume muted" : "Volume"
-        case .brightness: "Brightness"
+        case .volume(_, let muted): muted ? String(localized: "Volume muted") : String(localized: "Volume")
+        case .brightness: String(localized: "Brightness")
         }
     }
 
@@ -760,7 +760,7 @@ final class NotchViewModel: ObservableObject {
             kind: "system.power",
             symbol: "bolt.fill",
             tint: .green,
-            spokenName: "Charging",
+            spokenName: String(localized: "Charging"),
             trailing: .text("\(Int((battery.level * 100).rounded()))%"),
             size: .regular,
             duration: 2.0,
