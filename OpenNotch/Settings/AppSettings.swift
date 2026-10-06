@@ -30,6 +30,15 @@ final class AppSettings: ObservableObject {
     @Published var peekOnTrackChange: Bool {
         didSet { save(peekOnTrackChange, "peekOnTrackChange") }
     }
+    /// Caps Lock turning on or off. Rides the volume and brightness readouts'
+    /// Accessibility access, so it only works while those are on.
+    @Published var showCapsLock: Bool {
+        didSet { save(showCapsLock, "showCapsLock") }
+    }
+    /// The microphone's mute switch flipping. Needs no permission.
+    @Published var showMicMute: Bool {
+        didSet { save(showMicMute, "showMicMute") }
+    }
     @Published var showDeviceEvents: Bool {
         didSet { save(showDeviceEvents, "showDeviceEvents") }
     }
@@ -198,6 +207,8 @@ final class AppSettings: ObservableObject {
             "showBattery": true,
             "showDeviceEvents": true,
             "peekOnTrackChange": false,
+            "showCapsLock": true,
+            "showMicMute": true,
             "hideFromCapture": false,
             "hideInFullScreen": true,
             "showHeadphoneBattery": false,
@@ -243,6 +254,8 @@ final class AppSettings: ObservableObject {
         showBattery = defaults.bool(forKey: "showBattery")
         showDeviceEvents = defaults.bool(forKey: "showDeviceEvents")
         peekOnTrackChange = defaults.bool(forKey: "peekOnTrackChange")
+        showCapsLock = defaults.bool(forKey: "showCapsLock")
+        showMicMute = defaults.bool(forKey: "showMicMute")
         hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")
         hotKeyCombo = HotKeyCombo(rawValue: defaults.string(forKey: "hotKeyCombo") ?? "") ?? .controlOptionN
         useGlass = defaults.bool(forKey: "useGlass")

@@ -146,6 +146,8 @@ final class NotchViewModel: ObservableObject {
     let volume = VolumeMonitor()
     let brightness = BrightnessMonitor()
     let mediaKeys = MediaKeyInterceptor()
+    private let capsLock = CapsLockMonitor()
+    private let micMute = MicrophoneMuteMonitor()
     let settings = AppSettings.shared
 
     /// Whether we hold Accessibility permission. Without it we can't swallow the
@@ -312,6 +314,49 @@ final class NotchViewModel: ObservableObject {
                 guard let self else { return }
                 if on { self.clipboard.start() } else { self.clipboard.stop(); self.clipboard.clear() }
             }
+            .store(in: &cancellables)
+
+        settings.$showCapsLock
+            .removeDuplicates()
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.updateHUDPipeline(enabled: self.settings.showHUD)
+            }
+            .store(in: &cancellables)
+        capsLock.onChange = { [weak self] on in self?.flashCapsLock(on) }
+
+        settings.$showMicMute
+            .removeDuplicates()
+            .sink { [weak self] enabled in
+                guard let self else { return }
+                if enabled { self.micMute.start() } else { self.micMute.stop() }
+            }
+            .store(in: &cancellables)
+        micMute.onChange = { [weak self] muted in self?.flashMicMute(muted) }
+
+        // Low battery and Low Power Mode, under the battery toggle like the
+        // charging peek. `receive(on:)` so `isPluggedIn`, which the monitor
+        // sets after `level`, is current when the level is read.
+        battery.$level
+            .removeDuplicates()
+            .scan((previous: Double?.none, current: Double?.none)) { ($0.current, $1) }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] reading in
+                guard let self, let old = reading.previous, let new = reading.current,
+                      let mark = LowBatteryAlert.markCrossed(from: old, to: new,
+                                                             pluggedIn: self.battery.isPluggedIn)
+                else { return }
+                self.flashLowBattery(mark)
+            }
+            .store(in: &cancellables)
+
+        PowerState.shared.$isLowPower
+            .removeDuplicates()
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] on in self?.flashLowPowerMode(on) }
             .store(in: &cancellables)
 
         settings.$showDeviceEvents
@@ -728,6 +773,7 @@ final class NotchViewModel: ObservableObject {
 
         guard enabled else {
             mediaKeys.stop()
+            capsLock.stop()
             volume.stop()
             brightness.stop()
             trustPoll?.invalidate(); trustPoll = nil
@@ -737,12 +783,14 @@ final class NotchViewModel: ObservableObject {
 
         if mediaKeys.start() {
             canReplaceSystemHUD = true
+            if settings.showCapsLock { capsLock.start() } else { capsLock.stop() }
             volume.start()
             brightness.start()
             trustPoll?.invalidate(); trustPoll = nil
         } else {
             // Not trusted yet — stay out of the way and watch for the grant.
             canReplaceSystemHUD = false
+            capsLock.stop()
             volume.stop()
             brightness.stop()
             activities.dismiss(kind: "system.hud")
@@ -789,6 +837,60 @@ final class NotchViewModel: ObservableObject {
     private struct TrackIdentity: Equatable {
         let title: String
         let artist: String
+    }
+
+    private func flashCapsLock(_ on: Bool) {
+        activities.present(LiveActivity(
+            kind: "system.capsLock",
+            symbol: on ? "capslock.fill" : "capslock",
+            spokenName: on ? String(localized: "Caps Lock on") : String(localized: "Caps Lock off"),
+            trailing: .text(on ? String(localized: "On") : String(localized: "Off")),
+            size: .regular,
+            duration: 1.5,
+            priority: LiveActivity.Priority.action
+        ))
+    }
+
+    private func flashMicMute(_ muted: Bool) {
+        activities.present(LiveActivity(
+            kind: "system.micMute",
+            symbol: muted ? "mic.slash.fill" : "mic.fill",
+            tint: muted ? .red : .white,
+            spokenName: muted ? String(localized: "Microphone muted") : String(localized: "Microphone on"),
+            trailing: .text(muted ? String(localized: "Muted") : String(localized: "On")),
+            size: .regular,
+            duration: 2,
+            priority: LiveActivity.Priority.action
+        ))
+    }
+
+    private func flashLowBattery(_ percent: Int) {
+        guard settings.showBattery else { return }
+        activities.present(LiveActivity(
+            kind: "system.lowBattery",
+            symbol: percent <= 10 ? "battery.0percent" : "battery.25percent",
+            tint: percent <= 10 ? .red : .orange,
+            spokenName: String(localized: "Battery low"),
+            trailing: .text("\(percent)%"),
+            size: .regular,
+            duration: 3,
+            priority: LiveActivity.Priority.action
+        ))
+    }
+
+    private func flashLowPowerMode(_ on: Bool) {
+        guard settings.showBattery else { return }
+        activities.present(LiveActivity(
+            kind: "system.lowPower",
+            symbol: "battery.75percent",
+            tint: on ? .yellow : .white,
+            title: String(localized: "Low Power"),
+            spokenName: on ? String(localized: "Low Power Mode on") : String(localized: "Low Power Mode off"),
+            trailing: .text(on ? String(localized: "On") : String(localized: "Off")),
+            size: .wide,
+            duration: 2,
+            priority: LiveActivity.Priority.action
+        ))
     }
 
     /// Briefly widen the strip to acknowledge the charger being connected.

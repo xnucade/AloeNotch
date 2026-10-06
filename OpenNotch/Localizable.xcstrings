@@ -44,6 +44,12 @@
     "A brief note in the notch when headphones connect or a drive mounts or ejects." : {
 
     },
+    "A brief note when it turns on or off. Uses the same Accessibility access." : {
+
+    },
+    "A brief note when the microphone's mute switch flips. Reads the switch only — the microphone is never opened." : {
+
+    },
     "A calmer panel, if you want it" : {
 
     },
@@ -182,6 +188,9 @@
     "Battery" : {
 
     },
+    "Battery low" : {
+
+    },
     "Benchmark solid vs glass" : {
 
     },
@@ -215,10 +224,19 @@
     "Cancel timer" : {
 
     },
+    "Caps Lock" : {
+
+    },
+    "Caps Lock off" : {
+
+    },
+    "Caps Lock on" : {
+
+    },
     "Center" : {
 
     },
-    "Charge level, plus charging and low hints on the collapsed strip." : {
+    "Charge level in the panel, and a word in the notch when you plug in, at 20% and 10%, and when Low Power Mode changes." : {
 
     },
     "Charging" : {
@@ -554,6 +572,15 @@
     "Location" : {
 
     },
+    "Low Power" : {
+
+    },
+    "Low Power Mode off" : {
+
+    },
+    "Low Power Mode on" : {
+
+    },
     "Lyrics" : {
 
     },
@@ -567,6 +594,15 @@
 
     },
     "Medium" : {
+
+    },
+    "Microphone mute" : {
+
+    },
+    "Microphone muted" : {
+
+    },
+    "Microphone on" : {
 
     },
     "Modules" : {
@@ -585,6 +621,9 @@
 
     },
     "Moves the notch left or right on this display, which has no notch of its own." : {
+
+    },
+    "Muted" : {
 
     },
     "Needed to catch the volume keys first. Without it macOS keeps drawing its own HUD, so AloeNotch stays out of the way." : {
