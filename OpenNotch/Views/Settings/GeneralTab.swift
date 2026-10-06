@@ -140,7 +140,14 @@ struct GeneralTab: View {
                 }
             }
 
-            SettingsSection("Screen sharing", index: 3) {
+            SettingsSection("Full screen", index: 3) {
+                SettingsRow("Stay out of full-screen apps", symbol: "arrow.up.left.and.arrow.down.right",
+                            description: "While a game or video is full screen, the pointer won't open the notch and only volume and brightness appear. The shortcut still opens it.") {
+                    Toggle("", isOn: $settings.hideInFullScreen).labelsHidden()
+                }
+            }
+
+            SettingsSection("Screen sharing", index: 4) {
                 SettingsRow("Hide from screen captures", symbol: "rectangle.dashed.badge.record",
                             description: "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS.") {
                     Toggle("", isOn: $settings.hideFromCapture).labelsHidden()
@@ -154,7 +161,7 @@ struct GeneralTab: View {
                 }
             }
 
-            SettingsSection("Onboarding", index: 4) {
+            SettingsSection("Onboarding", index: 5) {
                 SettingsRow("Welcome screen", symbol: "sparkles",
                             description: "The first-run introduction, including the hover demo.",
                             highlightsOnHover: true) {

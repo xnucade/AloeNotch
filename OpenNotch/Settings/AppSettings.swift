@@ -52,6 +52,10 @@ final class AppSettings: ObservableObject {
     /// ScreenCaptureKit capture such windows anyway, so this is paired with
     /// `blurClipboardInCalls`, which doesn't depend on the capturer's goodwill.
     @Published var hideFromCapture: Bool { didSet { save(hideFromCapture, "hideFromCapture") } }
+    /// While another app is full screen on the notch's display, the pointer
+    /// doesn't open the panel and only key readouts (volume, brightness)
+    /// appear: the top of a full-screen game or film belongs to it.
+    @Published var hideInFullScreen: Bool { didSet { save(hideInFullScreen, "hideInFullScreen") } }
     /// Reduce clipboard rows to their kind while the microphone is in use —
     /// the moment you are most likely to be sharing your screen.
     @Published var blurClipboardInCalls: Bool {
@@ -189,6 +193,7 @@ final class AppSettings: ObservableObject {
             "showBattery": true,
             "showDeviceEvents": true,
             "hideFromCapture": false,
+            "hideInFullScreen": true,
             "showHeadphoneBattery": false,
             "showLyrics": false,
             "liveEqualizer": false,
@@ -218,6 +223,7 @@ final class AppSettings: ObservableObject {
         ambientGlow = defaults.bool(forKey: "ambientGlow")
         showMedia = defaults.bool(forKey: "showMedia")
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
+        hideInFullScreen = defaults.bool(forKey: "hideInFullScreen")
         showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
         showLyrics = defaults.bool(forKey: "showLyrics")
         liveEqualizer = defaults.bool(forKey: "liveEqualizer")
