@@ -1,24 +1,43 @@
-#if DEBUG
 import AppKit
 import OSLog
 
-/// Debug-only: measures the frames of each panel transition and logs the
-/// worst one, so "never drops a frame" is a number rather than a feeling.
+/// Measures the frames of each panel transition and reports the worst one,
+/// so "never drops a frame" is a number rather than a feeling.
 ///
 /// A display link on the panel's screen records every frame while a
 /// transition runs. A frame that took more than 1.5× the display's interval
-/// is a drop. Read the results with:
+/// is a drop. Debug builds always log the results; read them with:
 ///
 ///     log stream --predicate 'subsystem == "com.kadeslab.AloeNotch" && category == "frames"'
 ///
-/// Compiled out of Release builds entirely.
-final class FrameBudget: NSObject {
+/// Release builds carry it for the frame-time overlay in the debug menu, and
+/// do nothing until that overlay is switched on: no display link, no work.
+final class FrameBudget: NSObject, ObservableObject {
     static let shared = FrameBudget()
+
+    struct Result: Equatable {
+        let label: String
+        let frames: Int
+        let drops: Int
+        let worstMs: Double
+        let budgetMs: Double
+    }
+
+    /// The most recent finished transition, for the overlay.
+    @Published private(set) var last: Result?
+
+    private var isEnabled: Bool {
+        #if DEBUG
+        true
+        #else
+        DebugTools.shared.showFrameTimes
+        #endif
+    }
 
     private let log = Logger(subsystem: "com.kadeslab.AloeNotch", category: "frames")
     private var link: CADisplayLink?
     private var label = ""
-    private var last: CFTimeInterval = 0
+    private var lastTick: CFTimeInterval = 0
     private var worst: CFTimeInterval = 0
     private var frames = 0
     private var drops = 0
@@ -28,10 +47,11 @@ final class FrameBudget: NSObject {
     /// Watch the next `duration` seconds of frames on `screen`. A new
     /// transition arriving mid-watch reports the old one and starts over.
     func watch(_ label: String, on screen: NSScreen?, for duration: TimeInterval) {
+        guard isEnabled else { return }
         if link != nil { report() }
         guard let screen = screen ?? NSScreen.main else { return }
         self.label = label
-        last = 0; worst = 0; frames = 0; drops = 0
+        lastTick = 0; worst = 0; frames = 0; drops = 0
         interval = 1.0 / Double(max(60, screen.maximumFramesPerSecond))
         let link = screen.displayLink(target: self, selector: #selector(tick(_:)))
         link.add(to: .main, forMode: .common)
@@ -44,9 +64,9 @@ final class FrameBudget: NSObject {
 
     @objc private func tick(_ link: CADisplayLink) {
         let now = link.timestamp
-        defer { last = now }
-        guard last > 0 else { return }
-        let delta = now - last
+        defer { lastTick = now }
+        guard lastTick > 0 else { return }
+        let delta = now - lastTick
         frames += 1
         worst = max(worst, delta)
         if delta > interval * 1.5 { drops += 1 }
@@ -56,9 +76,10 @@ final class FrameBudget: NSObject {
         link?.invalidate()
         link = nil
         guard frames > 0 else { return }
-        let worstMs = worst * 1000, budgetMs = interval * 1000
+        let result = Result(label: label, frames: frames, drops: drops,
+                            worstMs: worst * 1000, budgetMs: interval * 1000)
+        last = result
         let verdict = drops == 0 ? "OK" : "DROPPED \(drops)"
-        log.notice("\(self.label, privacy: .public): \(verdict, privacy: .public) — \(self.frames) frames, worst \(worstMs, format: .fixed(precision: 1)) ms (budget \(budgetMs, format: .fixed(precision: 1)) ms)")
+        log.notice("\(result.label, privacy: .public): \(verdict, privacy: .public) — \(result.frames) frames, worst \(result.worstMs, format: .fixed(precision: 1)) ms (budget \(result.budgetMs, format: .fixed(precision: 1)) ms)")
     }
 }
-#endif

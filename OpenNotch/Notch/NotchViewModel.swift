@@ -418,6 +418,31 @@ final class NotchViewModel: ObservableObject {
         }
     }
 
+    // MARK: Debug menu
+
+    /// Hold the panel open or let it go, as the keyboard shortcut does, so
+    /// the state cycler can show the expanded panel without a pointer on it.
+    func debugPin(_ open: Bool) {
+        guard isPinnedOpen != open else { return }
+        isPinnedOpen = open
+        collapseWorkItem?.cancel()
+        refreshState()
+    }
+
+    /// The drop "gulp", without having to drag a file in.
+    func debugGulp() {
+        dropLanded(true)
+        landing = false
+    }
+
+    /// The closed strip's two-finger pull, stretched to its limit and let go.
+    func debugPull() {
+        guard !AccessibilityPreferences.shared.reduceMotion else { return }
+        withAnimation(.spring(Motion.rubberBandReach)) { pull = Self.pullLimit } completion: {
+            withAnimation(.spring(Motion.rubberBandSettle)) { self.pull = 0 }
+        }
+    }
+
     // MARK: Gestures
 
     private var swipeTracker = SwipeTracker()
@@ -555,9 +580,7 @@ final class NotchViewModel: ObservableObject {
         // already honor Reduce Motion.
         stateAnimation = animation
         panelState = new
-        #if DEBUG
-        FrameBudget.shared.watch("\(old) → \(new)", on: metrics?.screen, for: settle + 0.1)
-        #endif
+        FrameBudget.shared.watch("\(old.debugName) → \(new.debugName)", on: metrics?.screen, for: settle + 0.1)
 
         // The invariant: the clickable region is never smaller than what is
         // actually drawn. Growing is safe to apply at once — a region larger

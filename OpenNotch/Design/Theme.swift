@@ -27,14 +27,15 @@ import Combine
 /// enough. The data-tracking and ambient values below them don't, and say what
 /// their callers must do instead.
 enum Motion {
-    /// User-facing speed multiplier: >1 is faster, <1 slower.
+    /// The debug menu's slow-motion multiplier: 1 is normal, 0.1 is ten
+    /// times slower.
     ///
-    /// Applied by dividing durations, so "1.5×" genuinely means the animation
-    /// takes two-thirds as long. Read from settings on each access rather than
-    /// captured once, so the Appearance slider previews live — these are
-    /// computed properties for that reason, not `let` constants.
+    /// Applied by dividing durations, so 0.5× genuinely means twice as long.
+    /// Read on each access rather than captured once, so changing it takes
+    /// effect on the next transition. That is why these are computed
+    /// properties, not `let` constants.
     private static var speed: Double {
-        max(0.25, min(3.0, AppSettings.shared.animationSpeed))
+        max(DebugTools.slowMotionRange.lowerBound, min(1, DebugTools.shared.slowMotion))
     }
 
     private static func scaled(_ duration: Double) -> Double { duration / speed }
