@@ -255,8 +255,8 @@ private struct PresetChip: View {
                 .lineLimit(1)
                 .fixedSize()
                 .foregroundStyle(hovering ? .white : Ink.primary)
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
+                .padding(.horizontal, Metrics.Pill.horizontalPadding)
+                .padding(.vertical, Metrics.Pill.verticalPadding)
                 .background {
                     Capsule().fill(hovering ? accent.opacity(0.30) : Ink.fill)
                 }

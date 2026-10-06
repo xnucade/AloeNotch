@@ -58,7 +58,7 @@ struct BatteryView: View {
     }
 
     private var pill: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: Metrics.Pill.drawnIconGap) {
             batteryGlyph
             Text("\(percent)%")
                 .font(Typography.body(.semibold))
@@ -73,8 +73,8 @@ struct BatteryView: View {
                     .transition(.blurReplace)
             }
         }
-        .padding(.horizontal, 9)
-        .padding(.vertical, 5)
+        .padding(.horizontal, Metrics.Pill.horizontalPadding)
+        .padding(.vertical, Metrics.Pill.verticalPadding)
         .background(Ink.fill, in: Capsule())
     }
 

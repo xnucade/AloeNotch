@@ -440,12 +440,44 @@ enum Metrics {
     static let hudInsetHardware: CGFloat = 12
     static let hudInsetSimulated: CGFloat = 16
 
-    // Now-playing artwork, collapsed and expanded. These are the two ends of
-    // the matched-geometry morph.
+    // Now-playing artwork: collapsed, expanded, and in the focused media
+    // view. The strip's artwork morphs into either of the larger two.
     static let peekArtworkSize: CGFloat = 15
     static let expandedArtworkSize: CGFloat = 62
-    static let peekArtworkRadius: CGFloat = 4
-    static let expandedArtworkRadius: CGFloat = 13
+    static let focusedArtworkSize: CGFloat = 82
+    static var peekArtworkRadius: CGFloat { artworkRadius(peekArtworkSize) }
+    static var expandedArtworkRadius: CGFloat { artworkRadius(expandedArtworkSize) }
+    static var focusedArtworkRadius: CGFloat { artworkRadius(focusedArtworkSize) }
+
+    /// Corner radius of a free-standing square of artwork, a thumbnail or an
+    /// app icon badge, as a share of its side. One ratio at every size, so
+    /// the artwork morphing out of the strip scales instead of changing
+    /// shape on the way (it was 4 at 15 pt, 13 at 62 and 16 at 82).
+    static func artworkRadius(_ side: CGFloat) -> CGFloat { side * 0.21 }
+
+    /// The shelf's drop well, whose corners follow the panel's: it sits on
+    /// the panel's bottom edge.
+    static let wellRadius = concentricRadius(parent: panelRadius, inset: panelBottomInset)
+    /// Between the well's edge and the thumbnails in it.
+    static let wellPadding: CGFloat = 6
+    /// A thumbnail in the well's corner follows the well's corner.
+    static let wellItemRadius = concentricRadius(parent: wellRadius, inset: wellPadding)
+
+    /// Rows and small fields: clipboard entries, settings controls.
+    static let controlRadius: CGFloat = 8
+
+    /// Capsule pills: weather, battery, timer presets, output devices. One
+    /// size, so pills that sit side by side are the same height.
+    enum Pill {
+        static let horizontalPadding: CGFloat = 9
+        static let verticalPadding: CGFloat = 5
+        /// Between a pill's glyph and its text.
+        static let iconGap: CGFloat = 5
+        /// The same gap beside a glyph drawn edge to edge, like the battery.
+        /// SF Symbols carry their own side bearing; a drawn shape doesn't,
+        /// so it needs the extra points to look the same distance away.
+        static let drawnIconGap: CGFloat = 7
+    }
 }
 
 // MARK: - Typography

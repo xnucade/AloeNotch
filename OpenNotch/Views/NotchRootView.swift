@@ -1083,7 +1083,7 @@ private struct AudioDeviceChip: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: Metrics.Pill.iconGap) {
                 Image(systemName: device.symbol)
                     .font(Typography.icon(11, .medium))
                 Text(device.name)
@@ -1091,8 +1091,8 @@ private struct AudioDeviceChip: View {
                     .lineLimit(1)
             }
             .foregroundStyle(isActive ? settings.accent : (hovering ? .white : Ink.secondary))
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
+            .padding(.horizontal, Metrics.Pill.horizontalPadding)
+            .padding(.vertical, Metrics.Pill.verticalPadding)
             .background {
                 Capsule().fill(isActive
                                ? settings.accent.opacity(0.18)
@@ -1131,7 +1131,7 @@ private struct WeatherPill: View {
         if let snapshot = weather.current {
             let interactive = !snapshot.hourly.isEmpty
             Button(action: onOpenForecast) {
-                HStack(spacing: 5) {
+                HStack(spacing: Metrics.Pill.iconGap) {
                     Image(systemName: snapshot.symbolName)
                         .symbolRenderingMode(.multicolor)
                         .font(Typography.icon(12, .medium))
@@ -1141,8 +1141,8 @@ private struct WeatherPill: View {
                         .monospacedDigit()
                         .contentTransition(.numericText())
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
+                .padding(.horizontal, Metrics.Pill.horizontalPadding)
+                .padding(.vertical, Metrics.Pill.verticalPadding)
                 .background(hovering && interactive ? Ink.fillStrong : Ink.fill, in: Capsule())
                 // On glass, a pill of glass: a lit edge, brighter along the top.
                 .overlay {

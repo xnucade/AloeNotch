@@ -21,9 +21,9 @@ struct TrayView: View {
                     ZStack {
                         // A fill that only exists while a file is overhead, so
                         // the well reads as *open* rather than merely outlined.
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: Metrics.wellRadius, style: .continuous)
                             .fill(isTargeted ? Ink.fill : .clear)
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: Metrics.wellRadius, style: .continuous)
                             .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
                             .foregroundStyle(isTargeted ? Ink.tertiary : Ink.fillStrong)
                     }
@@ -150,7 +150,7 @@ extension TrayView {
                         ))
                 }
             }
-            .padding(6)
+            .padding(Metrics.wellPadding)
             .animation(Motion.contentFade, value: tray.items)
         }
     }
@@ -214,11 +214,11 @@ private struct TrayChip: View {
                 if let thumb = item.thumbnail {
                     Image(nsImage: thumb).resizable().scaledToFill()
                 } else {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Ink.fill)
+                    RoundedRectangle(cornerRadius: Metrics.wellItemRadius, style: .continuous).fill(Ink.fill)
                 }
             }
             .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Metrics.wellItemRadius, style: .continuous))
             // Lifts toward the cursor so it reads as grabbable — this is the
             // one control here you are meant to pick up and drag.
             .scaleEffect(hovering && !reduceMotion ? 1.06 : 1)
