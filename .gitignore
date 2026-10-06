@@ -67,7 +67,7 @@ secrets.*
 *.mobileprovision
 
 # --- Raw working media (not part of the app/site; may show desktop contents) ---
-Media/
+/Media/
 
 # --- Editors / tooling ---
 .vscode/
