@@ -112,8 +112,8 @@ final class LiveActivityCenter: ObservableObject {
     /// The transient announcement showing right now, if any.
     @Published private(set) var current: LiveActivity?
 
-    /// A standing condition — a timer counting down, say. Transients display
-    /// over it and it comes back when they expire.
+    /// The standing condition on show — a timer counting down, say.
+    /// Transients display over it and it comes back when they expire.
     ///
     /// Kept out of the announcement queue: a running timer is not news that
     /// waits its turn and expires, it is a standing fact that transients play
@@ -190,13 +190,28 @@ final class LiveActivityCenter: ObservableObject {
         ])
     }
 
-    func setResident(_ activity: LiveActivity?) {
-        if let activity, resident?.kind != activity.kind { Self.announce(activity) }
-        resident = activity
+    /// Every standing condition, not just the one on screen — see
+    /// `ResidentSlots` for which wins.
+    private var residents = ResidentSlots<LiveActivity>()
+
+    /// Starts or updates the resident for `activity.kind`. Several can be true
+    /// at once; the strip shows the highest priority and the rest wait
+    /// underneath for it to clear.
+    func setResident(_ activity: LiveActivity) {
+        let isNew = !residents.contains(kind: activity.kind)
+        residents.set(activity)
+        publishResident()
+        if isNew, resident?.kind == activity.kind { Self.announce(activity) }
     }
 
     func clearResident(kind: String) {
-        if resident?.kind == kind { resident = nil }
+        residents.clear(kind: kind)
+        publishResident()
+    }
+
+    private func publishResident() {
+        let next = residents.showing
+        if next != resident { resident = next }
     }
 
     /// Clear immediately — used when the thing being announced stops being true
