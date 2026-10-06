@@ -275,6 +275,9 @@ struct NotchRootView: View {
                    value: viewModel.pull)
         .contentShape(Rectangle())
         .onHover { viewModel.hoverChanged($0) }
+        .onContinuousHover(coordinateSpace: .global) { phase in
+            if case .active(let point) = phase { viewModel.pointerMoved(to: point) }
+        }
         // Only while closed, so it can never swallow a click meant for a
         // control inside the open panel.
         .gesture(TapGesture().onEnded { viewModel.notchClicked() },
