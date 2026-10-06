@@ -26,12 +26,23 @@ private struct NotchGlassKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct NotchPanelOpenKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
 extension EnvironmentValues {
     /// True while the open panel is drawn as glass, for the few elements
     /// that dress differently on it (a rim on a pill, a glow on a bar).
     var notchGlass: Bool {
         get { self[NotchGlassKey.self] }
         set { self[NotchGlassKey.self] = newValue }
+    }
+
+    /// False while the open panel's content is still on screen but closing.
+    /// The artwork reads it to hand itself back to the strip on time.
+    var notchPanelOpen: Bool {
+        get { self[NotchPanelOpenKey.self] }
+        set { self[NotchPanelOpenKey.self] = newValue }
     }
 }
 
