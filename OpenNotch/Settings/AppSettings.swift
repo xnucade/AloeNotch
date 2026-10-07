@@ -30,6 +30,11 @@ final class AppSettings: ObservableObject {
     @Published var peekOnTrackChange: Bool {
         didSet { save(peekOnTrackChange, "peekOnTrackChange") }
     }
+    /// The next event counting down on the strip for its last ten minutes.
+    /// Off by default: a standing readout the user didn't ask for is noise.
+    @Published var showNextEventCountdown: Bool {
+        didSet { save(showNextEventCountdown, "showNextEventCountdown") }
+    }
     /// Caps Lock turning on or off. Rides the volume and brightness readouts'
     /// Accessibility access, so it only works while those are on.
     @Published var showCapsLock: Bool {
@@ -207,6 +212,7 @@ final class AppSettings: ObservableObject {
             "showBattery": true,
             "showDeviceEvents": true,
             "peekOnTrackChange": false,
+            "showNextEventCountdown": false,
             "showCapsLock": true,
             "showMicMute": true,
             "hideFromCapture": false,
@@ -254,6 +260,7 @@ final class AppSettings: ObservableObject {
         showBattery = defaults.bool(forKey: "showBattery")
         showDeviceEvents = defaults.bool(forKey: "showDeviceEvents")
         peekOnTrackChange = defaults.bool(forKey: "peekOnTrackChange")
+        showNextEventCountdown = defaults.bool(forKey: "showNextEventCountdown")
         showCapsLock = defaults.bool(forKey: "showCapsLock")
         showMicMute = defaults.bool(forKey: "showMicMute")
         hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")

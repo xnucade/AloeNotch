@@ -13,6 +13,9 @@
     "%@ ejected" : {
 
     },
+    "%@ paused" : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -38,6 +41,9 @@
     "1 char" : {
 
     },
+    "25 min focus, 5 min break" : {
+
+    },
     "A Dynamic Island for your MacBook. Free and open source." : {
 
     },
@@ -53,7 +59,7 @@
     "A calmer panel, if you want it" : {
 
     },
-    "A countdown that takes over the collapsed notch while it runs." : {
+    "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs." : {
 
     },
     "A custom amount of overshoot (%@)." : {
@@ -99,6 +105,9 @@
 
     },
     "After a volume or brightness readout the notch could stay stretched wide with nothing in it, and the playback visualizer would vanish. Every state change was landing one step behind." : {
+
+    },
+    "Again" : {
 
     },
     "AirDrop" : {
@@ -206,6 +215,12 @@
     "Bounce" : {
 
     },
+    "Break" : {
+
+    },
+    "Break's over" : {
+
+    },
     "Brightness" : {
 
     },
@@ -216,12 +231,6 @@
 
     },
     "Calm" : {
-
-    },
-    "Cancel the timer" : {
-
-    },
-    "Cancel timer" : {
 
     },
     "Caps Lock" : {
@@ -314,6 +323,12 @@
     "Counting down" : {
 
     },
+    "Counting up" : {
+
+    },
+    "Counts down to your next event in the notch for the ten minutes before it starts. All-day events are skipped." : {
+
+    },
     "Cover art is decoded off the main thread, so skipping a track no longer costs a frame just as the artwork is crossfading." : {
 
     },
@@ -353,6 +368,9 @@
     "Display" : {
 
     },
+    "Done" : {
+
+    },
     "Drag all" : {
 
     },
@@ -390,6 +408,12 @@
 
     },
     "Fixed: a wide, empty strip" : {
+
+    },
+    "Focus" : {
+
+    },
+    "Focusing" : {
 
     },
     "Fog" : {
@@ -629,6 +653,9 @@
     "Needed to catch the volume keys first. Without it macOS keeps drawing its own HUD, so AloeNotch stays out of the way." : {
 
     },
+    "Next event" : {
+
+    },
     "Next state" : {
 
     },
@@ -691,6 +718,9 @@
 
     },
     "On" : {
+
+    },
+    "On a break" : {
 
     },
     "On purpose. A spring that overshoots also undershoots, which would briefly make the collapsed strip smaller than the hardware notch and show wallpaper around it. Opening overshoots outward, where there's room." : {
@@ -762,9 +792,6 @@
     "Pause" : {
 
     },
-    "Pause timer" : {
-
-    },
     "Paused" : {
 
     },
@@ -801,6 +828,9 @@
     "Readouts" : {
 
     },
+    "Ready" : {
+
+    },
     "Reduce Motion and Reduce Transparency are both honoured now, live, without a relaunch." : {
 
     },
@@ -831,7 +861,7 @@
     "Respects Reduce Motion" : {
 
     },
-    "Resume timer" : {
+    "Resume" : {
 
     },
     "Screen sharing" : {
@@ -918,7 +948,7 @@
     "Standard" : {
 
     },
-    "Start a timer" : {
+    "Start focus" : {
 
     },
     "Start one from the panel and it takes over the collapsed strip while it counts down. Pause it, add a minute, or let it ring." : {
@@ -927,10 +957,22 @@
     "Start something in Music, Spotify or a browser." : {
 
     },
+    "Start stopwatch" : {
+
+    },
     "Startup" : {
 
     },
     "Stay out of full-screen apps" : {
+
+    },
+    "Stop and reset" : {
+
+    },
+    "Stopwatch" : {
+
+    },
+    "Stopwatch paused" : {
 
     },
     "Swipe on the notch" : {

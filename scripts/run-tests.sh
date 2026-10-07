@@ -31,10 +31,13 @@ echo "✓ design tokens clean"
 SOURCES=(
     OpenNotch/Notch/PanelState.swift
     OpenNotch/Notch/ActivityQueue.swift
+    OpenNotch/Notch/ResidentSlots.swift
     OpenNotch/Notch/HoverIntent.swift
     OpenNotch/Design/SemanticVersion.swift
     OpenNotch/System/ClipboardHistory.swift
     OpenNotch/Timer/CountdownState.swift
+    OpenNotch/Timer/StopwatchState.swift
+    OpenNotch/Calendar/NextEventWindow.swift
     OpenNotch/Design/MotionPersonality.swift
     OpenNotch/Notch/SwipeTracker.swift
     OpenNotch/Notch/DisplayChoice.swift
