@@ -58,6 +58,103 @@ func testClipboardHistory() {
     expect(h.isEmpty, "clearing empties the history")
 }
 
+private func image(bytes: Int, fill: UInt8) -> ClipItem {
+    ClipItem(kind: .image(NSImage(size: NSSize(width: 8, height: 8)),
+                          Data(repeating: fill, count: bytes)))
+}
+
+func testClipboardPins() {
+    var h = ClipboardHistory()
+    h.insert(text("address"))
+    h.insert(text("b"))
+    let address = h.items[1]
+
+    h.pin(address)
+    expect(h.isPinned(address), "an entry can be pinned")
+    expect(h.items.first?.id == address.id, "pinned entries list first")
+    expect(h.pinned.count == 1 && h.recent.count == 1, "pinning moves, it doesn't copy")
+
+    // A pin survives any amount of copying after it.
+    for i in 0..<(ClipboardHistory.capacity + 5) { h.insert(text("flood-\(i)")) }
+    expect(h.isPinned(address), "pins are never evicted by the capacity cap")
+    expect(h.recent.count == ClipboardHistory.capacity, "the cap still holds for the rest")
+
+    // Copying a pinned entry again doesn't duplicate it or move it.
+    var rich = text("address")
+    rich.formats = ["public.rtf": Data("{\\rtf1}".utf8)]
+    h.insert(rich)
+    expect(h.items.filter { $0.preview == "address" }.count == 1, "re-copying a pin doesn't duplicate it")
+    expect(h.pinned.first?.id == address.id, "re-copying a pin keeps it in place")
+    expect(h.pinned.first?.hasFormatting == true, "but picks up the new copy's formatting")
+
+    // Unpinning returns it to the top of the history, where it can't be
+    // silently evicted.
+    h.unpin(address)
+    expect(!h.isPinned(address) && h.recent.first?.id == address.id, "unpinning returns it to the top")
+    expect(h.recent.count == ClipboardHistory.capacity, "and the cap is enforced again")
+
+    // Capacity.
+    var full = ClipboardHistory()
+    for i in 0..<(ClipboardHistory.pinCapacity + 2) { full.insert(text("p\(i)")) }
+    for item in full.recent { full.pin(item) }
+    expect(full.pinned.count == ClipboardHistory.pinCapacity, "pins are capped")
+    expect(!full.canPin(full.recent[0]), "and refused past the cap")
+
+    // Pinned images are limited, so fresh images always have room.
+    var imgs = ClipboardHistory()
+    for i in 0..<3 { imgs.insert(image(bytes: 10, fill: UInt8(i))) }
+    for item in imgs.recent { imgs.pin(item) }
+    expect(imgs.pinned.count == ClipboardHistory.pinnedImageCapacity, "only so many images can be pinned")
+    for i in 10..<20 { imgs.insert(image(bytes: 10, fill: UInt8(i))) }
+    expect(imgs.items.filter(\.isImage).count == ClipboardHistory.imageCapacity,
+           "pinned images count against the image allowance")
+    expect(imgs.pinned.count == ClipboardHistory.pinnedImageCapacity, "but are never the ones dropped")
+
+    // Clearing forgets pins too.
+    h.pin(h.recent[0])
+    h.removeAll()
+    expect(h.isEmpty, "clearing forgets pinned entries as well")
+
+    // Removing works on either list.
+    var r = ClipboardHistory()
+    r.insert(text("x")); r.insert(text("y"))
+    r.pin(r.recent[0])
+    r.remove(r.pinned[0])
+    expect(r.items.count == 1 && r.pinned.isEmpty, "a pinned entry can be removed")
+}
+
+func testClipboardImageBudget() {
+    // Three 8 MB images fit the count cap but not the byte budget.
+    var h = ClipboardHistory()
+    let mb = 1024 * 1024
+    for i in 0..<3 { h.insert(image(bytes: 8 * mb, fill: UInt8(i))) }
+    let bytes = h.items.reduce(0) { $0 + $1.imageBytes }
+    expect(bytes <= ClipboardHistory.imageByteBudget, "images stay within the byte budget")
+    expect(h.items.filter(\.isImage).count == 2, "the oldest image is the one dropped")
+    expect(h.items.first?.imageBytes == 8 * mb, "the newest image is kept")
+}
+
+func testClipboardSearch() {
+    var h = ClipboardHistory()
+    h.insert(text("Café au lait"))
+    h.insert(ClipItem(kind: .files([URL(fileURLWithPath: "/tmp/Quarterly Report.pdf")])))
+    h.insert(text("line one\nthe needle is on line two"))
+    h.insert(image())
+
+    expect(h.items(matching: "").count == 4, "an empty search shows everything")
+    expect(h.items(matching: "   ").count == 4, "whitespace alone is an empty search")
+    expect(h.items(matching: "cafe").count == 1, "search ignores accents")
+    expect(h.items(matching: "CAFÉ").count == 1, "and case")
+    expect(h.items(matching: "needle").count == 1, "text matches beyond its first line")
+    expect(h.items(matching: "report").count == 1, "files match on their names")
+    expect(h.items(matching: "tmp").isEmpty, "but not on their folder")
+    expect(h.items(matching: "image").count == 1, "images are found by kind")
+    expect(h.items(matching: "zzz").isEmpty, "no match shows nothing")
+
+    h.pin(h.recent[3])
+    expect(h.items(matching: "a").first?.preview == "Café au lait", "search keeps pinned entries first")
+}
+
 func testClipItemPresentation() {
     // A copied code block is mostly newlines and indentation. Showing it raw
     // turns a one-line row into a ragged mess.
@@ -97,4 +194,8 @@ func testClipItemPresentation() {
     expect(one.redactedPreview == "File", "a file's name is hidden")
     expect(many.redactedPreview == "2 files", "a count of files gives nothing away")
     expect(image().redactedPreview == "Image", "images say image")
+
+    var shot = image()
+    shot.pixelSize = CGSize(width: 3024, height: 1964)
+    expect(shot.preview == "Image 3024×1964", "an image reports the original's size, not the thumbnail's")
 }

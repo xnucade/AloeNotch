@@ -318,6 +318,14 @@ final class NotchViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // A search is for this look at the list, not the next one.
+        $panelState
+            .map(\.isExpanded)
+            .removeDuplicates()
+            .filter { !$0 }
+            .sink { [weak self] _ in self?.clipboard.endSearch() }
+            .store(in: &cancellables)
+
         settings.$showCapsLock
             .removeDuplicates()
             .dropFirst()

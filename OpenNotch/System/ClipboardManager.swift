@@ -25,9 +25,32 @@ final class ClipboardManager: ObservableObject {
 
     var items: [ClipItem] { history.items }
 
+    /// What the search field holds. Here rather than in a view because the
+    /// tabbed column's header draws the field and the list below filters by
+    /// it; cleared whenever the panel closes.
+    @Published var query = ""
+    /// Whether the column is showing the search field in place of its tabs.
+    @Published var isSearching = false
+
+    func endSearch() {
+        query = ""
+        isSearching = false
+    }
+
+    /// The entries the list should show — everything, or what matches.
+    var visibleItems: [ClipItem] { history.items(matching: query) }
+
     /// A single image larger than this is dropped rather than trimmed later:
     /// the point of the cap is to never hold it in the first place.
     private static let maxImageBytes = 10 * 1024 * 1024
+
+    /// The richer versions of copied text worth keeping, richest first —
+    /// the order they go back onto the pasteboard, so apps take the best
+    /// one they understand. Each is skipped above `maxFormatBytes`: styled
+    /// text that large is carrying embedded images, which the image cap
+    /// exists to keep out.
+    private static let keptFormats: [NSPasteboard.PasteboardType] = [.rtf, .html]
+    private static let maxFormatBytes = 512 * 1024
 
     private let pasteboard = NSPasteboard.general
     private var lastChangeCount: Int
@@ -74,16 +97,35 @@ final class ClipboardManager: ObservableObject {
         history.remove(item)
     }
 
+    func isPinned(_ item: ClipItem) -> Bool { history.isPinned(item) }
+    func canPin(_ item: ClipItem) -> Bool { history.canPin(item) }
+
+    func togglePin(_ item: ClipItem) {
+        if history.isPinned(item) { history.unpin(item) } else { history.pin(item) }
+        Haptics.caught()
+    }
+
     /// Put an entry back on the pasteboard.
     ///
     /// Copy, not paste: pasting means synthesising ⌘V, which needs Accessibility
     /// permission. Making a clipboard history depend on the most invasive
     /// permission macOS offers is a bad bargain for one saved keystroke.
-    func copy(_ item: ClipItem) {
+    ///
+    /// `plainText` leaves the formatting behind — the "Paste and Match Style"
+    /// of a clipboard history, for pasting into a document without dragging
+    /// a web page's fonts in with it.
+    func copy(_ item: ClipItem, plainText: Bool = false) {
         pasteboard.clearContents()
         switch item.kind {
         case .text(let s):
-            pasteboard.setString(s, forType: .string)
+            let entry = NSPasteboardItem()
+            if !plainText {
+                for type in Self.keptFormats {
+                    if let data = item.formats[type.rawValue] { entry.setData(data, forType: type) }
+                }
+            }
+            entry.setString(s, forType: .string)
+            pasteboard.writeObjects([entry])
         case .image(_, let data):
             pasteboard.setData(data, forType: .png)
         case .files(let urls):
@@ -120,12 +162,22 @@ final class ClipboardManager: ObservableObject {
 
         if let s = pasteboard.string(forType: .string),
            !s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return ClipItem(kind: .text(s))
+            var item = ClipItem(kind: .text(s))
+            for type in Self.keptFormats {
+                if let data = pasteboard.data(forType: type), data.count <= Self.maxFormatBytes {
+                    item.formats[type.rawValue] = data
+                }
+            }
+            return item
         }
 
         if let data = imageData(), data.count <= Self.maxImageBytes,
            let image = NSImage(data: data) {
-            return ClipItem(kind: .image(thumbnail(of: image), data))
+            var item = ClipItem(kind: .image(thumbnail(of: image), data))
+            if let rep = image.representations.first, rep.pixelsWide > 0 {
+                item.pixelSize = CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+            }
+            return item
         }
 
         return nil
