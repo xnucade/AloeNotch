@@ -22,6 +22,8 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         /// anyone re-presenting the activity every second — a running timer
         /// would otherwise restart its arrival beat sixty times a minute.
         case countdown(Date)
+        /// Counts up from a date — a stopwatch. Same reasoning as `countdown`.
+        case elapsed(Date)
         /// A song: the title, scrolling if it has to, over the artist.
         case track(title: String, artist: String)
     }
@@ -66,6 +68,7 @@ struct LiveActivity: Identifiable, Equatable, QueueableActivity {
         case .level(let level): "\(Int((min(1, max(0, level)) * 100).rounded())) percent"
         case .text(let text): text
         case .countdown(let deadline): "\(CountdownState.clock(deadline.timeIntervalSinceNow)) remaining"
+        case .elapsed(let origin): "\(StopwatchState.clock(-origin.timeIntervalSinceNow)) elapsed"
         case .track: nil
         }
         return [name, value].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
@@ -90,6 +93,9 @@ extension LiveActivity {
         /// Something that happened on its own: a device connected, a download
         /// finished.
         static let ambient = 30
+        /// Something on a schedule nobody started by hand — a meeting coming
+        /// up. Yields the strip to any clock the user did start.
+        static let scheduled = 20
     }
 }
 
@@ -112,8 +118,8 @@ final class LiveActivityCenter: ObservableObject {
     /// The transient announcement showing right now, if any.
     @Published private(set) var current: LiveActivity?
 
-    /// A standing condition — a timer counting down, say. Transients display
-    /// over it and it comes back when they expire.
+    /// The standing condition on show — a timer counting down, say.
+    /// Transients display over it and it comes back when they expire.
     ///
     /// Kept out of the announcement queue: a running timer is not news that
     /// waits its turn and expires, it is a standing fact that transients play
@@ -190,13 +196,28 @@ final class LiveActivityCenter: ObservableObject {
         ])
     }
 
-    func setResident(_ activity: LiveActivity?) {
-        if let activity, resident?.kind != activity.kind { Self.announce(activity) }
-        resident = activity
+    /// Every standing condition, not just the one on screen — see
+    /// `ResidentSlots` for which wins.
+    private var residents = ResidentSlots<LiveActivity>()
+
+    /// Starts or updates the resident for `activity.kind`. Several can be true
+    /// at once; the strip shows the highest priority and the rest wait
+    /// underneath for it to clear.
+    func setResident(_ activity: LiveActivity) {
+        let isNew = !residents.contains(kind: activity.kind)
+        residents.set(activity)
+        publishResident()
+        if isNew, resident?.kind == activity.kind { Self.announce(activity) }
     }
 
     func clearResident(kind: String) {
-        if resident?.kind == kind { resident = nil }
+        residents.clear(kind: kind)
+        publishResident()
+    }
+
+    private func publishResident() {
+        let next = residents.showing
+        if next != resident { resident = next }
     }
 
     /// Clear immediately — used when the thing being announced stops being true

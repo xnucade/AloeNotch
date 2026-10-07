@@ -753,6 +753,19 @@ struct ActivityTrailing: View {
                                value: Int(deadline.timeIntervalSince(context.date).rounded(.up)))
                     .lineLimit(1)
             }
+        case .elapsed(let origin):
+            // Ticks from the origin itself, so every redraw lands on a second
+            // boundary — once a second instead of the countdown's four.
+            TimelineView(.periodic(from: origin, by: 1)) { context in
+                let seconds = context.date.timeIntervalSince(origin)
+                Text(StopwatchState.clock(seconds))
+                    .font(Typography.body(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Ink.primary)
+                    .contentTransition(.numericText())
+                    .animation(Motion.readout, value: Int(seconds.rounded(.down)))
+                    .lineLimit(1)
+            }
         }
     }
 }

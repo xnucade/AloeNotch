@@ -90,6 +90,7 @@ final class NotchViewModel: ObservableObject {
     let audioOutput = AudioOutputController()
     let caffeine = CaffeineController()
     lazy var timer = TimerModel(center: activities)
+    private lazy var nextEvent = NextEventCountdown(center: activities, calendar: calendar, settings: settings)
 
     /// Watches for hardware worth announcing. See `ActivityDetectors`.
     private lazy var detectors = ActivityDetectors(center: activities)
@@ -201,6 +202,7 @@ final class NotchViewModel: ObservableObject {
                 if enabled { self?.calendar.start() } else { self?.calendar.stop() }
             }
             .store(in: &cancellables)
+        _ = nextEvent
 
         settings.$showWeather
             .combineLatest(settings.$hasSeenWelcome)

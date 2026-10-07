@@ -50,7 +50,7 @@ struct ModulesTab: View {
                           description: "Your last 24 copies, plus up to six you pin. Search it, or ⌥-click to copy without formatting. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped.",
                           binding: $settings.showClipboard),
                     .init(title: "Timer", symbol: "timer",
-                          description: "A countdown that takes over the collapsed notch while it runs.",
+                          description: "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs.",
                           binding: $settings.showTimer),
                 ])
 
@@ -92,6 +92,15 @@ struct ModulesTab: View {
 
                 SettingsDivider()
 
+                if settings.showCalendar {
+                    SettingsRow("Next event", symbol: "calendar.badge.clock",
+                                description: "Counts down to your next event in the notch for the ten minutes before it starts. All-day events are skipped.") {
+                        Toggle("", isOn: $settings.showNextEventCountdown).labelsHidden()
+                    }
+
+                    SettingsDivider()
+                }
+
                 SettingsRow("Device events", symbol: "airpods.pro",
                             description: "A brief note in the notch when headphones connect or a drive mounts or ejects.") {
                     Toggle("", isOn: $settings.showDeviceEvents).labelsHidden()
@@ -108,6 +117,8 @@ struct ModulesTab: View {
             }
             .animation(Motion.contentFade,
                        value: settings.showHUD)
+            .animation(Motion.contentFade,
+                       value: settings.showCalendar)
             .animation(Motion.contentFade,
                        value: settings.showDeviceEvents)
         }
