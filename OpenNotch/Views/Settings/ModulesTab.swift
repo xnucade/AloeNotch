@@ -47,7 +47,7 @@ struct ModulesTab: View {
                           description: "Drag files onto the notch to park them.",
                           binding: $settings.showShelf),
                     .init(title: "Clipboard", symbol: "doc.on.clipboard",
-                          description: "Your last 24 copies. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped.",
+                          description: "Your last 24 copies, plus up to six you pin. Search it, or ⌥-click to copy without formatting. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped.",
                           binding: $settings.showClipboard),
                     .init(title: "Timer", symbol: "timer",
                           description: "A countdown that takes over the collapsed notch while it runs.",

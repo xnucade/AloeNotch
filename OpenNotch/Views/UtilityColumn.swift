@@ -100,6 +100,20 @@ struct UtilityColumn: View {
     /// that don't.
     private var switcher: some View {
         HStack(spacing: Metrics.Spacing.snug) {
+            // A search takes the whole row while it is open: the column is
+            // 160pt, and a field squeezed in beside three tabs would hold
+            // about four characters.
+            if active == .clipboard && clipboard.isSearching {
+                ClipboardSearchField(clipboard: clipboard)
+            } else {
+                tabs
+            }
+        }
+        .frame(height: 16)
+    }
+
+    @ViewBuilder
+    private var tabs: some View {
             ForEach(tools) { t in
                 UtilityTab(tool: t,
                            isActive: t == active,
@@ -109,8 +123,6 @@ struct UtilityColumn: View {
             }
             Spacer(minLength: Metrics.Spacing.tight)
             actions
-        }
-        .frame(height: 16)
     }
 
     /// The active pane's controls, hoisted into the switcher row. Leaving them
@@ -124,15 +136,8 @@ struct UtilityColumn: View {
             if !tray.items.isEmpty { TrayClearButton { tray.clear() } }
         case .clipboard:
             if !clipboard.items.isEmpty {
-                Button { clipboard.clear() } label: {
-                    Image(systemName: "trash")
-                        .font(Typography.icon(11, .medium))
-                        .foregroundStyle(.white)
-                        .hoverLift(restOpacity: 0.5)
-                }
-                .buttonStyle(PressableButtonStyle())
-                .help("Forget everything copied so far")
-                .accessibilityLabel("Clear clipboard history")
+                ClipboardSearchButton(clipboard: clipboard)
+                ClipboardClearButton(clipboard: clipboard)
             }
         case .timer:
             if timer.isActive { TimerCancelButton { timer.cancel() } }

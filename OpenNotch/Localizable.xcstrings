@@ -275,6 +275,9 @@
     "Close" : {
 
     },
+    "Close search" : {
+
+    },
     "Closing never bounces" : {
 
     },
@@ -309,6 +312,9 @@
 
     },
     "Copy again: %@" : {
+
+    },
+    "Copy as Plain Text" : {
 
     },
     "Counting down" : {
@@ -395,7 +401,7 @@
     "Fog" : {
 
     },
-    "Forget everything copied so far" : {
+    "Forget everything copied so far, pins included" : {
 
     },
     "Frame times: waiting for a transition" : {
@@ -487,6 +493,16 @@
     },
     "Image" : {
 
+    },
+    "Image %@×%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Image %1$@×%2$@"
+          }
+        }
+      }
     },
     "In the panel" : {
 
@@ -638,6 +654,9 @@
     "No crash reports so far. Copies your version and any reports, to paste into an issue. Never sent anywhere." : {
 
     },
+    "No matches" : {
+
+    },
     "No more stutter on track changes" : {
 
     },
@@ -777,6 +796,12 @@
     "Personality" : {
 
     },
+    "Pin" : {
+
+    },
+    "Pin — kept at the top, and never pushed out by newer copies" : {
+
+    },
     "Play" : {
 
     },
@@ -810,6 +835,9 @@
     "Reduce Transparency is on in System Settings, so panels are solid regardless of these options." : {
 
     },
+    "Remove" : {
+
+    },
     "Remove from Shelf" : {
 
     },
@@ -835,6 +863,15 @@
 
     },
     "Screen sharing" : {
+
+    },
+    "Search" : {
+
+    },
+    "Search clipboard history" : {
+
+    },
+    "Search the clipboard" : {
 
     },
     "See how charged your AirPods or Beats are when they connect." : {
@@ -1050,6 +1087,9 @@
     "Two fingers down to open, up to close, and sideways to skip tracks." : {
 
     },
+    "Unpin" : {
+
+    },
     "Updates" : {
 
     },
@@ -1158,7 +1198,7 @@
     "Your MacBook's notch, turned into something useful." : {
 
     },
-    "Your last 24 copies. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped." : {
+    "Your last 24 copies, plus up to six you pin. Search it, or ⌥-click to copy without formatting. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped." : {
 
     },
     "Your week, and the next event." : {
