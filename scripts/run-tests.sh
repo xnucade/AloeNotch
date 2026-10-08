@@ -38,6 +38,7 @@ SOURCES=(
     OpenNotch/Timer/CountdownState.swift
     OpenNotch/Timer/StopwatchState.swift
     OpenNotch/Calendar/NextEventWindow.swift
+    OpenNotch/System/QuietApps.swift
     OpenNotch/Design/MotionPersonality.swift
     OpenNotch/Notch/SwipeTracker.swift
     OpenNotch/Notch/DisplayChoice.swift

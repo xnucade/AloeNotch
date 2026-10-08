@@ -130,9 +130,12 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var hasKeyboardFocus = false
 
     /// Another app is full screen on the notch's display and the user has
-    /// asked the notch to stay out of its way. Re-read when it can change —
-    /// the pointer arriving, a Space switching — never on a timer.
+    /// asked the notch to stay out of its way, or an app on the quiet list is
+    /// in front. Re-read when it can change — the pointer arriving, a Space
+    /// switching, an app activating — never on a timer.
     @Published private(set) var isOutOfTheWay = false
+    /// Bundle identifier of the app in front, for the quiet list.
+    private var frontmostApp = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
 
 
     /// Opens the preferences window; set by AppDelegate.
@@ -177,12 +180,29 @@ final class NotchViewModel: ObservableObject {
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
             .delay(for: .milliseconds(400), scheduler: RunLoop.main)
-            .sink { [weak self] _ in self?.refreshFullScreen() }
+            .sink { [weak self] _ in self?.refreshOutOfTheWay() }
             .store(in: &cancellables)
         settings.$hideInFullScreen
             .dropFirst()
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.refreshFullScreen() }
+            .sink { [weak self] _ in self?.refreshOutOfTheWay() }
+            .store(in: &cancellables)
+
+        // The quiet list follows whichever app is in front. Activation is a
+        // notification, so there is nothing to poll.
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.didActivateApplicationNotification)
+            .compactMap { ($0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] id in
+                self?.frontmostApp = id
+                self?.refreshOutOfTheWay()
+            }
+            .store(in: &cancellables)
+        settings.$quietApps
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshOutOfTheWay() }
             .store(in: &cancellables)
 
         media.start()
@@ -424,7 +444,7 @@ final class NotchViewModel: ObservableObject {
         cancelIntent()
         if inside {
             // A file dragged here is deliberate even over a full-screen app.
-            refreshFullScreen()
+            refreshOutOfTheWay()
             if isOutOfTheWay && !immediate { return }
             // Coming back inside the close grace period, or already open:
             // nothing to decide.
@@ -691,9 +711,10 @@ final class NotchViewModel: ObservableObject {
         ))
     }
 
-    private func refreshFullScreen() {
-        let outOfTheWay = settings.hideInFullScreen
-            && (metrics?.screen).map(FullScreenDetector.isFullScreen(on:)) ?? false
+    private func refreshOutOfTheWay() {
+        let outOfTheWay = QuietApps.isQuiet(frontmost: frontmostApp, list: settings.quietApps)
+            || settings.hideInFullScreen
+                && (metrics?.screen).map(FullScreenDetector.isFullScreen(on:)) ?? false
         guard outOfTheWay != isOutOfTheWay else { return }
         isOutOfTheWay = outOfTheWay
         refreshState()

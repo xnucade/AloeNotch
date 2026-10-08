@@ -149,6 +149,10 @@ struct GeneralTab: View {
                             description: "While a game or video is full screen, the pointer won't open the notch and only volume and brightness appear. The shortcut still opens it.") {
                     Toggle("", isOn: $settings.hideInFullScreen).labelsHidden()
                 }
+
+                SettingsDivider()
+
+                QuietAppsList(settings: settings)
             }
 
             SettingsSection("Screen sharing", index: 4) {
