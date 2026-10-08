@@ -15,6 +15,8 @@ struct TrayItem: Identifiable, Equatable {
 /// the files themselves are never copied or moved.
 final class TrayModel: ObservableObject {
     @Published private(set) var items: [TrayItem] = []
+    /// Files a compress or convert is running on, so their tiles can say so.
+    @Published private(set) var working: Set<URL> = []
 
     private let defaults = UserDefaults.standard
     private let storeKey = "shelfBookmarks"
@@ -44,6 +46,40 @@ final class TrayModel: ObservableObject {
     func clear() {
         items.removeAll()
         persist()
+    }
+
+    /// Dragged out and dropped somewhere that took them. Only acts when the
+    /// user has asked for the shelf to empty itself that way.
+    func draggedOut(_ urls: [URL]) {
+        guard AppSettings.shared.shelfClearsAfterDrag else { return }
+        items.removeAll { urls.contains($0.url) }
+        persist()
+    }
+
+    // MARK: - Actions
+
+    /// The archive lands on the shelf beside its sources, ready to drag out.
+    func compress(_ urls: [URL]) {
+        run(on: urls) { done in ShelfProcessing.compress(urls, completion: done) }
+    }
+
+    func convert(_ url: URL, to format: ImageFormat) {
+        run(on: [url]) { done in ShelfProcessing.convert(url, to: format, completion: done) }
+    }
+
+    private func run(on urls: [URL], _ work: (@escaping (URL?) -> Void) -> Void) {
+        guard working.isDisjoint(with: urls) else { return }
+        working.formUnion(urls)
+        work { [weak self] result in
+            guard let self else { return }
+            self.working.subtract(urls)
+            if let result {
+                self.add(urls: [result])
+                Haptics.caught()
+            } else {
+                NSSound.beep()
+            }
+        }
     }
 
     /// Shared drop handler used by the tray grid and the collapsed notch strip.

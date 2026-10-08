@@ -131,7 +131,7 @@ struct UtilityColumn: View {
     private var actions: some View {
         switch active {
         case .shelf:
-            if tray.items.count >= 2 { TrayDragAllPill(urls: tray.items.map(\.url)) }
+            if tray.items.count >= 2 { TrayDragAllPill(tray: tray) }
             if !tray.items.isEmpty { TrayAirDropButton(urls: tray.items.map(\.url)) }
             if !tray.items.isEmpty { TrayClearButton { tray.clear() } }
         case .clipboard:

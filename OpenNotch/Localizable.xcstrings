@@ -314,6 +314,15 @@
     "Combination" : {
 
     },
+    "Compress" : {
+
+    },
+    "Compress %lld Items" : {
+
+    },
+    "Compress All %lld Items" : {
+
+    },
     "Connecting the charger briefly shows a bolt and your charge level in the notch." : {
 
     },
@@ -321,6 +330,9 @@
 
     },
     "Controls for whatever your Mac is playing." : {
+
+    },
+    "Convert to" : {
 
     },
     "Copied" : {
@@ -395,7 +407,7 @@
     "Drag all %lld files out together" : {
 
     },
-    "Drag files onto the notch to park them." : {
+    "Drag files onto the notch to park them. Right-click one to compress it or convert an image; the result is saved beside the original." : {
 
     },
     "Drizzle" : {
@@ -405,6 +417,9 @@
 
     },
     "Easier to read" : {
+
+    },
+    "Empty shelf after dragging out" : {
 
     },
     "Empty the shelf" : {
@@ -417,6 +432,9 @@
 
     },
     "Files" : {
+
+    },
+    "Files leave the shelf once you drop them somewhere. Off, they stay until you remove them." : {
 
     },
     "Five tabs, with accent color, panel width, glass intensity and animation speed — plus every module toggled individually." : {

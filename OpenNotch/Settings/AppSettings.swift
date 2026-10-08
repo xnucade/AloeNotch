@@ -35,6 +35,11 @@ final class AppSettings: ObservableObject {
     @Published var showNextEventCountdown: Bool {
         didSet { save(showNextEventCountdown, "showNextEventCountdown") }
     }
+    /// Files leave the shelf once they've been dragged out somewhere. Off by
+    /// default: the shelf is a place to keep things until you say otherwise.
+    @Published var shelfClearsAfterDrag: Bool {
+        didSet { save(shelfClearsAfterDrag, "shelfClearsAfterDrag") }
+    }
     /// Caps Lock turning on or off. Rides the volume and brightness readouts'
     /// Accessibility access, so it only works while those are on.
     @Published var showCapsLock: Bool {
@@ -216,6 +221,7 @@ final class AppSettings: ObservableObject {
             "showDeviceEvents": true,
             "peekOnTrackChange": false,
             "showNextEventCountdown": false,
+            "shelfClearsAfterDrag": false,
             "showCapsLock": true,
             "showMicMute": true,
             "hideFromCapture": false,
@@ -265,6 +271,7 @@ final class AppSettings: ObservableObject {
         showDeviceEvents = defaults.bool(forKey: "showDeviceEvents")
         peekOnTrackChange = defaults.bool(forKey: "peekOnTrackChange")
         showNextEventCountdown = defaults.bool(forKey: "showNextEventCountdown")
+        shelfClearsAfterDrag = defaults.bool(forKey: "shelfClearsAfterDrag")
         showCapsLock = defaults.bool(forKey: "showCapsLock")
         showMicMute = defaults.bool(forKey: "showMicMute")
         hotKeyEnabled = defaults.bool(forKey: "hotKeyEnabled")
