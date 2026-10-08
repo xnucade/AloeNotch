@@ -39,7 +39,7 @@ struct SettingsMenuView: View {
                             menuButton("arrow.down.circle.fill",
                                        "Update to \(newVersion)",
                                        tint: .accentColor) {
-                                updates.openReleasesPage()
+                                updates.installUpdate()
                             }
                         }
                         menuButton("gearshape", "Settings…", shortcut: ",", action: onOpenSettings)

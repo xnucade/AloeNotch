@@ -42,6 +42,15 @@ echo "==> Releasing $OLD → $NEW"
 
 # 1. Version in the Xcode project (both Debug + Release configs).
 sed -i '' "s/MARKETING_VERSION = $OLD;/MARKETING_VERSION = $NEW;/g" "$PBXPROJ"
+# And the build number, which is what Sparkle compares (sparkle:version is
+# CFBundleVersion). It was a constant 1 before Sparkle; it must now go up on
+# every release or no one is offered the update. Skipped when re-running prep
+# for the same version, so a second pass doesn't count twice.
+if [ "$OLD" != "$NEW" ]; then
+    BUILD=$(sed -n 's/.*CURRENT_PROJECT_VERSION = \(.*\);/\1/p' "$PBXPROJ" | head -1)
+    sed -i '' "s/CURRENT_PROJECT_VERSION = $BUILD;/CURRENT_PROJECT_VERSION = $((BUILD + 1));/g" "$PBXPROJ"
+    echo "    build number $BUILD → $((BUILD + 1))"
+fi
 
 # 2. Site download link + version text.
 sed -i '' "s/AloeNotch-$OLD\.dmg/AloeNotch-$NEW.dmg/g; s/Version $OLD/Version $NEW/g" "$INDEX"
@@ -101,6 +110,28 @@ NOTES=$(mktemp)
 TITLE="$NEW — ${RELEASE_TITLE:-$("$PROJECT_DIR/scripts/release-notes.py" "$NEW" --headline)}"
 DMG="$PROJECT_DIR/build/AloeNotch-$NEW.dmg"
 [ -f "$DMG" ] || fail "missing $DMG"
+
+# The Sparkle appcast: what every copy from 0.14 on checks, instead of
+# GitHub. generate_appcast signs the DMG with the EdDSA key in this Mac's
+# keychain (account "aloenotch"); without that key no one can be offered an
+# update, so its absence stops the release here. Built in a scratch folder
+# holding only this DMG, its notes and the current feed, so the frozen Intel
+# DMG in site/assets never becomes an item.
+echo "==> Writing the appcast"
+SPARKLE_BIN=$(find "${TMPDIR:-/tmp}/AloeNotch-build/DerivedData/SourcePackages/artifacts" \
+    -type d -path '*/Sparkle/bin' 2>/dev/null | head -1)
+[ -x "$SPARKLE_BIN/generate_appcast" ] || fail "Sparkle's generate_appcast wasn't found (make-dmg.sh resolves it)"
+STAGE="$PROJECT_DIR/build/appcast"
+rm -rf "$STAGE" && mkdir -p "$STAGE"
+cp "$DMG" "$STAGE/"
+[ -f "$PROJECT_DIR/site/appcast.xml" ] && cp "$PROJECT_DIR/site/appcast.xml" "$STAGE/"
+"$PROJECT_DIR/scripts/release-notes.py" "$NEW" --html > "$STAGE/AloeNotch-$NEW.html" \
+    || fail "could not build appcast notes for $NEW"
+"$SPARKLE_BIN/generate_appcast" --account aloenotch \
+    --download-url-prefix "https://aloenotch.com/assets/" \
+    --embed-release-notes --link "https://aloenotch.com" \
+    "$STAGE" || fail "generate_appcast failed (is the aloenotch EdDSA key in the keychain?)"
+cp "$STAGE/appcast.xml" "$PROJECT_DIR/site/appcast.xml"
 
 echo "==> Committing, pushing, and deploying"
 cd "$PROJECT_DIR"

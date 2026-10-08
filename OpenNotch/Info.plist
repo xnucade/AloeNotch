@@ -36,6 +36,20 @@
 	<string>AloeNotch uses your approximate location to show the local weather.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
+	<key>SUFeedURL</key>
+	<string>https://aloenotch.com/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>Hb4GHADNel2V5yWV88nfdd8dJYVgFEf7gn3eqmxy+vE=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUAllowsAutomaticUpdates</key>
+	<false/>
+	<key>SUEnableSystemProfiling</key>
+	<false/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

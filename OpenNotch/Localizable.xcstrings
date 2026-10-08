@@ -194,7 +194,7 @@
     "Artwork" : {
 
     },
-    "Asks GitHub once a day whether a newer release exists. Sends nothing but a version number." : {
+    "Asks aloenotch.com once a day whether a newer version exists. Sends nothing but a version number, and installs nothing until you say so." : {
 
     },
     "Automatic" : {
@@ -351,6 +351,9 @@
 
     },
     "Copy as Plain Text" : {
+
+    },
+    "Couldn't reach aloenotch.com. Check your connection." : {
 
     },
     "Counting down" : {
@@ -835,9 +838,6 @@
     "Opens the moment the pointer touches the notch." : {
 
     },
-    "Opens the release page, where you can download the new version." : {
-
-    },
     "Overcast" : {
 
     },
@@ -989,6 +989,9 @@
 
     },
     "Showers" : {
+
+    },
+    "Shows what's new, then installs it and reopens AloeNotch." : {
 
     },
     "Shows your next event in the panel. Nothing leaves your Mac." : {
