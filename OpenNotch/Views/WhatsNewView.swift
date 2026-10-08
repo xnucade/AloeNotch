@@ -24,10 +24,47 @@ enum WhatsNew {
 
     enum Setting {
         case glassNotch, lyrics, liveEqualizer, headphoneBattery
+        case songPeek, eventCountdown, everyDisplay
     }
 
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
+        Entry(
+            version: "0.14.0",
+            headline: "Polished, and a little more useful",
+            items: [
+                Item(symbol: "shuffle",
+                     title: "Shuffle, repeat, and a peek at the next song",
+                     detail: "Both buttons sit beside the play controls. When the track changes, the new cover can slide out of the notch for a moment.",
+                     setting: .songPeek),
+                Item(symbol: "capslock.fill",
+                     title: "Small things, announced",
+                     detail: "Caps Lock, microphone mute, the keyboard backlight, low battery and Low Power Mode each get a brief note in the notch."),
+                Item(symbol: "stopwatch",
+                     title: "Stopwatch and focus sessions",
+                     detail: "The timer gains two modes, and your next event can count down on the notch for its last ten minutes.",
+                     setting: .eventCountdown),
+                Item(symbol: "pin",
+                     title: "A clipboard you can pin and search",
+                     detail: "Keep up to six things at the top, find anything you copied, and paste with or without its formatting. Still memory only."),
+                Item(symbol: "archivebox",
+                     title: "Compress and convert from the shelf",
+                     detail: "Right-click a file to zip it, or an image to change its format. The result lands next to the original."),
+                Item(symbol: "quote.bubble",
+                     title: "The next line of lyrics",
+                     detail: "Click the lyric to see what's coming as well as what's being sung."),
+                Item(symbol: "rectangle.on.rectangle",
+                     title: "The notch on every display",
+                     detail: "Each screen gets its own, and the panel opens on whichever one you're using.",
+                     setting: .everyDisplay),
+                Item(symbol: "eye.slash",
+                     title: "Out of the way when it should be",
+                     detail: "Full-screen apps, and any apps you choose in Settings → General, keep the notch quiet. Esc closes the panel."),
+                Item(symbol: "arrow.down.circle",
+                     title: "Updates in one click",
+                     detail: "When a new version is out, see what changed, then install it and reopen without visiting the website."),
+            ]
+        ),
         Entry(
             version: "0.13.1",
             headline: "Glass, lyrics, and a notch that listens",
@@ -309,6 +346,12 @@ struct WhatsNewView: View {
             $settings.showLyrics
         case .liveEqualizer:
             $settings.liveEqualizer
+        case .songPeek:
+            $settings.peekOnTrackChange
+        case .eventCountdown:
+            $settings.showNextEventCountdown
+        case .everyDisplay:
+            $settings.showOnAllDisplays
         case .headphoneBattery:
             Binding(
                 get: { settings.showHeadphoneBattery

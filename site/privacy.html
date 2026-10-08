@@ -35,7 +35,7 @@
   <main class="legal">
     <a class="back" href="/">← Back to AloeNotch</a>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: September 24, 2026</p>
+    <p class="updated">Last updated: October 7, 2026</p>
 
     <p>AloeNotch (“the app”) is a macOS menu bar app made by Kade’s Lab (“we”,
     “us”). We built it to be private by default: it has no accounts, no
@@ -46,8 +46,9 @@
     <p>Everything AloeNotch shows you — now playing, your calendar, battery, and
     files on the shelf — is read on your Mac and stays on your Mac. Data leaves
     your device only for features you turn on: an approximate location for the
-    weather, and a song’s name if you turn on lyrics. We never see your
-    data, because none of it is sent to us. We don’t operate servers that
+    weather, and a song’s name if you turn on lyrics. Once a day the app also
+    asks our website whether a newer version exists, which carries nothing about
+    you. We never see your data, because none of it is sent to us. We don’t operate servers that
     receive your information.</p>
 
     <h2>What the app accesses on your device</h2>
@@ -75,9 +76,28 @@
       <li><strong>Battery.</strong> The app reads your battery level and charging
       state from the system. This stays on your device.</li>
       <li><strong>Shelf files.</strong> When you drag a file onto the notch, the
-      app holds a reference to that file for the current session so you can drag
+      app keeps a reference to it (a macOS bookmark, stored in the app’s
+      preferences) so it is still on the shelf after a restart and you can drag
       it back out. Files are not copied, moved, uploaded, or read beyond
-      generating a thumbnail preview locally.</li>
+      generating a thumbnail preview locally. If you choose <em>Compress</em> or
+      <em>Convert</em> on a shelf item, the app writes the result as a new file
+      next to the original, the way Finder does, and leaves the original
+      untouched.</li>
+      <li><strong>Clipboard history.</strong> The app keeps the last things you
+      copied, including any you pin, in memory only. It is never written to
+      disk, is gone when the app quits, and skips anything your password manager
+      or another app marks as private or temporary.</li>
+      <li><strong>Keyboard and system state.</strong> To show brief
+      announcements in the notch, the app notices when Caps Lock turns on or off,
+      when your microphone is muted, when the keyboard backlight changes, and
+      when Low Power Mode or a low battery kicks in. It reads only those on/off
+      states and levels; no keystrokes, no audio. Nothing is recorded or
+      transmitted.</li>
+      <li><strong>Apps and displays.</strong> The app notices which app is in
+      front and whether it is full screen, so it can stay out of the way of
+      full-screen apps and of any apps you list in Settings. That list is stored
+      in the app’s preferences. If you turn on showing the notch on every
+      display, it reads only your displays’ size and arrangement.</li>
     </ul>
 
     <h2>What can leave your device</h2>
@@ -107,16 +127,26 @@
     lyrics off and no song information leaves your Mac.</p>
 
     <h3>Update checks</h3>
-    <p>Unless you turn it off in Settings, the app asks GitHub once a day for
-    the latest release’s version number, so it can tell you when an update is
-    available. The request carries nothing about you or your Mac beyond what any
-    web request does.</p>
+    <p>Unless you turn it off in Settings, the app downloads a small list of
+    releases (<code>aloenotch.com/appcast.xml</code>) once a day, using the
+    open-source <a href="https://sparkle-project.org/">Sparkle</a> updater, so it
+    can tell you when an update is available.</p>
+    <ul>
+      <li>The request names the app and its version, and nothing else. Sparkle’s
+      optional system profile (Mac model, macOS version and similar) is turned
+      off, and no identifier is sent.</li>
+      <li>Nothing is installed until you click Install. Every update is signed,
+      and the app checks that signature before opening it.</li>
+      <li>The list is served from this website, so the request is handled by our
+      hosting provider like any page view (see below).</li>
+    </ul>
 
     <h2>Permissions</h2>
     <p>AloeNotch only asks for permissions the features you enable actually need
     — Calendar access for upcoming events, Location access for weather,
-    Bluetooth for headphone battery, and system audio recording for the live
-    equalizer. All are optional. If you deny or disable them, the related feature simply hides
+    Bluetooth for headphone battery, system audio recording for the live
+    equalizer, and Accessibility to replace the volume and brightness display
+    (which also lets it notice Caps Lock). All are optional. If you deny or disable them, the related feature simply hides
     and the app keeps working. You can change these any time in <strong>System
     Settings → Privacy &amp; Security</strong>.</p>
 
