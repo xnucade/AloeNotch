@@ -68,7 +68,7 @@ struct ModulesTab: View {
 
             SettingsSection("Announcements", index: 2) {
                 SettingsRow("Volume & Brightness", symbol: "speaker.wave.2",
-                            description: "Replaces the macOS HUD with a readout in the notch.") {
+                            description: "Replaces the macOS HUD with a readout in the notch, and shows the keyboard backlight level when it changes.") {
                     Toggle("", isOn: $settings.showHUD).labelsHidden()
                 }
 

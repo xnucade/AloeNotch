@@ -603,6 +603,9 @@
     "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS." : {
 
     },
+    "Keyboard brightness" : {
+
+    },
     "Keyboard shortcut" : {
 
     },
@@ -916,7 +919,7 @@
     "Repeat" : {
 
     },
-    "Replaces the macOS HUD with a readout in the notch." : {
+    "Replaces the macOS HUD with a readout in the notch, and shows the keyboard backlight level when it changes." : {
 
     },
     "Report an issue" : {
