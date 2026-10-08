@@ -24,14 +24,17 @@ final class KeyboardBacklightMonitor {
     private static let registerSelector = NSSelectorFromString("registerNotificationForKeys:keyboardID:block:")
     private static let unregisterSelector = NSSelectorFromString("unregisterKeyboardNotificationBlock")
     private static let builtInSelector = NSSelectorFromString("isKeyboardBuiltIn:")
-    /// The user's level, as the Control Center slider sets it — not the
-    /// momentary output, which idle dimming and ambient light move.
+    private static let brightnessSelector = NSSelectorFromString("brightnessForKeyboard:")
+    private static let autoSelector = NSSelectorFromString("isAutoBrightnessEnabledForKeyboard:")
+    /// The backlight level. Idle dimming leaves it alone (that moves only the
+    /// momentary output), but automatic brightness moves it with the room's
+    /// light, so `filter` sorts those steps from changes someone made.
     private static let brightnessKey = "KeyboardBacklightBrightness"
 
     private var client: NSObject?
     private var keyboardID: UInt64 = 0
     private var listening = false
-    private var last: Float = -1
+    private var filter = BacklightChangeFilter()
 
     init() {
         load()
@@ -59,6 +62,7 @@ final class KeyboardBacklightMonitor {
     func start() {
         guard isAvailable, !listening, let client else { return }
         listening = true
+        filter.reset(to: currentLevel())
         let register = unsafeBitCast(client.method(for: Self.registerSelector), to: Register.self)
         register(client, Self.registerSelector, [Self.brightnessKey], keyboardID) { [weak self] key, value in
             guard (key as? String) == Self.brightnessKey,
@@ -72,12 +76,30 @@ final class KeyboardBacklightMonitor {
         listening = false
         let unregister = unsafeBitCast(client.method(for: Self.unregisterSelector), to: Unregister.self)
         unregister(client, Self.unregisterSelector)
-        last = -1
     }
 
     private func report(_ level: Float) {
-        guard listening, abs(level - last) > 0.005 else { return }
-        last = level
+        guard listening,
+              filter.shouldShow(level, at: ProcessInfo.processInfo.systemUptime,
+                                autoBrightness: autoBrightnessEnabled()) else { return }
         onChange?(level)
+    }
+
+    private typealias LevelGetter = @convention(c) (AnyObject, Selector, UInt64) -> Float
+    private typealias FlagGetter = @convention(c) (AnyObject, Selector, UInt64) -> Bool
+
+    private func currentLevel() -> Float? {
+        guard let client, client.responds(to: Self.brightnessSelector) else { return nil }
+        let get = unsafeBitCast(client.method(for: Self.brightnessSelector), to: LevelGetter.self)
+        return min(1, max(0, get(client, Self.brightnessSelector, keyboardID)))
+    }
+
+    /// Asked per change rather than cached: it is one call, made only when
+    /// the level moves, and the user can flip it in System Settings any time.
+    /// Unknown counts as on, the cautious reading.
+    private func autoBrightnessEnabled() -> Bool {
+        guard let client, client.responds(to: Self.autoSelector) else { return true }
+        let get = unsafeBitCast(client.method(for: Self.autoSelector), to: FlagGetter.self)
+        return get(client, Self.autoSelector, keyboardID)
     }
 }
