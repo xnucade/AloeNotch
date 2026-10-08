@@ -24,6 +24,12 @@ func testSyncedLyrics() {
     expect(lyrics.line(at: 15.5)?.text == "Colon fraction", "mm:ss:xx stamps")
     expect(lyrics.line(at: 25)?.text == "Chorus", "and again at its later stamp")
 
+    expect(lyrics.upcoming(at: 0, count: 1).map(\.text) == ["First line"], "the intro shows the opening line as next")
+    expect(lyrics.upcoming(at: 2, count: 2).map(\.text) == ["Second line", "Chorus"], "gaps are skipped")
+    expect(lyrics.upcoming(at: 9, count: 1).map(\.text) == ["Chorus"], "a gap still shows what comes after it")
+    expect(lyrics.upcoming(at: 25, count: 3).isEmpty, "nothing after the last line")
+    expect(lyrics.upcoming(at: 2, count: 0).isEmpty, "a zero count asks for nothing")
+
     let shifted = SyncedLyrics(lrc: "[offset:+500]\n[00:02.00]Early")
     expect(shifted?.line(at: 1.5)?.text == "Early", "a positive offset brings lines sooner")
 

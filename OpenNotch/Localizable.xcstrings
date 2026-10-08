@@ -973,6 +973,12 @@
     "Show on" : {
 
     },
+    "Show the next line" : {
+
+    },
+    "Show the progress bar" : {
+
+    },
     "Showers" : {
 
     },
@@ -1087,7 +1093,7 @@
     "The line being sung, right under the track title. Looks up the song's name on LRCLIB." : {
 
     },
-    "The line being sung, under the track title. Looks up the track's name on LRCLIB, a free lyrics database." : {
+    "The line being sung, under the track title; click it to see the next line too. Looks up the track's name on LRCLIB, a free lyrics database." : {
 
     },
     "The media helper didn't start. Relaunching AloeNotch usually fixes it." : {

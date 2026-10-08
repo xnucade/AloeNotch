@@ -45,16 +45,30 @@ struct SyncedLyrics: Equatable {
     }
 
     /// The line being sung at `time`, or nil before the first line and in
-    /// gaps. Binary search: this runs a few times a second.
+    /// gaps.
     func line(at time: Double) -> Line? {
+        guard let i = index(at: time) else { return nil }
+        return lines[i].text.isEmpty ? nil : lines[i]
+    }
+
+    /// The lines still to come after the one at `time`, gaps skipped, at most
+    /// `count`. Before the first line this is the opening line: what the
+    /// expanded lyrics show as "coming up" during an intro.
+    func upcoming(at time: Double, count: Int) -> [Line] {
+        guard count > 0 else { return [] }
+        let start = index(at: time).map { $0 + 1 } ?? 0
+        return Array(lines[start...].lazy.filter { !$0.text.isEmpty }.prefix(count))
+    }
+
+    /// Index of the last line stamped at or before `time`, gaps included.
+    /// Binary search: this runs a few times a second.
+    private func index(at time: Double) -> Int? {
         var lo = 0, hi = lines.count
         while lo < hi {
             let mid = (lo + hi) / 2
             if lines[mid].time <= time { lo = mid + 1 } else { hi = mid }
         }
-        guard lo > 0 else { return nil }
-        let line = lines[lo - 1]
-        return line.text.isEmpty ? nil : line
+        return lo > 0 ? lo - 1 : nil
     }
 
     /// `mm:ss`, `mm:ss.xx` or `mm:ss.xxx` (also `:` before the fraction).

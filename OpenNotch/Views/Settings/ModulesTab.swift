@@ -24,7 +24,7 @@ struct ModulesTab: View {
                           description: "Controls for whatever your Mac is playing.",
                           binding: $settings.showMedia),
                     .init(title: "Lyrics", symbol: "quote.bubble",
-                          description: "The line being sung, under the track title. Looks up the track's name on LRCLIB, a free lyrics database.",
+                          description: "The line being sung, under the track title; click it to see the next line too. Looks up the track's name on LRCLIB, a free lyrics database.",
                           binding: $settings.showLyrics),
                     .init(title: "Live equalizer", symbol: "waveform",
                           description: "Bars that follow the music instead of a loop. Asks to record system audio, which is measured and never kept; macOS may show its recording indicator while the bars are on screen.",
