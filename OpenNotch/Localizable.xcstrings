@@ -101,6 +101,12 @@
     "Accessibility" : {
 
     },
+    "Add" : {
+
+    },
+    "Add App…" : {
+
+    },
     "Add a minute" : {
 
     },
@@ -156,6 +162,9 @@
 
     },
     "AloeNotch was testing its media helper with a command that could never succeed, so it disabled itself even when everything was fine." : {
+
+    },
+    "Also stay out of these apps" : {
 
     },
     "Always the display with the menu bar." : {
@@ -258,6 +267,9 @@
 
     },
     "Checking…" : {
+
+    },
+    "Choose apps for the notch to stay out of." : {
 
     },
     "Choose how much it bounces" : {
@@ -868,6 +880,9 @@
     "Remove" : {
 
     },
+    "Remove %@" : {
+
+    },
     "Remove from Shelf" : {
 
     },
@@ -1190,6 +1205,9 @@
 
     },
     "When more than one output is available, a speaker button appears in the panel header. Pick a device and everything follows." : {
+
+    },
+    "Whenever one of them is in front, the notch behaves as it does over a full-screen app — for a game or presentation that runs in a window." : {
 
     },
     "Where it opens" : {

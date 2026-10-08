@@ -75,6 +75,9 @@ final class AppSettings: ObservableObject {
     /// doesn't open the panel and only key readouts (volume, brightness)
     /// appear: the top of a full-screen game or film belongs to it.
     @Published var hideInFullScreen: Bool { didSet { save(hideInFullScreen, "hideInFullScreen") } }
+    /// Bundle identifiers of apps the notch treats as full screen whenever
+    /// they're in front. See `QuietApps`.
+    @Published var quietApps: [String] { didSet { defaults.set(quietApps, forKey: "quietApps") } }
     /// Reduce clipboard rows to their kind while the microphone is in use —
     /// the moment you are most likely to be sharing your screen.
     @Published var blurClipboardInCalls: Bool {
@@ -247,6 +250,7 @@ final class AppSettings: ObservableObject {
         showMedia = defaults.bool(forKey: "showMedia")
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
         hideInFullScreen = defaults.bool(forKey: "hideInFullScreen")
+        quietApps = defaults.stringArray(forKey: "quietApps") ?? []
         showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
         showLyrics = defaults.bool(forKey: "showLyrics")
         liveEqualizer = defaults.bool(forKey: "liveEqualizer")
