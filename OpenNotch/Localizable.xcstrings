@@ -80,6 +80,9 @@
     "A real type scale replaces the dozen slightly-different sizes that had accumulated, with nothing under 10pt, and spacing on a consistent rhythm." : {
 
     },
+    "A strip at the top of each display. The one under the pointer opens; the others show the same live activities." : {
+
+    },
     "A thin line of the artwork's color hugging the panel edge." : {
 
     },
@@ -423,6 +426,9 @@
 
     },
     "Empty the shelf" : {
+
+    },
+    "Every display" : {
 
     },
     "Every earlier release was signed in a way that made macOS treat each update as a different app, so Calendar, Location and Accessibility were forgotten every time you updated. Grant them once after this update and they'll stick from now on." : {

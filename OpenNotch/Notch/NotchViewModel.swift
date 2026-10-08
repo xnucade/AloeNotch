@@ -82,6 +82,16 @@ final class NotchViewModel: ObservableObject {
     /// `.animation(_:value:)`, which is unambiguous.
     @Published private(set) var stateAnimation: Animation = Motion.expand
 
+    /// What the strip shows on a display the pointer isn't on, with "Every
+    /// display" on: `panelState` without the hover and the shortcut, so it
+    /// peeks with the others but never opens. Equal to `panelState` whenever
+    /// the panel is closed.
+    @Published private(set) var restingState: PanelState = .collapsed
+
+    /// Called just before the shortcut opens the panel, so the window
+    /// controller can move it to the display the pointer is on.
+    var onKeyboardOpen: (() -> Void)?
+
     @Published var metrics: NotchMetrics?
 
     /// Everything transient the notch announces. See `LiveActivity`.
@@ -694,7 +704,7 @@ final class NotchViewModel: ObservableObject {
     /// The precedence lives in `PanelStateReducer` rather than here so it can be
     /// tested without standing up a view model and all seven of its managers.
     /// This function's only job is gathering the inputs.
-    private func targetState() -> PanelState {
+    private func targetState(resting: Bool = false) -> PanelState {
         // Over a full-screen app only a readout for a key being pressed gets
         // through: the keys are swallowed for the HUD, so without it a
         // volume change would show nothing at all.
@@ -702,13 +712,19 @@ final class NotchViewModel: ObservableObject {
             isOutOfTheWay && shown.priority < LiveActivity.Priority.direct ? nil : shown
         }
         return PanelStateReducer.state(for: .init(
-            isHovering: isHovering,
-            isPinned: isPinnedOpen,
+            isHovering: isHovering && !resting,
+            isPinned: isPinnedOpen && !resting,
             activity: activity?.size,
             activityIsResident: activity?.isResident ?? false,
             mediaPlaying: media.isPlaying && !isOutOfTheWay,
             showMedia: settings.showMedia
         ))
+    }
+
+    /// The pointer took the open panel to another display (see
+    /// `DisplayPresence`). Full screen is judged on that display.
+    func activeDisplayChanged() {
+        refreshOutOfTheWay()
     }
 
     private func refreshOutOfTheWay() {
@@ -727,6 +743,7 @@ final class NotchViewModel: ObservableObject {
     /// thing that closes it, which is predictable in a way that "closes when
     /// you happen to mouse over and away" is not.
     func toggleFromKeyboard() {
+        if !isPinnedOpen { onKeyboardOpen?() }
         isPinnedOpen.toggle()
         hasKeyboardFocus = isPinnedOpen
         // Cancel any pending hover-out collapse, or a stale one could shut a
@@ -737,6 +754,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Recompute and animate to whatever the inputs now imply.
     private func refreshState() {
+        let resting = targetState(resting: true)
+        if resting != restingState { restingState = resting }
         apply(targetState())
     }
 

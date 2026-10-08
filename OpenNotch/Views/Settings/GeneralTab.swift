@@ -135,6 +135,13 @@ struct GeneralTab: View {
 
                 SettingsDivider()
 
+                SettingsRow("Every display", symbol: "rectangle.on.rectangle",
+                            description: "A strip at the top of each display. The one under the pointer opens; the others show the same live activities.") {
+                    Toggle("", isOn: $settings.showOnAllDisplays).labelsHidden()
+                }
+
+                SettingsDivider()
+
                 SettingsRow("Display", symbol: "display",
                             description: "Keep the panel on whichever screen the pointer is on now.",
                             highlightsOnHover: true) {

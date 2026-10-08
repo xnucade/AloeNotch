@@ -6,6 +6,9 @@ import SwiftUI
 /// drop shelf, calendar, and battery.
 struct NotchRootView: View {
     @ObservedObject var viewModel: NotchViewModel
+    /// This panel's display: its geometry, and whether it's the one that
+    /// opens. See `DisplayPresence`.
+    @ObservedObject var presence: DisplayPresence
     @ObservedObject private var settings = AppSettings.shared
     /// Observed directly rather than read from the environment: the panel is
     /// mounted in a bare NSHostingView rather than a SwiftUI scene, so SwiftUI
@@ -18,8 +21,18 @@ struct NotchRootView: View {
     /// Namespace for the shared artwork element. See `sharedArtwork`.
     @Namespace private var morph
 
-    private var metrics: NotchMetrics? { viewModel.metrics }
-    private var state: PanelState { viewModel.panelState }
+    private var metrics: NotchMetrics? { presence.metrics }
+    /// A panel the pointer isn't on peeks with the others but never opens,
+    /// swells, stretches or reaches for a file.
+    private var state: PanelState {
+        presence.isActive ? viewModel.panelState : viewModel.restingState
+    }
+    private var trailingState: PanelState {
+        presence.isActive ? viewModel.hitTestState : viewModel.restingState
+    }
+    private var pull: CGFloat { presence.isActive ? viewModel.pull : 0 }
+    private var anticipating: Bool { presence.isActive && viewModel.isAnticipating }
+    private var dragReach: CGFloat? { presence.isActive ? viewModel.dragReach : nil }
 
     /// Peek the now-playing glyph out beside the notch while something plays.
     /// Now read from the state machine rather than re-derived here, so the
@@ -67,10 +80,10 @@ struct NotchRootView: View {
         let base = reached(metrics?.size(for: state) ?? NotchGeometry.simulatedNotchSize)
         guard !state.isExpanded else { return base }
         // A two-finger pull stretches it down, following the fingers.
-        let pulled = CGSize(width: base.width, height: base.height + viewModel.pull)
+        let pulled = CGSize(width: base.width, height: base.height + pull)
         // The swell while the pointer decides. Never while open — see
         // `NotchViewModel.isAnticipating`.
-        guard viewModel.isAnticipating else { return pulled }
+        guard anticipating else { return pulled }
         return CGSize(width: pulled.width + Metrics.swell.width,
                       height: pulled.height + Metrics.swell.height)
     }
@@ -83,14 +96,14 @@ struct NotchRootView: View {
     static let reachSide: CGFloat = 8
 
     private func reached(_ size: CGSize) -> CGSize {
-        guard let bias = viewModel.dragReach, !a11y.reduceMotion else { return size }
+        guard let bias = dragReach, !a11y.reduceMotion else { return size }
         return CGSize(width: size.width + Self.reachSide * abs(bias),
                       height: size.height + Self.reachDown)
     }
 
     /// Recentres the widened surface so only the cursor's side moved.
     private var reachOffset: CGFloat {
-        guard let bias = viewModel.dragReach, !a11y.reduceMotion else { return 0 }
+        guard let bias = dragReach, !a11y.reduceMotion else { return 0 }
         return Self.reachSide * bias / 2
     }
 
@@ -148,7 +161,7 @@ struct NotchRootView: View {
     /// Whether the open panel's content is mounted: while open, and until a
     /// collapse has settled.
     private var showsPanelContent: Bool {
-        state.isExpanded || viewModel.hitTestState.isExpanded
+        state.isExpanded || trailingState.isExpanded
     }
 
     private var shoulder: CGFloat {
@@ -275,29 +288,34 @@ struct NotchRootView: View {
         // transition (bouncier opening, settled closing, quick between peeks).
         // A dropped file is swallowed: one small scale from the top edge.
         .scaleEffect(viewModel.gulping ? 0.98 : 1, anchor: .top)
-        .animation(viewModel.stateAnimation, value: state)
+        .animation(presence.isActive ? viewModel.stateAnimation : Motion.hud, value: state)
         .animation(Motion.hud,
-                   value: viewModel.dragReach)
+                   value: dragReach)
         .animation(Motion.anticipate,
-                   value: viewModel.isAnticipating)
+                   value: anticipating)
         // 1:1 while the fingers move; a spring only on the way back.
-        .animation(viewModel.pull == 0 ? Motion.hud : nil,
-                   value: viewModel.pull)
+        .animation(pull == 0 ? Motion.hud : nil,
+                   value: pull)
         .contentShape(Rectangle())
-        .onHover { viewModel.hoverChanged($0) }
+        // Reaching a panel makes it the active one. Leaving one only counts
+        // if it still is: the pointer may already have claimed another.
+        .onHover { inside in
+            if inside { presence.claim() }
+            if inside || presence.isActive { viewModel.hoverChanged(inside) }
+        }
         .onContinuousHover(coordinateSpace: .global) { phase in
-            if case .active(let point) = phase { viewModel.pointerMoved(to: point) }
+            if case .active(let point) = phase, presence.isActive { viewModel.pointerMoved(to: point) }
         }
         // Only while closed, so it can never swallow a click meant for a
         // control inside the open panel.
-        .gesture(TapGesture().onEnded { viewModel.notchClicked() },
+        .gesture(TapGesture().onEnded { presence.claim(); viewModel.notchClicked() },
                  including: state.isExpanded ? .none : .all)
         // VoiceOver can reach the notch but can't hover it: name it, and give
         // it the open/close the pointer would.
         .accessibilityElement(children: .contain)
         .accessibilityLabel("AloeNotch")
         .accessibilityAction(named: state.isExpanded ? "Close" : "Open") {
-            state.isExpanded ? viewModel.dismiss() : viewModel.notchClicked()
+            if state.isExpanded { viewModel.dismiss() } else { presence.claim(); viewModel.notchClicked() }
         }
         // Dragging a file over the collapsed strip opens the shelf; dropping
         // directly on the strip stages it immediately.
@@ -307,6 +325,8 @@ struct NotchRootView: View {
             return accepted
         }
         .onChange(of: isDropTargeted) { _, targeted in
+            if targeted { presence.claim() }
+            guard presence.isActive else { return }
             viewModel.hoverChanged(targeted || state.isExpanded, immediate: targeted)
         }
     }
