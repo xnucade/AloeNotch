@@ -1,0 +1,58 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>AloeNotch</title>
+        <item>
+            <title>0.14.0</title>
+            <pubDate>Wed, 07 Oct 2026 21:20:05 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>0.14.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li><strong>Shuffle and repeat.</strong> Both sit beside the play
+      controls. Optionally, a new song's cover slides out of the notch for a
+      moment when the track changes.</li>
+      <li><strong>Small things, announced.</strong> Caps Lock, microphone
+      mute, the keyboard backlight, low battery and Low Power Mode each get a
+      brief note in the notch, drawn like the volume display.</li>
+      <li><strong>Stopwatch and focus sessions.</strong> The timer has three
+      modes now, and several running things can share the notch instead of
+      the newest replacing the rest. Your next event can count down for its
+      last ten minutes, if you turn that on.</li>
+      <li><strong>A clipboard you can pin and search.</strong> Pin up to six
+      entries, search everything you copied, and keep formatting when you copy
+      back (⌥-click for plain text). History, pins included, still never
+      touches the disk.</li>
+      <li><strong>Compress and convert from the shelf.</strong> Right-click a
+      file to zip it, or an image to change its format. The result is written
+      next to the original, and the original is left alone.</li>
+      <li><strong>The next line of lyrics.</strong> Click the lyric to see the
+      line that's coming as well as the one being sung.</li>
+      <li><strong>The notch on every display</strong> (off by default). Each
+      screen gets its own, and the panel opens on whichever one you're
+      using.</li>
+      <li><strong>Out of the way when it should be.</strong> While an app is
+      full screen, the pointer no longer opens the panel. Apps you choose in
+      Settings → General get the same treatment even in a window. Esc closes
+      the panel, and ⌃⌥N gives it keyboard focus.</li>
+      <li><strong>Updates in one click.</strong> AloeNotch now updates itself
+      through <a href="https://sparkle-project.org/">Sparkle</a>: see what
+      changed, click Install, and it reopens on the new version. Every update
+      is signed and checked before it opens. Nothing installs without your
+      click.</li>
+      <li><strong>Motion, refined.</strong> The panel can change its mind
+      halfway through opening or closing without a jump, ignores the pointer
+      brushing past on its way to the menu bar, and closes without ever
+      overshooting the notch.</li>
+      <li><strong>Easier to read and use.</strong> Text and icons follow
+      Increase Contrast, modules show when they are loading or need a
+      permission instead of sitting blank, and Settings is tidier and ready to be
+      translated.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.0.dmg" length="3141269" type="application/octet-stream" sparkle:edSignature="YxTKRDPxu1ajF57VIQlLoI0LecW5rb0c/yLaD91ih+GXcBScAfSrh43GthGldmtUUe5tw5qGb7bXhdShUGB/Dg=="/>
+        </item>
+    </channel>
+</rss>
