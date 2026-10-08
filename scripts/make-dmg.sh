@@ -55,6 +55,21 @@ if [ -z "${SIGN_IDENTITY:-}" ]; then
         SIGN_IDENTITY="-"
     fi
 fi
+# Notarization only accepts code signed with a Developer ID certificate and a
+# secure timestamp, and Apple's timestamp service only stamps Apple-issued
+# certificates. So the timestamp is asked for exactly when the identity is a
+# Developer ID, and notarizing anything else is refused here rather than after
+# a ten-minute round trip to the notary service. See docs/NOTARIZATION.md.
+IS_DEVELOPER_ID=0
+case "$SIGN_IDENTITY" in "Developer ID Application"*) IS_DEVELOPER_ID=1 ;; esac
+TIMESTAMP=()
+[ "$IS_DEVELOPER_ID" = 1 ] && TIMESTAMP=(--timestamp)
+if [ -n "${NOTARY_PROFILE:-}" ] && [ "$IS_DEVELOPER_ID" != 1 ]; then
+    echo "error: NOTARY_PROFILE is set but SIGN_IDENTITY ('$SIGN_IDENTITY') is not a" >&2
+    echo "       Developer ID Application certificate. Apple won't notarize it." >&2
+    exit 1
+fi
+
 mkdir -p "$OUT_DIR"
 
 # Find a usable xcodebuild when xcode-select points at bare CommandLineTools.
@@ -127,7 +142,20 @@ plutil -lint "$ENTITLEMENTS" >/dev/null || {
 
 # Strip extended attributes (resource forks, Finder info) that break codesign.
 xattr -cr "$APP"
-codesign --force --deep --options runtime \
+
+# Nested code first, inside out. The media adapter's dylib ships in Resources
+# under a .dat name (so Xcode doesn't try to link it), which `--deep` never
+# reaches: it would stay linker-signed ad hoc, and the notary service rejects
+# any Mach-O in the bundle that isn't Developer ID signed and timestamped.
+while IFS= read -r -d '' FILE; do
+    if file -b "$FILE" | grep -q '^Mach-O'; then
+        echo "    nested: ${FILE#"$APP/"}"
+        codesign --force --options runtime "${TIMESTAMP[@]+"${TIMESTAMP[@]}"}" \
+            -s "$SIGN_IDENTITY" "$FILE"
+    fi
+done < <(find "$APP/Contents" -type f ! -path "$APP/Contents/MacOS/$APP_NAME" -print0)
+
+codesign --force --options runtime "${TIMESTAMP[@]+"${TIMESTAMP[@]}"}" \
     --entitlements "$ENTITLEMENTS" \
     -s "$SIGN_IDENTITY" "$APP"
 codesign --verify --deep --strict "$APP"
@@ -151,10 +179,14 @@ hdiutil create -volname "$APP_NAME" -srcfolder "$STAGING" \
     -ov -format UDZO "$DMG" -quiet
 rm -rf "$STAGING"
 
+# The disk image gets its own signature, so Gatekeeper can check the
+# container as well as the app inside it.
+if [ "$IS_DEVELOPER_ID" = 1 ]; then
+    codesign --force "${TIMESTAMP[@]}" -s "$SIGN_IDENTITY" "$DMG"
+fi
+
 if [ -n "${NOTARY_PROFILE:-}" ]; then
-    echo "==> Notarizing (profile: $NOTARY_PROFILE)"
-    xcrun notarytool submit "$DMG" --keychain-profile "$NOTARY_PROFILE" --wait
-    xcrun stapler staple "$DMG"
+    "$PROJECT_DIR/scripts/notarize.sh" "$DMG"
 fi
 
 echo "==> Done: $DMG"
