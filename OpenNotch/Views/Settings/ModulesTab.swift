@@ -44,7 +44,7 @@ struct ModulesTab: View {
             SettingsSection("Tools", index: 1) {
                 SettingsToggleList(items: [
                     .init(title: "Shelf", symbol: "tray.full",
-                          description: "Drag files onto the notch to park them.",
+                          description: "Drag files onto the notch to park them. Right-click one to compress it or convert an image; the result is saved beside the original.",
                           binding: $settings.showShelf),
                     .init(title: "Clipboard", symbol: "doc.on.clipboard",
                           description: "Your last 24 copies, plus up to six you pin. Search it, or ⌥-click to copy without formatting. Kept in memory only — cleared when AloeNotch quits, never written to disk, and anything a password manager marks as private is skipped.",
@@ -53,6 +53,14 @@ struct ModulesTab: View {
                           description: "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs.",
                           binding: $settings.showTimer),
                 ])
+
+                if settings.showShelf {
+                    SettingsDivider()
+                    SettingsRow("Empty shelf after dragging out", symbol: "tray.and.arrow.up",
+                                description: "Files leave the shelf once you drop them somewhere. Off, they stay until you remove them.") {
+                        Toggle("", isOn: $settings.shelfClearsAfterDrag).labelsHidden()
+                    }
+                }
 
                 SettingsDivider()
                 SettingsNote("These share one column, as tabs. Whichever are switched on appear there; a running timer brings its own tab forward.")
