@@ -80,6 +80,10 @@ final class AppSettings: ObservableObject {
     /// doesn't open the panel and only key readouts (volume, brightness)
     /// appear: the top of a full-screen game or film belongs to it.
     @Published var hideInFullScreen: Bool { didSet { save(hideInFullScreen, "hideInFullScreen") } }
+    /// A strip on every connected display, not just the chosen one. The one
+    /// under the pointer is the one that opens; the others show the same
+    /// peeks. Off by default: most people want one notch.
+    @Published var showOnAllDisplays: Bool { didSet { save(showOnAllDisplays, "showOnAllDisplays") } }
     /// Bundle identifiers of apps the notch treats as full screen whenever
     /// they're in front. See `QuietApps`.
     @Published var quietApps: [String] { didSet { defaults.set(quietApps, forKey: "quietApps") } }
@@ -226,6 +230,7 @@ final class AppSettings: ObservableObject {
             "showMicMute": true,
             "hideFromCapture": false,
             "hideInFullScreen": true,
+            "showOnAllDisplays": false,
             "showHeadphoneBattery": false,
             "showLyrics": false,
             "liveEqualizer": false,
@@ -256,6 +261,7 @@ final class AppSettings: ObservableObject {
         showMedia = defaults.bool(forKey: "showMedia")
         hideFromCapture = defaults.bool(forKey: "hideFromCapture")
         hideInFullScreen = defaults.bool(forKey: "hideInFullScreen")
+        showOnAllDisplays = defaults.bool(forKey: "showOnAllDisplays")
         quietApps = defaults.stringArray(forKey: "quietApps") ?? []
         showHeadphoneBattery = defaults.bool(forKey: "showHeadphoneBattery")
         showLyrics = defaults.bool(forKey: "showLyrics")
