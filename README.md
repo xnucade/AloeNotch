@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <sub>Apple Silicon · macOS 26 or later · 1.6 MB download · 37 MB in memory · under 1% of one core when idle · MIT</sub>
+  <sub>Apple Silicon · macOS 26 or later · 3 MB download · 37 MB in memory · under 1% of one core when idle · MIT</sub>
 </p>
 
 ---
@@ -33,20 +33,23 @@ added. Hover it, or press **⌃⌥N**, and it opens into a panel.
 
 | | |
 |---|---|
-| **Now Playing, everywhere** | Apple Music, Spotify, even YouTube in a browser tab. Artwork, title, transport controls and a scrubber you can drag. |
-| **Ambient Glow** | The artwork's colour traces the panel's edge — a thin line of light around the notch. |
-| **The Shelf** | Drag a file onto the notch and it opens to catch it. Files persist across launches; drag them back out one at a time or all at once. |
-| **Clipboard history** | The last 24 things you copied, one click to copy again. Memory only — never written to disk — and anything a password manager marks private is skipped. |
-| **A timer** | Start one from the panel and it takes over the collapsed strip while it counts down. |
+| **Now Playing, everywhere** | Apple Music, Spotify, even YouTube in a browser tab. Artwork, title, transport controls, shuffle and repeat, and a scrubber you can drag. |
+| **Lyrics and a live equalizer** | Optional. Time-synced lyrics under the title (click for the next line too), and equalizer bars that follow the actual music. |
+| **Ambient Glow and glass** | The artwork's colour traces the panel's edge. Optionally, the open panel frosts the desktop behind it; collapsed, it stays pure black over the camera. |
+| **The Shelf** | Drag a file onto the notch and it opens to catch it. Files persist across launches; drag them back out one at a time or all at once, or right-click to compress a file or convert an image. |
+| **Clipboard history** | The last 24 things you copied, one click to copy again. Pin up to six, search all of it, and copy back with or without formatting. Memory only — never written to disk — and anything a password manager marks private is skipped. |
+| **Timer, stopwatch, focus** | Start one from the panel and it takes over the collapsed strip while it runs. Your next event can count down there for its last ten minutes. |
 | **Your day at a glance** | The next 24 hours of your calendar, local weather with an hourly forecast, and a clock. |
-| **Volume & brightness** | Optional replacement for the macOS HUD, with bars in white, your accent, a colour each, or tinted by whatever's playing. |
+| **Volume, brightness, backlight** | Optional replacement for the macOS HUD, keyboard backlight included, with bars in white, your accent, a colour each, or tinted by whatever's playing. |
+| **Little announcements** | Caps Lock, microphone mute, low battery, Low Power Mode, headphones connecting (with their battery) and drives mounting each get a brief note. |
 | **Sound output** | Switch between speakers, AirPods and displays from the panel header. |
 | **Keep awake** | One click stops the display sleeping; the assertion is released automatically if the app quits or crashes. |
-| **Battery** | Charge level, a bolt while plugged in, and a quiet warning when you're low. |
-| **Motion you can dial** | Calm, Standard or Lively — choose how much the panel overshoots when it opens. Closing never bounces, because the collapsed strip has to land on the notch exactly. Reduce Motion always wins. |
+| **Out of the way** | While an app is full screen, or any app you list is in front, the pointer can't open the panel. Esc closes it; ⌃⌥N gives it keyboard focus. |
+| **Motion you can dial** | Calm, Standard or Lively — choose how much the panel overshoots when it opens. It can reverse mid-flight, ignores the pointer brushing past, and never bounces when closing, because the collapsed strip has to land on the notch exactly. Reduce Motion and Increase Contrast always win. |
 
 No notch? On other displays it draws its own strip in the same place, and
-everything works the same way.
+everything works the same way. With more than one screen, it can live on one
+or on every display.
 
 <p align="center">
   <img src="site/assets/clips/shelf.jpg" width="49%" alt="The Shelf holding three files">
@@ -58,13 +61,20 @@ everything works the same way.
 ## Privacy
 
 - **No analytics, no telemetry, no account.**
-- **Two network requests, both optional:** weather for your approximate
-  location ([Open-Meteo](https://open-meteo.com), no key), and a once-a-day
-  check of this repo's releases for a newer version. Either can be switched off.
-- **No permissions to start with.** Calendar and Location are requested only
-  when you turn those modules on; Accessibility only if you want the volume and
+- **Three kinds of network request, all optional:** weather for your
+  approximate location ([Open-Meteo](https://open-meteo.com), no key), lyrics
+  for the song that's playing ([LRCLIB](https://lrclib.net), only with Lyrics
+  on), and a once-a-day update check against
+  [aloenotch.com/appcast.xml](https://aloenotch.com/appcast.xml) via
+  [Sparkle](https://sparkle-project.org), with its system profile turned off.
+  Each can be switched off.
+- **No permissions to start with.** Calendar, Location, Bluetooth (headphone
+  battery) and system audio recording (live equalizer) are requested only when
+  you turn those features on; Accessibility only if you want the volume and
   brightness HUD replaced. The keyboard shortcut uses Carbon hot keys and needs
   no permission at all.
+- The full [privacy policy](https://aloenotch.com/privacy) lists everything the
+  app reads.
 
 ## Install
 
@@ -74,8 +84,9 @@ everything works the same way.
    **Open Anyway**. You only do this once.
 3. AloeNotch lives in the menu bar. Hover the notch.
 
-It checks for updates once a day and tells you in the menu bar; replacing the
-app keeps your settings and permissions.
+It checks for updates once a day and tells you in the menu bar. Click Install
+to see what changed; it downloads the update, checks its signature, and reopens
+on the new version, keeping your settings and permissions.
 
 **Intel Mac or macOS 15?** [0.6.0](https://aloenotch.com/#download) is the final
 build for you. It still works, but it no longer gets features or fixes.
@@ -89,7 +100,8 @@ Requires Xcode 26 on Apple Silicon.
 1. Open `OpenNotch.xcodeproj` and select the **OpenNotch** scheme with a
    **My Mac** destination.
 2. Set a signing identity (see [Signing](#signing)).
-3. Press **⌘R**.
+3. Press **⌘R**. The first build fetches [Sparkle](https://sparkle-project.org),
+   the only package dependency, through Swift Package Manager.
 
 > **About the name.** The product is **AloeNotch** (bundle id
 > `com.kadeslab.AloeNotch`), but the Xcode project, scheme, source folder and
@@ -155,7 +167,7 @@ SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/make-dmg.
 |------|-------|-------|
 | App lifecycle | `OpenNotchApp.swift`, `AppDelegate.swift` | Menu-bar accessory, no Dock icon |
 | Notch geometry | `Notch/NotchGeometry.swift` | `NSScreen.safeAreaInsets` and the auxiliary top areas |
-| Window | `Notch/NotchPanel.swift`, `NotchWindowController.swift` | Borderless, non-activating `NSPanel` above the menu bar |
+| Window | `Notch/NotchPanel.swift`, `NotchWindowController.swift` | Borderless, non-activating `NSPanel` above the menu bar; one per display when it's on every screen, all sharing one view model |
 | Click-through | `Notch/PassthroughHostingView.swift` | Only the live notch rect takes mouse events |
 | State | `Notch/NotchViewModel.swift`, `Notch/PanelState.swift` | Owns the feature managers; pure expand/collapse precedence |
 | Live activities | `Notch/LiveActivity.swift`, `ActivityDetectors.swift` | HUDs, timer and other things that take over the strip |
@@ -166,6 +178,7 @@ SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/make-dmg.
 | Timer | `Timer/*` | Deadline-based, so it doesn't drift |
 | System | `System/*` | Carbon hot key, CoreAudio output, IOPM keep-awake, volume/brightness |
 | Settings | `Settings/*`, `Views/Settings/*` | Preferences window and menu-bar switchboard |
+| Updates | `Settings/UpdateChecker.swift` | Sparkle 2 with an EdDSA-signed appcast; `scripts/release.sh --ship` writes it |
 
 ### Now Playing uses a private framework
 

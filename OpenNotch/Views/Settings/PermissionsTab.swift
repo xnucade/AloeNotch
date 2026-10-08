@@ -27,8 +27,8 @@ struct PermissionsTab: View {
                     title: "Accessibility",
                     symbol: "hand.raised",
                     rationale: accessibilityTrusted
-                        ? "Granted. Volume and brightness show in the notch instead of the macOS HUD."
-                        : "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD. Without it, macOS keeps drawing its own and AloeNotch stays out of the way.",
+                        ? "Granted. Volume, brightness and the keyboard backlight show in the notch instead of the macOS HUD, and so does Caps Lock."
+                        : "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD, and notice Caps Lock. It never reads what you type. Without it, macOS keeps drawing its own HUD and AloeNotch stays out of the way.",
                     status: accessibilityTrusted ? .granted : .notDetermined,
                     action: accessibilityTrusted ? nil : { MediaKeyInterceptor.requestTrust() }
                 )
@@ -61,7 +61,7 @@ struct PermissionsTab: View {
                     Image(systemName: "lock.shield")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                    Text("AloeNotch has no account and no analytics. It only goes online for three things: the weather for your approximate location, lyrics for the song that's playing (when Lyrics is on), and a daily check with GitHub for a newer release. Each can be switched off. Everything else stays on this Mac.")
+                    Text("AloeNotch has no account and no analytics. It only goes online for three things: the weather for your approximate location, lyrics for the song that's playing (when Lyrics is on), and a daily check with aloenotch.com for a newer version. Each can be switched off. Clipboard history stays in memory, and everything else stays on this Mac.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

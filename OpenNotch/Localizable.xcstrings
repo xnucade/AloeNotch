@@ -59,6 +59,9 @@
     "A calmer panel, if you want it" : {
 
     },
+    "A clipboard you can pin and search" : {
+
+    },
     "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs." : {
 
     },
@@ -158,7 +161,7 @@
     "AloeNotch checks for updates" : {
 
     },
-    "AloeNotch has no account and no analytics. It only goes online for three things: the weather for your approximate location, lyrics for the song that's playing (when Lyrics is on), and a daily check with GitHub for a newer release. Each can be switched off. Everything else stays on this Mac." : {
+    "AloeNotch has no account and no analytics. It only goes online for three things: the weather for your approximate location, lyrics for the song that's playing (when Lyrics is on), and a daily check with aloenotch.com for a newer version. Each can be switched off. Clipboard history stays in memory, and everything else stays on this Mac." : {
 
     },
     "AloeNotch starts with your Mac and stays out of the Dock." : {
@@ -224,6 +227,9 @@
     "Bluetooth access is off for AloeNotch. Turn it on in System Settings › Privacy & Security › Bluetooth." : {
 
     },
+    "Both buttons sit beside the play controls. When the track changes, the new cover can slide out of the notch for a moment." : {
+
+    },
     "Bounce" : {
 
     },
@@ -252,6 +258,9 @@
 
     },
     "Caps Lock on" : {
+
+    },
+    "Caps Lock, microphone mute, the keyboard backlight, low battery and Low Power Mode each get a brief note in the notch." : {
 
     },
     "Center" : {
@@ -293,6 +302,9 @@
     "Click one to copy it again. History is kept in memory only — never written to disk, cleared when AloeNotch quits, and anything a password manager marks as private is skipped entirely." : {
 
     },
+    "Click the lyric to see what's coming as well as what's being sung." : {
+
+    },
     "Clipboard" : {
 
     },
@@ -324,6 +336,9 @@
 
     },
     "Compress All %lld Items" : {
+
+    },
+    "Compress and convert from the shelf" : {
 
     },
     "Connecting the charger briefly shows a bolt and your charge level in the notch." : {
@@ -422,6 +437,9 @@
     "Drop files here" : {
 
     },
+    "Each screen gets its own, and the panel opens on whichever one you're using." : {
+
+    },
     "Easier to read" : {
 
     },
@@ -479,6 +497,9 @@
     "Full screen" : {
 
     },
+    "Full-screen apps, and any apps you choose in Settings → General, keep the notch quiet. Esc closes the panel." : {
+
+    },
     "General" : {
 
     },
@@ -503,7 +524,7 @@
     "Granted. Local conditions show in the panel header." : {
 
     },
-    "Granted. Volume and brightness show in the notch instead of the macOS HUD." : {
+    "Granted. Volume, brightness and the keyboard backlight show in the notch instead of the macOS HUD, and so does Caps Lock." : {
 
     },
     "Granted. Your next event shows in the panel." : {
@@ -603,6 +624,9 @@
     "Keep this Mac awake" : {
 
     },
+    "Keep up to six things at the top, find anything you copied, and paste with or without its formatting. Still memory only." : {
+
+    },
     "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS." : {
 
     },
@@ -624,7 +648,7 @@
     "Let this Mac sleep again" : {
 
     },
-    "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD. Without it, macOS keeps drawing its own and AloeNotch stays out of the way." : {
+    "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD, and notice Caps Lock. It never reads what you type. Without it, macOS keeps drawing its own HUD and AloeNotch stays out of the way." : {
 
     },
     "Lets AloeNotch show volume and brightness in the notch instead of the macOS HUD." : {
@@ -838,6 +862,9 @@
     "Opens the moment the pointer touches the notch." : {
 
     },
+    "Out of the way when it should be" : {
+
+    },
     "Overcast" : {
 
     },
@@ -872,6 +899,9 @@
 
     },
     "Plugging in says so" : {
+
+    },
+    "Polished, and a little more useful" : {
 
     },
     "Previous track" : {
@@ -932,6 +962,9 @@
 
     },
     "Resume" : {
+
+    },
+    "Right-click a file to zip it, or an image to change its format. The result lands next to the original." : {
 
     },
     "Screen sharing" : {
@@ -1000,7 +1033,13 @@
     "Shuffle" : {
 
     },
+    "Shuffle, repeat, and a peek at the next song" : {
+
+    },
     "Slow motion" : {
+
+    },
+    "Small things, announced" : {
 
     },
     "Smoother, and yours to tune" : {
@@ -1060,6 +1099,9 @@
     "Stopwatch" : {
 
     },
+    "Stopwatch and focus sessions" : {
+
+    },
     "Stopwatch paused" : {
 
     },
@@ -1114,6 +1156,9 @@
     "The new song's cover and name, for a moment, when the track changes on its own or from the keyboard." : {
 
     },
+    "The next line of lyrics" : {
+
+    },
     "The notch disappears until you launch it again." : {
 
     },
@@ -1121,6 +1166,9 @@
 
     },
     "The notch is live. Hover it whenever you want it." : {
+
+    },
+    "The notch on every display" : {
 
     },
     "The notch swells when you point at it, and opens when you click." : {
@@ -1142,6 +1190,9 @@
 
     },
     "The side-by-side layout is still the default. Seeing everything at once and seeing one thing clearly are both reasonable things to want, so it's a choice rather than a replacement." : {
+
+    },
+    "The timer gains two modes, and your next event can count down on the notch for its last ten minutes." : {
 
     },
     "Theme" : {
@@ -1184,6 +1235,9 @@
 
     },
     "Updates" : {
+
+    },
+    "Updates in one click" : {
 
     },
     "Used at reduced accuracy for local weather — roughly your city, not your address." : {
@@ -1238,6 +1292,9 @@
 
     },
     "What's new in AloeNotch" : {
+
+    },
+    "When a new version is out, see what changed, then install it and reopen without visiting the website." : {
 
     },
     "When more than one output is available, a speaker button appears in the panel header. Pick a device and everything follows." : {

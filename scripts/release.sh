@@ -56,10 +56,13 @@ fi
 sed -i '' "s/AloeNotch-$OLD\.dmg/AloeNotch-$NEW.dmg/g; s/Version $OLD/Version $NEW/g" "$INDEX"
 
 # 3. Scaffold a changelog entry (skipped if this version is already present).
+# An entry written ahead of time is headed "$NEW — Unreleased"; it gets
+# today's date here, so the notes can be drafted alongside the work.
+DATE=$(date "+%B %e, %Y" | tr -s ' ')
 if grep -q "<h2>$NEW " "$CHANGELOG"; then
+    sed -i '' "s|<h2>$NEW — Unreleased</h2>|<h2>$NEW — $DATE</h2>|" "$CHANGELOG"
     echo "    changelog already has a $NEW entry — leaving it"
 else
-    DATE=$(date "+%B %e, %Y" | tr -s ' ')
     ENTRY=$(mktemp)
     cat > "$ENTRY" <<EOF
 
@@ -85,6 +88,9 @@ fi
 # silently 404 the download the changelog points Intel users at.
 find "$ASSETS" -maxdepth 1 -name 'AloeNotch-*.dmg' ! -name '*-intel-eol.dmg' -delete
 cp "$PROJECT_DIR/build/AloeNotch-$NEW.dmg" "$ASSETS/AloeNotch-$NEW.dmg"
+# The download button states the size; keep it honest (one decimal, in MB).
+SIZE=$(stat -f%z "$ASSETS/AloeNotch-$NEW.dmg" | awk '{printf "%.1f", $1/1048576}')
+sed -i '' -E "s/(Download free · )[0-9.]+ MB/\1$SIZE MB/" "$INDEX"
 echo "==> Site download set to AloeNotch-$NEW.dmg"
 
 if [ "$SHIP" != "--ship" ]; then
