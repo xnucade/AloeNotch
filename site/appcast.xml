@@ -3,6 +3,24 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.14.1</title>
+            <pubDate>Wed, 07 Oct 2026 23:44:28 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.14.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li><strong>The keyboard backlight stays quiet.</strong> With automatic
+      keyboard brightness on, the light sensor adjusts the backlight by tiny
+      amounts several times a second, and 0.14.0 announced every one of them
+      in the notch. Now it shows only when you change the backlight
+      yourself.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.1.dmg" length="3141282" type="application/octet-stream" sparkle:edSignature="GuvtfW3Xf1Ii1wHPI9j7DGVFYnaMJQFYyGs0SCLgz4Bx4XvJHKyMLNXbZ6hHs5HBrEjSnVesfTQRxKptf3L1Ag=="/>
+        </item>
+        <item>
             <title>0.14.0</title>
             <pubDate>Wed, 07 Oct 2026 21:20:05 -0400</pubDate>
             <link>https://aloenotch.com</link>
