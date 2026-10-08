@@ -3,6 +3,7 @@
 
     ./scripts/release-notes.py 0.9.2              # prints Markdown to stdout
     ./scripts/release-notes.py 0.9.2 --headline   # "Choose how much the notch bounces"
+    ./scripts/release-notes.py 0.9.2 --html       # the entry as-is, for the appcast
 
 The changelog on the site is the one place release notes are written. This
 reads the <h2>VERSION — date</h2> block and its list, and converts the small
@@ -72,11 +73,24 @@ def notes(version: str) -> str:
     return "\n".join(out) + "\n"
 
 
+def notes_html(version: str) -> str:
+    """The entry's own markup, for Sparkle's update window to show. Relative
+    links would resolve against nothing there, so they're made absolute."""
+    # The match starts mid-heading; drop the rest of it (the date).
+    block = re.sub(r"^.*?</h2>", "", entry(version), count=1, flags=re.S).strip()
+    if not re.search(r"<li>|<p>", block):
+        raise SystemExit(f"error: the {version} entry has no content")
+    block = re.sub(r'href="/', 'href="https://aloenotch.com/', block)
+    return block + "\n"
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) == 2 and args[1] == "--headline":
         print(headline(args[0]))
+    elif len(args) == 2 and args[1] == "--html":
+        sys.stdout.write(notes_html(args[0]))
     elif len(args) == 1:
         sys.stdout.write(notes(args[0]))
     else:
-        raise SystemExit("usage: release-notes.py <version> [--headline]")
+        raise SystemExit("usage: release-notes.py <version> [--headline | --html]")

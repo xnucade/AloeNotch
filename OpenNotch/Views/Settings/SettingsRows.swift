@@ -88,7 +88,7 @@ struct UpdateRow: View {
     var body: some View {
         SettingsRow(title, symbol: symbol, symbolTint: tint, description: detail) {
             if case .available = updates.state {
-                Button("Get It…") { updates.openReleasesPage() }
+                Button("Get It…") { updates.installUpdate() }
                     .controlSize(.small)
                     .glassProminentButtonStyle(settings.useGlass)
             } else {
@@ -122,14 +122,14 @@ struct UpdateRow: View {
     }
 
     private var title: LocalizedStringKey {
-        if case .available(let v, _) = updates.state { return "Version \(v) is available" }
+        if case .available(let v) = updates.state { return "Version \(v) is available" }
         return "AloeNotch \(updates.currentVersion)"
     }
 
     private var detail: LocalizedStringKey {
         switch updates.state {
         case .available:
-            "Opens the release page, where you can download the new version."
+            "Shows what's new, then installs it and reopens AloeNotch."
         case .upToDate:
             "You're on the latest release."
         case .checking:

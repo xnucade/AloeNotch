@@ -143,21 +143,40 @@ plutil -lint "$ENTITLEMENTS" >/dev/null || {
 # Strip extended attributes (resource forks, Finder info) that break codesign.
 xattr -cr "$APP"
 
-# Nested code first, inside out. The media adapter's dylib ships in Resources
-# under a .dat name (so Xcode doesn't try to link it), which `--deep` never
-# reaches: it would stay linker-signed ad hoc, and the notary service rejects
-# any Mach-O in the bundle that isn't Developer ID signed and timestamped.
+# Nested code first, inside out: a bundle's seal covers what's inside it, so
+# anything signed after its container breaks the container's signature.
+sign() { codesign --force --options runtime "${TIMESTAMP[@]+"${TIMESTAMP[@]}"}" -s "$SIGN_IDENTITY" "$@"; }
+
+# Loose Mach-O in Resources. The media adapter's dylib ships there under a
+# .dat name (so Xcode doesn't try to link it), which `--deep` never reaches: it
+# would stay linker-signed ad hoc, and the notary service rejects any Mach-O
+# in the bundle that isn't Developer ID signed and timestamped.
 while IFS= read -r -d '' FILE; do
     if file -b "$FILE" | grep -q '^Mach-O'; then
         echo "    nested: ${FILE#"$APP/"}"
-        codesign --force --options runtime "${TIMESTAMP[@]+"${TIMESTAMP[@]}"}" \
-            -s "$SIGN_IDENTITY" "$FILE"
+        sign "$FILE"
     fi
-done < <(find "$APP/Contents" -type f ! -path "$APP/Contents/MacOS/$APP_NAME" -print0)
+done < <(find "$APP/Contents/Resources" -maxdepth 1 -type f -print0)
 
-codesign --force --options runtime "${TIMESTAMP[@]+"${TIMESTAMP[@]}"}" \
-    --entitlements "$ENTITLEMENTS" \
-    -s "$SIGN_IDENTITY" "$APP"
+# Sparkle, in the order its documentation gives for re-signing: the XPC
+# services, the installer tool, the updater app, then the framework. The
+# downloader keeps its own entitlements.
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
+if [ -d "$SPARKLE" ]; then
+    echo "    nested: Sparkle.framework"
+    for XPC in "$SPARKLE"/Versions/B/XPCServices/*.xpc; do
+        [ -e "$XPC" ] || continue
+        case "$XPC" in
+            *Downloader.xpc) sign --preserve-metadata=entitlements "$XPC" ;;
+            *) sign "$XPC" ;;
+        esac
+    done
+    sign "$SPARKLE/Versions/B/Autoupdate"
+    sign "$SPARKLE/Versions/B/Updater.app"
+    sign "$SPARKLE"
+fi
+
+sign --entitlements "$ENTITLEMENTS" "$APP"
 codesign --verify --deep --strict "$APP"
 
 # And confirm they actually landed, for the same reason.

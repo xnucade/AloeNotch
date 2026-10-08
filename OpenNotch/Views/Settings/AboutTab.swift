@@ -24,7 +24,7 @@ struct AboutTab: View {
                 UpdateRow()
                 SettingsDivider()
                 SettingsRow("Check automatically", symbol: "clock.arrow.circlepath",
-                            description: "Asks GitHub once a day whether a newer release exists. Sends nothing but a version number.") {
+                            description: "Asks aloenotch.com once a day whether a newer version exists. Sends nothing but a version number, and installs nothing until you say so.") {
                     Toggle("", isOn: $settings.checkForUpdates).labelsHidden()
                 }
             }
