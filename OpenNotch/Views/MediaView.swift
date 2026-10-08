@@ -8,6 +8,9 @@ struct MediaView: View {
     let morph: Namespace.ID
     @Environment(\.notchReduceMotion) private var reduceMotion
     @Environment(\.notchGlass) private var glass
+    /// Lyrics show the next line too, in the scrubber's place. A click on
+    /// the lyrics flips it; remembered because it's a way of listening.
+    @AppStorage("lyricsShowNext") private var lyricsShowNext = false
 
     var body: some View {
         HStack(spacing: Metrics.Spacing.loose) {
@@ -17,7 +20,15 @@ struct MediaView: View {
                     VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
                         MarqueeText(text: media.current.title, font: Typography.title())
                         if let lyrics = lyrics.lyrics {
-                            LyricLine(media: media, lyrics: lyrics)
+                            LyricLine(media: media, lyrics: lyrics, showNext: lyricsShowNext)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(Motion.contentFade) { lyricsShowNext.toggle() }
+                                }
+                                .help(lyricsShowNext ? "Show the progress bar" : "Show the next line")
+                                .accessibilityAction(named: lyricsShowNext ? "Show the progress bar" : "Show the next line") {
+                                    lyricsShowNext.toggle()
+                                }
                         } else {
                             artistLine(media.current.artist)
                         }
@@ -26,8 +37,9 @@ struct MediaView: View {
                     .accessibilityElement(children: .combine)
                     .transition(.textSkip(reduceMotion: reduceMotion))
                     .animation(Motion.contentFade, value: media.current.title)
-                    if media.current.duration > 0 {
+                    if media.current.duration > 0 && !(lyricsShowNext && lyrics.lyrics != nil) {
                         ProgressScrubber(media: media).padding(.top, 3)
+                            .transition(.opacity)
                     }
                     controls
                 } else {
@@ -167,29 +179,51 @@ struct MediaView: View {
     }
 }
 
-/// Plain transport button that brightens and scales slightly on hover, with a
-/// press-down squish — the small physical touches Apple's own controls have.
 /// The line being sung, in the artist's place — which it hands back during
 /// an intro or an instrumental break. Each new line rises in the way a
 /// skipped track's title does. Ticks only while playing.
+///
+/// With `showNext`, the line after it waits underneath, dimmed, and moves up
+/// into place when its time comes: the stack Music's lyrics view scrolls,
+/// two lines tall.
 private struct LyricLine: View {
     @ObservedObject var media: NowPlayingManager
     let lyrics: SyncedLyrics
+    var showNext = false
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 0.2, paused: !media.isPlaying)) { _ in
-            let line = lyrics.line(at: media.liveElapsed())
-            ZStack(alignment: .leading) {
-                Text(line?.text ?? media.current.artist)
-                    .font(Typography.caption(line == nil ? .regular : .medium))
-                    .foregroundStyle(line == nil ? Ink.secondary : Ink.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .id(line?.time ?? -1)
-                    .transition(.textSkip(reduceMotion: reduceMotion))
+            let now = media.liveElapsed()
+            let line = lyrics.line(at: now)
+            let next = showNext ? lyrics.upcoming(at: now, count: 1).first : nil
+            VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
+                ZStack(alignment: .leading) {
+                    Text(line?.text ?? media.current.artist)
+                        .font(Typography.caption(line == nil ? .regular : .medium))
+                        .foregroundStyle(line == nil ? Ink.secondary : Ink.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .id(line?.time ?? -1)
+                        .transition(.textSkip(reduceMotion: reduceMotion))
+                }
+                if showNext {
+                    // Always present so the row's height holds through gaps
+                    // and the last line.
+                    ZStack(alignment: .leading) {
+                        Text(next?.text ?? " ")
+                            .font(Typography.caption())
+                            .foregroundStyle(Ink.tertiary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                            .id(next?.time ?? -1)
+                            .transition(.textSkip(reduceMotion: reduceMotion))
+                    }
+                    .transition(.opacity)
+                }
             }
             .animation(Motion.contentFade, value: line?.time)
+            .animation(Motion.contentFade, value: next?.time)
         }
         // Read the artist, not a line that will have moved on by the time
         // VoiceOver finishes it.
@@ -197,6 +231,8 @@ private struct LyricLine: View {
     }
 }
 
+/// Plain transport button that brightens and scales slightly on hover, with a
+/// press-down squish — the small physical touches Apple's own controls have.
 private struct TransportButton: View {
     let symbol: String
     var size: CGFloat = 13
