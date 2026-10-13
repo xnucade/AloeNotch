@@ -40,7 +40,7 @@ added. Hover it, or press **⌃⌥N**, and it opens into a panel.
 | **Clipboard history** | The last 24 things you copied, one click to copy again. Pin up to six, search all of it, and copy back with or without formatting. Memory only — never written to disk — and anything a password manager marks private is skipped. |
 | **Timer, stopwatch, focus** | Start one from the panel and it takes over the collapsed strip while it runs. Your next event can count down there for its last ten minutes. |
 | **Your day at a glance** | The next 24 hours of your calendar, local weather with an hourly forecast, and a clock. |
-| **Volume, brightness, backlight** | Optional replacement for the macOS HUD, keyboard backlight included, with bars in white, your accent, a colour each, or tinted by whatever's playing. |
+| **Volume & brightness** | Optional replacement for the macOS HUD, with bars in white, your accent, a colour each, or tinted by whatever's playing. |
 | **Little announcements** | Caps Lock, microphone mute, low battery, Low Power Mode, headphones connecting (with their battery) and drives mounting each get a brief note. |
 | **Sound output** | Switch between speakers, AirPods and displays from the panel header. |
 | **Keep awake** | One click stops the display sleeping; the assertion is released automatically if the app quits or crashes. |
