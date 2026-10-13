@@ -3,6 +3,24 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.14.2</title>
+            <pubDate>Tue, 13 Oct 2026 14:23:32 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>0.14.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li><strong>No more keyboard backlight readout.</strong> The light
+      sensor adjusts the keyboard backlight on its own, and the notch kept
+      announcing it even after 0.14.1. It's gone entirely, so the notch no
+      longer watches the keyboard backlight at all. Volume, brightness and
+      Caps Lock are unchanged.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.2.dmg" length="3138008" type="application/octet-stream" sparkle:edSignature="BrBuEUZdv3a4aMOP4/Ko7UvcqwTvIEEGN5TmDNfYd9y0GRGqYjXG9oP781eu9WD7dldP/q1r/rgRX37uICNXAQ=="/>
+        </item>
+        <item>
             <title>0.14.1</title>
             <pubDate>Wed, 07 Oct 2026 23:44:28 -0400</pubDate>
             <link>https://aloenotch.com</link>
