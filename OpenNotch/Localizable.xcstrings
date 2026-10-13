@@ -260,7 +260,7 @@
     "Caps Lock on" : {
 
     },
-    "Caps Lock, microphone mute, the keyboard backlight, low battery and Low Power Mode each get a brief note in the notch." : {
+    "Caps Lock, microphone mute, low battery and Low Power Mode each get a brief note in the notch." : {
 
     },
     "Center" : {
@@ -524,7 +524,7 @@
     "Granted. Local conditions show in the panel header." : {
 
     },
-    "Granted. Volume, brightness and the keyboard backlight show in the notch instead of the macOS HUD, and so does Caps Lock." : {
+    "Granted. Volume and brightness show in the notch instead of the macOS HUD, and so does Caps Lock." : {
 
     },
     "Granted. Your next event shows in the panel." : {
@@ -628,9 +628,6 @@
 
     },
     "Keeps the notch out of screenshots, recordings and shared screens. Some capture apps ignore this on recent macOS." : {
-
-    },
-    "Keyboard brightness" : {
 
     },
     "Keyboard shortcut" : {
@@ -949,7 +946,7 @@
     "Repeat" : {
 
     },
-    "Replaces the macOS HUD with a readout in the notch, and shows the keyboard backlight level when it changes." : {
+    "Replaces the macOS HUD with a readout in the notch." : {
 
     },
     "Report an issue" : {

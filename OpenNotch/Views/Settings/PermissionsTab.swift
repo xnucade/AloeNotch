@@ -27,7 +27,7 @@ struct PermissionsTab: View {
                     title: "Accessibility",
                     symbol: "hand.raised",
                     rationale: accessibilityTrusted
-                        ? "Granted. Volume, brightness and the keyboard backlight show in the notch instead of the macOS HUD, and so does Caps Lock."
+                        ? "Granted. Volume and brightness show in the notch instead of the macOS HUD, and so does Caps Lock."
                         : "Lets AloeNotch catch the volume and brightness keys first, so it can replace the macOS HUD, and notice Caps Lock. It never reads what you type. Without it, macOS keeps drawing its own HUD and AloeNotch stays out of the way.",
                     status: accessibilityTrusted ? .granted : .notDetermined,
                     action: accessibilityTrusted ? nil : { MediaKeyInterceptor.requestTrust() }

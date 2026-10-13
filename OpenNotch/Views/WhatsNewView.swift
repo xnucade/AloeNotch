@@ -39,7 +39,7 @@ enum WhatsNew {
                      setting: .songPeek),
                 Item(symbol: "capslock.fill",
                      title: "Small things, announced",
-                     detail: "Caps Lock, microphone mute, the keyboard backlight, low battery and Low Power Mode each get a brief note in the notch."),
+                     detail: "Caps Lock, microphone mute, low battery and Low Power Mode each get a brief note in the notch."),
                 Item(symbol: "stopwatch",
                      title: "Stopwatch and focus sessions",
                      detail: "The timer gains two modes, and your next event can count down on the notch for its last ten minutes.",

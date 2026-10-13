@@ -9,13 +9,11 @@ import Combine
 enum NotchHUD: Equatable {
     case volume(level: Float, muted: Bool)
     case brightness(level: Float)
-    case keyboard(level: Float)
 
     var level: Float {
         switch self {
         case .volume(let level, let muted): return muted ? 0 : level
         case .brightness(let level): return level
-        case .keyboard(let level): return level
         }
     }
 
@@ -28,8 +26,6 @@ enum NotchHUD: Equatable {
                  : "speaker.wave.3.fill"
         case .brightness(let level):
             return level < 0.5 ? "sun.min.fill" : "sun.max.fill"
-        case .keyboard(let level):
-            return level < 0.5 ? "light.min" : "light.max"
         }
     }
 
@@ -42,7 +38,6 @@ enum NotchHUD: Equatable {
         switch self {
         case .volume(_, let muted): muted ? String(localized: "Volume muted") : String(localized: "Volume")
         case .brightness: String(localized: "Brightness")
-        case .keyboard: String(localized: "Keyboard brightness")
         }
     }
 
@@ -164,7 +159,6 @@ final class NotchViewModel: ObservableObject {
     let weather = WeatherProvider()
     let volume = VolumeMonitor()
     let brightness = BrightnessMonitor()
-    let keyboardBacklight = KeyboardBacklightMonitor()
     let mediaKeys = MediaKeyInterceptor()
     private let capsLock = CapsLockMonitor()
     private let micMute = MicrophoneMuteMonitor()
@@ -256,9 +250,6 @@ final class NotchViewModel: ObservableObject {
         }
         brightness.onChange = { [weak self] level in
             self?.present(.brightness(level: level))
-        }
-        keyboardBacklight.onChange = { [weak self] level in
-            self?.present(.keyboard(level: level))
         }
 
         // Intercepted keys: apply the change ourselves and show the readout
@@ -835,7 +826,6 @@ final class NotchViewModel: ObservableObject {
             capsLock.stop()
             volume.stop()
             brightness.stop()
-            keyboardBacklight.stop()
             trustPoll?.invalidate(); trustPoll = nil
             activities.dismiss(kind: "system.hud")
             return
@@ -846,7 +836,6 @@ final class NotchViewModel: ObservableObject {
             if settings.showCapsLock { capsLock.start() } else { capsLock.stop() }
             volume.start()
             brightness.start()
-            keyboardBacklight.start()
             trustPoll?.invalidate(); trustPoll = nil
         } else {
             // Not trusted yet — stay out of the way and watch for the grant.
@@ -854,7 +843,6 @@ final class NotchViewModel: ObservableObject {
             capsLock.stop()
             volume.stop()
             brightness.stop()
-            keyboardBacklight.stop()
             activities.dismiss(kind: "system.hud")
             guard trustPoll == nil else { return }
             trustPoll = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
@@ -996,7 +984,6 @@ final class NotchViewModel: ObservableObject {
         weather.stop()
         volume.stop()
         brightness.stop()
-        keyboardBacklight.stop()
         mediaKeys.stop()
         trustPoll?.invalidate()
         trustPoll = nil
