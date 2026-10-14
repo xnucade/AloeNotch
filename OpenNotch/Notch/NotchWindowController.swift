@@ -208,6 +208,7 @@ final class NotchWindowController {
         if panels.isEmpty { rebuildPanels(resetActive: true) }
         isShown = true
         panels.forEach { $0.panel.orderFrontRegardless() }
+        refreshMirrorVisibility()
     }
 
     /// Match the panels to the displays: the preferred one, or every one.
@@ -383,13 +384,22 @@ final class NotchWindowController {
 
     /// Strips on displays other than the active one step aside for a
     /// full-screen app there, as the active one does through the view model.
+    ///
+    /// Ordered out and back in, never made click-through. A borderless,
+    /// transparent window lets clicks fall through its clear pixels only while
+    /// `ignoresMouseEvents` has never been set. Setting it to false — the
+    /// obvious way to undo hiding — makes the window take every click in its
+    /// whole frame, margins included, so each display grew an invisible
+    /// 720 × 292 pt dead zone over whatever sat under the notch.
     private func refreshMirrorVisibility() {
-        guard panels.count > 1 || panels.first?.panel.alphaValue != 1 else { return }
         for p in panels {
             let hidden = !p.presence.isActive && settings.hideInFullScreen
                 && FullScreenDetector.isFullScreen(on: p.screen)
-            p.panel.alphaValue = hidden ? 0 : 1
-            p.panel.ignoresMouseEvents = hidden
+            if hidden {
+                if p.panel.isVisible { p.panel.orderOut(nil) }
+            } else if isShown && !p.panel.isVisible {
+                p.panel.orderFrontRegardless()
+            }
         }
     }
 
