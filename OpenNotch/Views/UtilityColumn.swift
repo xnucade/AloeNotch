@@ -13,6 +13,9 @@ struct UtilityColumn: View {
     @ObservedObject var tray: TrayModel
     @ObservedObject var clipboard: ClipboardManager
     @ObservedObject var timer: TimerModel
+    /// The Tools page gives the column the whole panel, so the clipboard and
+    /// timer use their full-size versions rather than the 160pt ones.
+    var roomy = false
     @ObservedObject private var settings = AppSettings.shared
 
     /// Nil until the user picks one, so the column can open on whatever is
@@ -85,9 +88,9 @@ struct UtilityColumn: View {
         case .shelf:
             TrayView(tray: tray, showsHeader: showsHeader)
         case .clipboard:
-            ClipboardList(clipboard: clipboard, compact: true, showsHeader: showsHeader)
+            ClipboardList(clipboard: clipboard, compact: !roomy, showsHeader: showsHeader)
         case .timer:
-            TimerView(timer: timer, compact: true, showsHeader: showsHeader)
+            TimerView(timer: timer, compact: !roomy, showsHeader: showsHeader)
         }
     }
 

@@ -707,15 +707,21 @@ enum OpenTrigger: String, CaseIterable, Identifiable {
 /// the arrangement the best notch apps use. It is calmer and far more legible,
 /// and it trades the glance for a click.
 ///
+/// `pages` sits between them: Now Playing and the calendar share a Home page,
+/// and the shelf, clipboard and timer get a Tools page, switched from the
+/// header. The two things you glance at stay together; the things you work
+/// with get room.
+///
 /// Genuinely a taste call rather than a right answer, which is why it is a
 /// setting and not a decision.
 enum PanelLayout: String, CaseIterable, Identifiable {
-    case columns, focused
+    case columns, pages, focused
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .columns: String(localized: "All at once")
+        case .pages:   String(localized: "Two pages")
         case .focused: String(localized: "One at a time")
         }
     }
@@ -723,14 +729,22 @@ enum PanelLayout: String, CaseIterable, Identifiable {
     var detail: String {
         switch self {
         case .columns: String(localized: "Media, calendar and your tools side by side.")
+        case .pages:   String(localized: "Now Playing and your calendar on one page, your shelf and tools on the other.")
         case .focused: String(localized: "One module, larger, with pills to switch between them.")
         }
     }
 
     /// Focused mode needs less width (one column) and a little more height
-    /// (the switcher row, and room to let the module breathe).
-    var defaultWidth: Double { self == .focused ? 520 : 680 }
-    var height: CGFloat { self == .focused ? 232 : 208 }
+    /// (the switcher row, and room to let the module breathe). Pages sit in
+    /// between on width: Home holds two modules, not three.
+    var defaultWidth: Double {
+        switch self {
+        case .columns: 680
+        case .pages:   600
+        case .focused: 520
+        }
+    }
+    var height: CGFloat { self == .columns ? 208 : 232 }
 }
 
 /// Which appearance the app's own windows use. The notch panel is not included

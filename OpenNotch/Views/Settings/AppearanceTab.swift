@@ -85,9 +85,9 @@ struct AppearanceTab: View {
                     .labelsHidden()
                     .pickerStyle(.segmented)
                 }
-                if settings.panelLayout == .focused {
+                if settings.panelLayout != .columns {
                     SettingsDivider()
-                    SettingsNote("Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with one.")
+                    SettingsNote("Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with fewer.")
                 }
             }
             .animation(motion, value: settings.panelLayout)
