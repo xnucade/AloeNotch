@@ -186,7 +186,7 @@ struct MediaView: View {
 /// With `showNext`, the line after it waits underneath, dimmed, and moves up
 /// into place when its time comes: the stack Music's lyrics view scrolls,
 /// two lines tall.
-private struct LyricLine: View {
+struct LyricLine: View {
     @ObservedObject var media: NowPlayingManager
     let lyrics: SyncedLyrics
     var showNext = false

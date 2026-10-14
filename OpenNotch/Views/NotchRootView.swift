@@ -185,10 +185,10 @@ struct NotchRootView: View {
             // retargets instead — reverse halfway and it simply turns around.
             if showsPanelContent {
                 Group {
-                    if settings.panelLayout == .focused {
-                        FocusedContent(viewModel: viewModel, morph: morph)
-                    } else {
-                        ExpandedContent(viewModel: viewModel, morph: morph)
+                    switch settings.panelLayout {
+                    case .columns: ExpandedContent(viewModel: viewModel, morph: morph)
+                    case .pages:   PagedContent(viewModel: viewModel, morph: morph)
+                    case .focused: FocusedContent(viewModel: viewModel, morph: morph)
                     }
                 }
                     .padding(.horizontal, Metrics.panelHorizontalInset)
@@ -960,10 +960,13 @@ private struct ExpandedContent: View {
 }
 
 /// Slim top strip: live clock on the left; weather, battery, and a settings
-/// gear on the right. Shared by both panel layouts — it is the one part that
-/// does not change between them.
+/// gear on the right. Shared by every panel layout — it is the one part that
+/// does not change between them, apart from the page switch the two-page
+/// layout hands it.
 struct HeaderRow: View {
     @ObservedObject var viewModel: NotchViewModel
+    /// The two-page layout's switch, shown beside the clock. Nil elsewhere.
+    var page: Binding<PagedContent.Page>? = nil
     @ObservedObject private var settings = AppSettings.shared
 
     /// The header doubles as two pickers. Opening either swaps the row rather
@@ -1020,6 +1023,10 @@ struct HeaderRow: View {
                     .animation(Motion.contentFade,
                                value: Calendar.current.component(.minute, from: context.date))
                     .foregroundStyle(Ink.primary)
+
+                if let page {
+                    PageSwitch(page: page, accent: settings.accent)
+                }
 
                 Spacer()
 
@@ -1333,7 +1340,7 @@ private struct WeatherForecastRow: View {
 
 /// Horizontal week strip — month + a 7-day window centred on today (today
 /// highlighted) — with the next event (or "Nothing for today") beneath it.
-private struct CalendarWeekStrip: View {
+struct CalendarWeekStrip: View {
     @ObservedObject var calendar: CalendarModel
     @ObservedObject private var settings = AppSettings.shared
 

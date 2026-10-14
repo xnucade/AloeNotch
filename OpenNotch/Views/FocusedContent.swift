@@ -74,7 +74,7 @@ struct FocusedContent: View {
 
             Group {
                 switch resolvedFocus {
-                case .media:    FocusedMedia(media: viewModel.media, morph: morph)
+                case .media:    FocusedMedia(media: viewModel.media, lyrics: viewModel.lyrics, morph: morph)
                 case .calendar: FocusedCalendar(calendar: viewModel.calendar)
                 case .shelf:    TrayView(tray: viewModel.tray)
                 case .clipboard: ClipboardList(clipboard: viewModel.clipboard, compact: false)
@@ -156,9 +156,10 @@ private struct SwitcherPill: View {
 
 /// Now Playing given the whole panel: larger artwork, a full-width scrubber,
 /// and transport controls big enough to hit without aiming.
-private struct FocusedMedia: View {
+struct FocusedMedia: View {
     @Environment(\.notchPanelOpen) private var panelOpen
     @ObservedObject var media: NowPlayingManager
+    @ObservedObject var lyrics: LyricsProvider
     let morph: Namespace.ID
     @Environment(\.notchReduceMotion) private var reduceMotion
 
@@ -173,6 +174,11 @@ private struct FocusedMedia: View {
                             .font(Typography.label())
                             .foregroundStyle(Ink.secondary)
                             .lineLimit(1)
+                        // Only when Lyrics is on and the song has some.
+                        if let synced = lyrics.lyrics {
+                            LyricLine(media: media, lyrics: synced)
+                                .padding(.top, Metrics.Spacing.hairline)
+                        }
                     }
                     .id(media.current.title + "\u{1F}" + media.current.artist)
                     .accessibilityElement(children: .combine)
@@ -386,7 +392,7 @@ private struct FocusedScrubber: View {
 // MARK: - Calendar, with room
 
 /// The week strip plus the next few events, rather than one truncated line.
-private struct FocusedCalendar: View {
+struct FocusedCalendar: View {
     @ObservedObject var calendar: CalendarModel
     @ObservedObject private var settings = AppSettings.shared
 

@@ -554,6 +554,9 @@
     "History stays in memory and is cleared when AloeNotch quits." : {
 
     },
+    "Home" : {
+
+    },
     "Horizontal offset" : {
 
     },
@@ -774,6 +777,9 @@
     "Now Playing" : {
 
     },
+    "Now Playing and your calendar on one page, your shelf and tools on the other." : {
+
+    },
     "Now Playing unavailable" : {
 
     },
@@ -863,6 +869,9 @@
 
     },
     "Overcast" : {
+
+    },
+    "Page" : {
 
     },
     "Panel" : {
@@ -1108,7 +1117,7 @@
     "Switch where sound goes" : {
 
     },
-    "Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with one." : {
+    "Switching layouts resets the panel width to suit it — a width chosen for three columns leaves a lot of empty space with fewer." : {
 
     },
     "System" : {
@@ -1226,6 +1235,9 @@
 
     },
     "Two fingers down to open, up to close, and sideways to skip tracks." : {
+
+    },
+    "Two pages" : {
 
     },
     "Unpin" : {
