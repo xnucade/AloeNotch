@@ -33,10 +33,16 @@ final class NotchPanel: NSPanel {
     /// interprets the key, or as a bare key-down when nothing inside does.
     var onCancel: (() -> Void)?
 
+    /// Any other key nothing inside handled. Returns true when the key
+    /// wasn't meant for the panel at all, which skips the beep.
+    var onStrayKey: (() -> Bool)?
+
     override func cancelOperation(_ sender: Any?) { onCancel?() }
 
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { onCancel?() } else { super.keyDown(with: event) }
+        if event.keyCode == 53 { onCancel?(); return }
+        if onStrayKey?() == true { return }
+        super.keyDown(with: event)
     }
 
     /// The frame is computed to the point from the notch's geometry; AppKit's
