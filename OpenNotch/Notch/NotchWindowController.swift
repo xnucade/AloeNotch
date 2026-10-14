@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
+import os
 
 /// Owns the floating panels, positions each over its display's notch, and
 /// keeps the passthrough hit-test regions in sync with the panel state.
@@ -39,6 +40,10 @@ final class NotchWindowController {
     private weak var active: ScreenPanel?
     private var isShown = false
     private var cancellables = Set<AnyCancellable>()
+    /// One-shot watchers for the mouse button coming up, while a focus
+    /// release waits for it. Empty otherwise.
+    private var mouseUpMonitors: [Any] = []
+    private let focusLog = Logger(subsystem: "com.kadeslab.AloeNotch", category: "focus")
 
     init(viewModel: NotchViewModel) {
         self.viewModel = viewModel
@@ -143,11 +148,43 @@ final class NotchWindowController {
     /// key on request; leaving the screen is what returns focus, so the
     /// panel steps out and straight back in. By now it is only the strip,
     /// black on the black of the notch.
+    ///
+    /// Never while a mouse button is held. A press on the panel can be a file
+    /// being dragged off the shelf, and pulling the source window out from
+    /// under a drag leaves the drag unfinished: the pointer stays captured
+    /// and every key beeps. So a release that finds a button down waits for
+    /// it to come up.
     private func releaseKeyFocus() {
         guard !viewModel.panelState.isExpanded,
               let key = panels.first(where: { $0.panel.isKeyWindow }) else { return }
+        guard NSEvent.pressedMouseButtons == 0 else {
+            focusLog.notice("focus release waits for the mouse button")
+            releaseAfterMouseUp()
+            return
+        }
+        focusLog.notice("focus released")
         key.panel.orderOut(nil)
         key.panel.orderFrontRegardless()
+    }
+
+    /// Global and local both: the button may come up over another app or
+    /// over the panel. Mouse monitors need no permission.
+    private func releaseAfterMouseUp() {
+        guard mouseUpMonitors.isEmpty else { return }
+        let mask: NSEvent.EventTypeMask = [.leftMouseUp, .rightMouseUp, .otherMouseUp]
+        let fire: () -> Void = { [weak self] in
+            guard let self, !self.mouseUpMonitors.isEmpty else { return }
+            self.mouseUpMonitors.forEach(NSEvent.removeMonitor)
+            self.mouseUpMonitors = []
+            // After AppKit has finished with the event, drag end included.
+            DispatchQueue.main.async { self.releaseKeyFocus() }
+        }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { _ in fire() }) {
+            mouseUpMonitors.append(global)
+        }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { event in fire(); return event }) {
+            mouseUpMonitors.append(local)
+        }
     }
 
     /// The window frame, with the user's horizontal offset applied on a
@@ -269,6 +306,29 @@ final class NotchWindowController {
         panel.contentView = host
         panel.sharingType = settings.hideFromCapture ? .none : .readOnly
         panel.onCancel = { [weak viewModel] in viewModel?.cancelFromKeyboard() }
+        // A key arriving while the panel is closed was meant for the app in
+        // front: hand focus back rather than beep at it.
+        panel.onStrayKey = { [weak self] in
+            guard let self, !self.viewModel.panelState.isExpanded else { return false }
+            self.focusLog.notice("stray key while closed; returning focus")
+            self.releaseKeyFocus()
+            return true
+        }
+
+        // Clicks make the panel key, and the release on collapse only covers
+        // a panel that was open. One clicked while closed (a peek, a wing, a
+        // live activity) gives focus straight back. Checked a turn later:
+        // ⌃⌥N makes the panel key a moment before it counts as open.
+        NotificationCenter.default
+            .publisher(for: NSWindow.didBecomeKeyNotification, object: panel)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, !self.viewModel.panelState.isExpanded,
+                      !self.viewModel.hasKeyboardFocus else { return }
+                self.focusLog.notice("became key while closed")
+                self.releaseKeyFocus()
+            }
+            .store(in: &p.cancellables)
 
         NotificationCenter.default
             .publisher(for: NSWindow.didResignKeyNotification, object: panel)
