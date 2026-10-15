@@ -33,6 +33,16 @@ final class NotchPanel: NSPanel {
     var allowsKey: () -> Bool = { true }
 
     override var canBecomeKey: Bool { allowsKey() }
+
+    override func becomeKey() {
+        super.becomeKey()
+        NotchTrace.log.notice("panel became key")
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        NotchTrace.log.notice("panel resigned key")
+    }
     override var canBecomeMain: Bool { false }
 
     /// Esc. Arrives through `cancelOperation` when the hosting view
