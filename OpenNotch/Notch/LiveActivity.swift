@@ -147,6 +147,7 @@ final class LiveActivityCenter: ObservableObject {
     private var expiry: DispatchWorkItem?
 
     func present(_ activity: LiveActivity) {
+        NotchTrace.log.notice("present \(activity.kind, privacy: .public)")
         guard !activity.isResident else { return setResident(activity) }
         queue.present(activity, now: Date())
         sync()

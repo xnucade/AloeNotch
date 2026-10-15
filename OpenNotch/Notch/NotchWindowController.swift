@@ -127,6 +127,9 @@ final class NotchWindowController {
         viewModel.$hasKeyboardFocus
             .removeDuplicates()
             .filter { $0 }
+            // A turn later: @Published runs sinks before storing the value,
+            // and `allowsKey` reads it.
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.active?.panel.makeKey() }
             .store(in: &cancellables)
 
@@ -316,20 +319,15 @@ final class NotchWindowController {
             return true
         }
 
-        // Clicks make the panel key, and the release on collapse only covers
-        // a panel that was open. One clicked while closed (a peek, a wing, a
-        // live activity) gives focus straight back. Checked a turn later:
-        // ⌃⌥N makes the panel key a moment before it counts as open.
-        NotificationCenter.default
-            .publisher(for: NSWindow.didBecomeKeyNotification, object: panel)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self, !self.viewModel.panelState.isExpanded,
-                      !self.viewModel.hasKeyboardFocus else { return }
-                self.focusLog.notice("became key while closed")
-                self.releaseKeyFocus()
-            }
-            .store(in: &p.cancellables)
+        // Only the active display's panel, and only while open or focused
+        // from the keyboard. Giving focus back used to be the answer to a
+        // closed panel taking it; with two displays that was a loop, since
+        // handing it back made the other display's panel key, which handed
+        // it back again, dozens of times a second.
+        panel.allowsKey = { [weak self, weak p] in
+            guard let self, let p, p === self.active else { return false }
+            return self.viewModel.panelState.isExpanded || self.viewModel.hasKeyboardFocus
+        }
 
         NotificationCenter.default
             .publisher(for: NSWindow.didResignKeyNotification, object: panel)
@@ -363,6 +361,7 @@ final class NotchWindowController {
     private func activate(_ p: ScreenPanel, force: Bool = false) {
         guard force || p !== active else { return }
         if p !== active {
+            NotchTrace.log.notice("active display \(p.displayID, privacy: .public)")
             active?.presence.isActive = false
             p.presence.isActive = true
             active = p
@@ -396,8 +395,12 @@ final class NotchWindowController {
             let hidden = !p.presence.isActive && settings.hideInFullScreen
                 && FullScreenDetector.isFullScreen(on: p.screen)
             if hidden {
-                if p.panel.isVisible { p.panel.orderOut(nil) }
+                if p.panel.isVisible {
+                    NotchTrace.log.notice("hide strip on \(p.displayID, privacy: .public)")
+                    p.panel.orderOut(nil)
+                }
             } else if isShown && !p.panel.isVisible {
+                NotchTrace.log.notice("show strip on \(p.displayID, privacy: .public)")
                 p.panel.orderFrontRegardless()
             }
         }
