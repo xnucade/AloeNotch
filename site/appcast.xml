@@ -3,6 +3,33 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.14.4</title>
+            <pubDate>Thu, 15 Oct 2026 10:13:56 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>0.14.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li><strong>Two displays, no dead zone.</strong> With the notch on every
+      display, an invisible area around each one swallowed clicks, so a window
+      or Settings under the top of the screen couldn't be clicked or moved.
+      Clicks outside the notch now go where you aim them.</li>
+      <li><strong>No more flashing on two displays.</strong> The notches on
+      each screen could pass keyboard focus back and forth many times a second,
+      flickering the notch and catching the pointer. A closed notch no longer
+      takes focus at all.</li>
+      <li><strong>A new layout: Two pages.</strong> Home puts the large
+      Now Playing player beside your week; Tools gives the shelf, clipboard and
+      timer the whole panel. Switch from beside the clock or with a two-finger
+      swipe, and a file dragged in goes straight to Tools. Pick it in
+      Settings → Appearance → Layout.</li>
+      <li>The large player shows the current lyric line when Lyrics is on.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.4.dmg" length="3173059" type="application/octet-stream" sparkle:edSignature="0ecg782RkN8JIl7CZ8xilXi/+UnktJ50i64rKHSN6H7g2yFXyt/oreJo7t62J3ZSTsooX7LDGxtFD1m2cnC8Aw=="/>
+        </item>
+        <item>
             <title>0.14.3</title>
             <pubDate>Wed, 14 Oct 2026 11:29:02 -0400</pubDate>
             <link>https://aloenotch.com</link>
@@ -37,24 +64,6 @@
     </ul>
 ]]></description>
             <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.2.dmg" length="3138008" type="application/octet-stream" sparkle:edSignature="BrBuEUZdv3a4aMOP4/Ko7UvcqwTvIEEGN5TmDNfYd9y0GRGqYjXG9oP781eu9WD7dldP/q1r/rgRX37uICNXAQ=="/>
-        </item>
-        <item>
-            <title>0.14.1</title>
-            <pubDate>Wed, 07 Oct 2026 23:44:28 -0400</pubDate>
-            <link>https://aloenotch.com</link>
-            <sparkle:version>3</sparkle:version>
-            <sparkle:shortVersionString>0.14.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<ul>
-      <li><strong>The keyboard backlight stays quiet.</strong> With automatic
-      keyboard brightness on, the light sensor adjusts the backlight by tiny
-      amounts several times a second, and 0.14.0 announced every one of them
-      in the notch. Now it shows only when you change the backlight
-      yourself.</li>
-    </ul>
-]]></description>
-            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.1.dmg" length="3141282" type="application/octet-stream" sparkle:edSignature="GuvtfW3Xf1Ii1wHPI9j7DGVFYnaMJQFYyGs0SCLgz4Bx4XvJHKyMLNXbZ6hHs5HBrEjSnVesfTQRxKptf3L1Ag=="/>
         </item>
     </channel>
 </rss>
