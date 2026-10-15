@@ -62,6 +62,10 @@ final class PassthroughHostingView<Content: View>: NSHostingView<Content> {
         return accepted
     }
 
+    /// The first click acts even while the panel isn't key, which is now
+    /// always the case for the closed strip.
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
     override func hitTest(_ point: NSPoint) -> NSView? {
         // `point` arrives in the superview's coordinate space.
         let local = superview.map { convert(point, from: $0) } ?? point

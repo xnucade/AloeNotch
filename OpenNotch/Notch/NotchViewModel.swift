@@ -431,7 +431,10 @@ final class NotchViewModel: ObservableObject {
         media.$isPlaying
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.refreshState() }
+            .sink { [weak self] playing in
+                NotchTrace.log.notice("playing \(playing, privacy: .public)")
+                self?.refreshState()
+            }
             .store(in: &cancellables)
 
         settings.$showMedia
@@ -732,6 +735,7 @@ final class NotchViewModel: ObservableObject {
             || settings.hideInFullScreen
                 && (metrics?.screen).map(FullScreenDetector.isFullScreen(on:)) ?? false
         guard outOfTheWay != isOutOfTheWay else { return }
+        NotchTrace.log.notice("out of the way: \(outOfTheWay, privacy: .public)")
         isOutOfTheWay = outOfTheWay
         refreshState()
     }
@@ -777,6 +781,7 @@ final class NotchViewModel: ObservableObject {
         // changes, so the curve has to be in place first. The `Motion` tokens
         // already honor Reduce Motion.
         stateAnimation = animation
+        NotchTrace.log.notice("state \(String(describing: old), privacy: .public) -> \(String(describing: new), privacy: .public)")
         panelState = new
         // An open panel covers the strip, so announcements stop counting
         // down under it. Deferred: pausing can change what is showing, which

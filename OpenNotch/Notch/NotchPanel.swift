@@ -26,7 +26,13 @@ final class NotchPanel: NSPanel {
         // Do not become key/main automatically; the panel should never steal focus.
     }
 
-    override var canBecomeKey: Bool { true }   // needed so buttons/drag targets work
+    /// Whether the panel may take keyboard focus right now. The controller
+    /// allows it only for the active display's panel while it is open, or
+    /// while the shortcut has given it focus. A closed strip never takes
+    /// focus, so typing never lands in it and there is nothing to give back.
+    var allowsKey: () -> Bool = { true }
+
+    override var canBecomeKey: Bool { allowsKey() }
     override var canBecomeMain: Bool { false }
 
     /// Esc. Arrives through `cancelOperation` when the hosting view
