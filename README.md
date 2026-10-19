@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://aloenotch.com/#download"><b>Download for macOS</b></a> ·
   <a href="https://aloenotch.com">Website</a> ·
-  <a href="https://aloenotch.com/#tour">45-second tour</a> ·
+  <a href="https://aloenotch.com/#tour">23-second film</a> ·
   <a href="https://aloenotch.com/changelog">Changelog</a>
 </p>
 

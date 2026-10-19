@@ -36,9 +36,8 @@
         <span>AloeNotch</span>
       </a>
       <nav class="nav-actions" aria-label="Primary">
-        <a class="nav-link nav-wide" href="#new">New</a>
+        <a class="nav-link nav-wide" href="#tour">Film</a>
         <a class="nav-link nav-wide" href="#features">Features</a>
-        <a class="nav-link nav-wide" href="#tour">Tour</a>
         <a class="nav-link nav-wide" href="#faq">FAQ</a>
         <a class="nav-link" href="/changelog">Changelog</a>
         <a class="btn btn-small" href="#download">Download</a>
@@ -154,11 +153,11 @@
             </p>
             <div class="hero-cta">
               <a class="btn" href="#download">Download for macOS</a>
-              <a class="btn-ghost" href="#tour">Watch the tour
+              <a class="btn-ghost" href="#tour">Watch the film
                 <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 4.2v11.6L15.6 10z"/></svg>
               </a>
             </div>
-            <p class="fineprint">Apple Silicon · macOS 26 or later · 2.0 MB</p>
+            <p class="fineprint">Free · Apple Silicon · macOS 26 or later</p>
           </div>
         </div>
 
@@ -188,16 +187,14 @@
     </section>
 
     <!-- ================================================================
-         What's new, right under the hero: the launch film for 0.13 and a
-         card per feature. The film has its own vertical cut for phones;
-         main.js picks the poster to match and only plays it in view.
+         The film: glass, lyrics and the live equalizer in 23 seconds, with
+         its own vertical cut for phones. main.js picks the poster to match
+         and only plays it in view. (The older 45-second tour and its
+         video/verify-site.mjs check predate all three, so it is off the page.)
          ================================================================ -->
-    <section class="spotlight" id="new">
+    <section class="spotlight" id="tour">
       <div class="section-head reveal">
-        <span class="kicker">New in 0.13</span>
         <h2>Glass, lyrics, and a notch<br><em>that listens.</em></h2>
-        <p>The panel frosts your desktop, the song's words scroll by under its
-        title, and the bars finally move to the music.</p>
       </div>
       <div class="spot-film reveal">
         <video id="spotVideo" muted loop playsinline preload="metadata"
@@ -210,6 +207,31 @@
           <source src="assets/spotlight.mp4" type="video/mp4">
         </video>
       </div>
+    </section>
+
+    <!-- The first objection to a free menu bar app is that it will be bloated
+         or slow. Memory and CPU are measured on a real machine, not estimated:
+         idle CPU sampled over 30 seconds, and phys_footprint rather than RSS
+         (RSS counts shared frameworks and roughly doubles the figure).
+         Re-measure before changing them. No download size here on purpose:
+         release.sh only updates the one on the download button. -->
+    <section class="stats">
+      <div class="stat-row reveal">
+        <div class="stat"><b>$0</b><span>no Pro tier, ever</span></div>
+        <div class="stat"><b>37 MB</b><span>memory in use</span></div>
+        <div class="stat"><b>&lt;1%</b><span>of one core, idle</span></div>
+        <div class="stat"><b>MIT</b><span>open source</span></div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         Features as a bento: the three new ones lead, then pairs, then one
+         wide closer. Clip cards never go three across: the clips were
+         already hard to read at two, and that is the floor. Everything
+         smaller is a line in the list underneath, not another clip.
+         ================================================================ -->
+    <section class="features" id="features">
+      <h2 class="reveal">Everything the notch<br>should have been.</h2>
       <div class="bento">
         <article class="card reveal span-7">
           <div class="card-clip">
@@ -224,7 +246,7 @@
               Enlarge
             </span>
           </div>
-          <h3>A glass notch</h3>
+          <h3>A glass notch<span class="new">New</span></h3>
           <p>Switch the open panel to glass and it frosts whatever is behind it, with an edge that shifts color with the song. It stays black over the camera, so the cutout never shows.</p>
         </article>
         <article class="card reveal span-5">
@@ -240,8 +262,8 @@
               Enlarge
             </span>
           </div>
-          <h3>Lyrics in the notch</h3>
-          <p>The line being sung, right under the track title. Looked up by song name on LRCLIB — and one switch turns it off.</p>
+          <h3>Lyrics in the notch<span class="new">New</span></h3>
+          <p>The line being sung, right under the track title. Off until you turn it on.</p>
         </article>
         <article class="card reveal span-5">
           <div class="card-clip">
@@ -256,101 +278,9 @@
               Enlarge
             </span>
           </div>
-          <h3>An equalizer that listens</h3>
-          <p>The bars follow the actual music, bass to treble. macOS asks first, and the sound is measured, never recorded.</p>
+          <h3>An equalizer that listens<span class="new">New</span></h3>
+          <p>The bars follow the actual music, bass to treble. The sound is measured, never recorded.</p>
         </article>
-        <article class="card reveal span-7">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/split-island.jpg"
-                   aria-label="The split island, demonstrated">
-              <source src="assets/clips/split-island.webm" type="video/webm">
-              <source src="assets/clips/split-island.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>A timer and your music, side by side</h3>
-          <p>Start a timer while something plays and it pinches off into its own bubble beside the notch, then melts back in when it is done.</p>
-        </article>
-        <article class="card reveal span-6">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/swipe.jpg"
-                   aria-label="Swipe gestures, demonstrated">
-              <source src="assets/clips/swipe.webm" type="video/webm">
-              <source src="assets/clips/swipe.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Swipe on the notch</h3>
-          <p>Two fingers down to open it, up to close it, and sideways to skip a track.</p>
-        </article>
-        <article class="card reveal span-6">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/join-call.jpg"
-                   aria-label="Join from the notch, demonstrated">
-              <source src="assets/clips/join-call.webm" type="video/webm">
-              <source src="assets/clips/join-call.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Join calls from the notch</h3>
-          <p>Zoom, Meet, Teams and more get a Join button ten minutes before they start. One click and you are in.</p>
-        </article>
-        <article class="card reveal span-12 card-wide">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/displays.jpg"
-                   aria-label="Choosing a display, demonstrated">
-              <source src="assets/clips/displays.webm" type="video/webm">
-              <source src="assets/clips/displays.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <div class="card-text">
-            <h3>Choose your screen</h3>
-            <p>With more than one display, pick where the notch lives in Settings → General. On a screen without a notch, AloeNotch draws its own.</p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- The first objection to a free menu bar app is that it will be bloated
-         or slow. These are measured on a real machine, not estimated: the DMG
-         and installed sizes from the build, idle CPU sampled over 30 seconds,
-         and phys_footprint rather than RSS (RSS counts shared frameworks and
-         roughly doubles the figure). Re-measure before changing them. -->
-    <section class="stats">
-      <div class="stat-row reveal">
-        <div class="stat"><b>2.0 MB</b><span>to download</span></div>
-        <div class="stat"><b>37 MB</b><span>memory in use</span></div>
-        <div class="stat"><b>&lt;1%</b><span>of one core, idle</span></div>
-        <div class="stat"><b>MIT</b><span>open source</span></div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         Features as a bento, not eleven equal tiles. Two leads up top at
-         7/5, then pairs, then one wide closer. Clip cards never go three
-         across: the clips were already hard to read at two, and that is the
-         floor.
-         ================================================================ -->
-    <section class="features" id="features">
-      <h2 class="reveal">Everything the notch<br>should have been.</h2>
-      <div class="bento">
         <article class="card reveal span-7">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
@@ -365,33 +295,9 @@
             </span>
           </div>
           <h3>Now Playing, everywhere</h3>
-          <p>Apple Music, Spotify — even YouTube in your browser. Title, artwork
-          and transport controls for whatever your Mac is playing.</p>
+          <p>Apple Music, Spotify — even YouTube in your browser. Title, artwork and controls for whatever your Mac is playing.</p>
         </article>
-
-        <!-- The one card without a clip: a spring you can flick. The curve
-             drawn behind the notch is the real one for the chosen preset. -->
-        <article class="card reveal span-5 toy-card">
-          <div class="toy" id="toy" role="img" aria-label="A small notch opening and closing with the selected bounce">
-            <svg class="toy-curve" id="toyCurve" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true">
-              <path class="target" d="M0 60H400"/>
-              <path class="line" id="toyPath" d=""/>
-            </svg>
-            <div class="toy-notch" id="toyNotch"></div>
-            <span class="toy-read">Overshoot on open <b id="toyOver">0.15%</b></span>
-          </div>
-          <h3>Motion you can dial</h3>
-          <p>Calm, Standard or Lively — decide how much the panel overshoots
-          when it opens. Closing never bounces, because the collapsed strip has
-          to land on the notch exactly.</p>
-          <div class="seg seg-card" role="radiogroup" aria-label="Bounce">
-            <button type="button" role="radio" data-bounce="calm">Calm</button>
-            <button type="button" role="radio" data-bounce="standard">Standard</button>
-            <button type="button" role="radio" data-bounce="lively">Lively</button>
-          </div>
-        </article>
-
-        <article class="card reveal span-5">
+        <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/shelf.jpg"
@@ -405,27 +311,8 @@
             </span>
           </div>
           <h3>The Shelf</h3>
-          <p>Drag a file onto the notch and it opens to catch it. Park
-          screenshots and downloads, then drag them back out anywhere.</p>
+          <p>Drag a file onto the notch and it opens to catch it. Park screenshots and downloads, then drag them back out anywhere.</p>
         </article>
-        <article class="card reveal span-7">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/ambient-glow.jpg"
-                   aria-label="Ambient Glow, demonstrated">
-              <source src="assets/clips/ambient-glow.webm" type="video/webm">
-              <source src="assets/clips/ambient-glow.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Ambient Glow</h3>
-          <p>The artwork's color traces the panel's edge — a thin line of light
-          that hugs the notch, like the music is leaking out of the screen.</p>
-        </article>
-
         <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
@@ -440,27 +327,8 @@
             </span>
           </div>
           <h3>Your day, at a glance</h3>
-          <p>The next 24 hours of your calendar, local weather and a live clock
-          in the expanded panel's header. No widgets, no Mission Control.</p>
+          <p>Your calendar, the weather and a clock in the header — and a Join button ten minutes before a Zoom, Meet or Teams call.</p>
         </article>
-        <article class="card reveal span-6">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/battery.jpg"
-                   aria-label="Battery, beautifully, demonstrated">
-              <source src="assets/clips/battery.webm" type="video/webm">
-              <source src="assets/clips/battery.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Battery, beautifully</h3>
-          <p>Charge level with a charging shimmer, a bolt while plugged in and
-          a quiet red warning when you're running low.</p>
-        </article>
-
         <article class="card reveal span-6">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
@@ -475,8 +343,7 @@
             </span>
           </div>
           <h3>A timer, in the notch</h3>
-          <p>Start one from the panel and it takes over the collapsed strip
-          while it counts down. Pause it, add a minute, or let it ring.</p>
+          <p>It takes over the strip while it counts down. With music playing, it pinches off into its own bubble beside the notch.</p>
         </article>
         <article class="card reveal span-6">
           <div class="card-clip">
@@ -492,45 +359,8 @@
             </span>
           </div>
           <h3>The last 24 things you copied</h3>
-          <p>Click one to copy it again. Kept in memory only — never written to
-          disk, and anything a password manager marks private is skipped.</p>
+          <p>Click one to copy it again. Kept in memory only, and anything a password manager marks private is skipped.</p>
         </article>
-
-        <article class="card reveal span-6">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/shortcut.jpg"
-                   aria-label="Open it without the mouse, demonstrated">
-              <source src="assets/clips/shortcut.webm" type="video/webm">
-              <source src="assets/clips/shortcut.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Open it without the mouse</h3>
-          <p>⌃⌥N opens and closes the panel from anywhere, and holds it open
-          until you press it again. No Accessibility permission needed.</p>
-        </article>
-        <article class="card reveal span-6">
-          <div class="card-clip">
-            <video muted loop playsinline preload="none"
-                   poster="assets/clips/sound-output.jpg"
-                   aria-label="Send sound anywhere, demonstrated">
-              <source src="assets/clips/sound-output.webm" type="video/webm">
-              <source src="assets/clips/sound-output.mp4" type="video/mp4">
-            </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
-          </div>
-          <h3>Send sound anywhere</h3>
-          <p>The header turns into a device picker when there's more than one
-          output. Pick AirPods or your speakers and everything follows.</p>
-        </article>
-
         <article class="card reveal span-12 card-wide">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
@@ -546,42 +376,22 @@
           </div>
           <div class="card-text">
             <h3>Invisible by design</h3>
-            <p>Collapsed, it hugs the hardware notch to the pixel — pure black,
-            nothing added. Settings live in a small menu bar switchboard.</p>
+            <p>Collapsed, it hugs the hardware notch to the pixel — pure black, nothing added. On a screen without a notch, it draws its own.</p>
           </div>
         </article>
       </div>
-    </section>
-
-    <!-- The film. Rebuild it with `cd video && ./build.sh`, which re-renders
-         and drops the encoded files straight into assets/. See
-         video/README.md. The .demo / .screen / #demoVideo names are what
-         video/verify-site.mjs checks — keep them. -->
-    <section class="demo" id="tour">
-      <div class="section-head reveal">
-        <h2>The whole tour,<br>in forty-five seconds.</h2>
-        <p>Every feature, the redesigned settings and the new motion — with a
-        soundtrack, if you turn it on.</p>
-      </div>
-      <div class="macbook reveal">
-        <div class="screen">
-          <!-- WebM first: browsers pick the first source they can play, and it
-               is a quarter the size of the H.264 fallback. Autoplay is only
-               permitted muted; the button below says the sound is there. -->
-          <video id="demoVideo" autoplay loop muted playsinline controls
-                 preload="metadata" poster="assets/demo-poster.jpg">
-            <source src="assets/demo.webm" type="video/webm">
-            <source src="assets/demo.mp4" type="video/mp4">
-          </video>
-          <button class="soundon" id="soundOn" type="button">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.4 3.2 5.6 6.4H2.8v7.2h2.8l3.8 3.2z"/><path d="M12.4 7a4 4 0 0 1 0 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14.8 4.6a7.2 7.2 0 0 1 0 10.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
-            Turn sound on
-          </button>
-          <div class="demo-placeholder" id="demoPlaceholder">
-            <div class="ph-notch"></div>
-            <p>Demo video coming soon</p>
-          </div>
-        </div>
+      <div class="extras reveal">
+        <h3>And the small stuff</h3>
+        <ul>
+          <li>Ambient Glow</li>
+          <li>Battery, with a charging shimmer</li>
+          <li>⌃⌥N to open it</li>
+          <li>Two-finger swipes</li>
+          <li>AirPods and speaker picker</li>
+          <li>Two-page layout</li>
+          <li>Any display you like</li>
+          <li>Calm to Lively bounce</li>
+        </ul>
       </div>
     </section>
 
@@ -589,14 +399,10 @@
       <div class="pitch-grid">
         <article class="pitch-card reveal">
           <h2>Free, without the asterisk.</h2>
-          <p>The other good notch apps are worth their money — they run about
-          $15 to $25. AloeNotch is free in the way that actually matters: no
-          trial that expires, no licence key, no Pro tier holding a feature
-          back, no account to make, and nothing inside the app asking you to
-          upgrade.</p>
-          <p>It's MIT licensed and the whole thing is on
-          <a href="https://github.com/xnucade/AloeNotch">GitHub</a>, so you can
-          read exactly what it does before you run it.</p>
+          <p>No trial, no licence key, no Pro tier, no account, and nothing
+          inside the app asking you to upgrade. It's MIT licensed and the
+          whole thing is on <a href="https://github.com/xnucade/AloeNotch">GitHub</a>,
+          so you can read exactly what it does before you run it.</p>
         </article>
 
         <article class="pitch-card reveal">
@@ -604,15 +410,11 @@
           <ul class="plainlist">
             <li><b>No analytics, no telemetry, no account.</b> Nothing about how
             you use it leaves your Mac.</li>
-            <li><b>Two network requests, both optional.</b> The weather for your
-            approximate location, and a once-a-day check for a new version.
-            That's the complete list, and either can be switched off.</li>
+            <li><b>Only the requests you'd expect.</b> Weather, a daily update
+            check, and lyrics if you turn them on — each one optional.
+            <a href="/privacy">The full list</a>.</li>
             <li><b>Clipboard history never touches the disk.</b> It lives in
-            memory, clears when the app quits, and skips anything a password
-            manager marks private.</li>
-            <li><b>The keyboard shortcut needs no Accessibility permission.</b>
-            Only replacing the volume and brightness HUD does, and that's off
-            until you turn it on.</li>
+            memory and clears when the app quits.</li>
           </ul>
         </article>
       </div>
@@ -648,14 +450,6 @@
           <p><a href="assets/AloeNotch-0.6.0-intel-eol.dmg" download>Download 0.6.0 (Intel · final release)</a></p>
         </details>
 
-        <!-- Secondary CTA: right after the download, where intent is highest. -->
-        <div class="dl-follow">
-          <span class="fineprint">AloeNotch is updated often — follow along for new releases.</span>
-          <a class="btn-x" href="https://x.com/xnucade" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Follow @xnucade on X
-          </a>
-        </div>
       </div>
     </section>
 
@@ -666,21 +460,17 @@
           <summary>My Mac doesn't have a notch. Does it still work?</summary>
           <p>Yes. On a display without a notch, AloeNotch draws its own strip in
           the same place at the top of the screen, and everything behaves the
-          same way.</p>
+          same way. With more than one display, pick where it lives in
+          Settings → General.</p>
         </details>
         <details>
           <summary>What permissions does it need?</summary>
-          <p>None, to start with. Calendar and Location are asked for only when
-          you switch those modules on, and Accessibility only if you want the
-          notch to replace the macOS volume and brightness HUD. Everything else
-          — the shelf, the clipboard, the timer, media controls, sound output —
-          needs nothing at all.</p>
-        </details>
-        <details>
-          <summary>Is it really free? What's the catch?</summary>
-          <p>There isn't one. It's MIT licensed and open source, there's no paid
-          tier, and nothing in the app asks you for money. It's a side project,
-          not a business.</p>
+          <p>None, to start with. Each one is asked for only when you switch on
+          the feature that needs it: Calendar, Location for the weather,
+          Bluetooth for headphone battery, system audio recording for the live
+          equalizer, and Accessibility to replace the volume and brightness
+          HUD. The shelf, clipboard, timer, media controls and the ⌃⌥N shortcut
+          need nothing at all.</p>
         </details>
         <details>
           <summary>How do I update it?</summary>
@@ -688,18 +478,6 @@
           when something newer exists. Click Install to see what
           changed; it downloads, checks the update's signature, and reopens on
           the new version. Your settings and permissions carry over.</p>
-        </details>
-        <details>
-          <summary>Does it work on an Intel Mac?</summary>
-          <p>Not the current version. 0.6.0 is the last build for Intel Macs and
-          macOS&nbsp;15, and it still works, but it doesn't get new features or
-          fixes. There's a download link for it above.</p>
-        </details>
-        <details>
-          <summary>Will it slow my Mac down?</summary>
-          <p>It shouldn't. Idle, it sits under one percent of a single core and
-          around 37 MB of memory, and the whole app is about four megabytes on
-          disk.</p>
         </details>
       </div>
     </section>
@@ -723,10 +501,7 @@
       <a href="/terms">Terms of Service</a>
       <a href="https://github.com/xnucade" target="_blank" rel="noopener">GitHub</a>
       <a class="with-icon" href="https://x.com/xnucade" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@xnucade</a>
-      <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a>
     </div>
-    <p><strong>Actively developed.</strong> New features land regularly — see the
-    <a href="/changelog">changelog</a> for what’s new.</p>
     <p>© <span id="year"></span> Kade's Lab. Not affiliated with Apple.
     Now-playing powered by
     <a href="https://github.com/ungive/mediaremote-adapter">mediaremote-adapter</a> (BSD-3).</p>
