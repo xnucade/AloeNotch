@@ -40,7 +40,7 @@ struct PagedContent: View {
 
     private var hasHome: Bool { settings.showMedia || settings.showCalendar }
     private var hasTools: Bool {
-        settings.showShelf || settings.showClipboard || settings.showTimer || settings.showMirror
+        settings.showShelf || settings.showClipboard || settings.showTimer || settings.showNotes || settings.showMirror
     }
 
     private var pages: [Page] {
@@ -127,6 +127,7 @@ struct PagedContent: View {
         UtilityColumn(tray: viewModel.tray,
                       clipboard: viewModel.clipboard,
                       timer: viewModel.timer,
+                      notes: viewModel.notes,
                       mirror: viewModel.mirror,
                       roomy: true)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

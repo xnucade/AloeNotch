@@ -155,6 +155,7 @@ final class NotchViewModel: ObservableObject {
     let lyrics = LyricsProvider()
     let tray = TrayModel()
     let mirror = MirrorCamera()
+    let notes = NotesModel()
     let battery = BatteryMonitor()
     let calendar = CalendarModel()
     let weather = WeatherProvider()
@@ -346,6 +347,16 @@ final class NotchViewModel: ObservableObject {
             .sink { [weak self] on in
                 guard let self else { return }
                 if on { self.clipboard.start() } else { self.clipboard.stop(); self.clipboard.clear() }
+            }
+            .store(in: &cancellables)
+
+        // Nothing is read from disk until Notes is on, and switching it off
+        // drops the text from memory (the file stays until it is cleared).
+        settings.$showNotes
+            .removeDuplicates()
+            .sink { [weak self] on in
+                guard let self else { return }
+                if on { self.notes.start() } else { self.notes.stop() }
             }
             .store(in: &cancellables)
 

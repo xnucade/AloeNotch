@@ -86,6 +86,9 @@
     "A real type scale replaces the dozen slightly-different sizes that had accumulated, with nothing under 10pt, and spacing on a consistent rhythm." : {
 
     },
+    "A scratchpad in the panel that saves as you type. Kept in one file on this Mac (Application Support/AloeNotch/Notes.txt), never synced or sent; the trash button deletes it." : {
+
+    },
     "A strip at the top of each display. The one under the pointer opens; the others show the same live activities." : {
 
     },
@@ -404,6 +407,12 @@
     "Debug" : {
 
     },
+    "Delete note" : {
+
+    },
+    "Delete this note" : {
+
+    },
     "Demonstration: moving the pointer to the notch opens the panel." : {
 
     },
@@ -624,6 +633,9 @@
     "Join on %@" : {
 
     },
+    "Jot something down" : {
+
+    },
     "Keep awake" : {
 
     },
@@ -766,6 +778,9 @@
 
     },
     "Notch" : {
+
+    },
+    "Notes" : {
 
     },
     "Nothing about you is sent" : {

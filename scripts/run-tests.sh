@@ -48,6 +48,7 @@ SOURCES=(
     OpenNotch/Media/SpectrumBands.swift
     OpenNotch/Media/PlaybackModes.swift
     OpenNotch/Battery/LowBatteryAlert.swift
+    OpenNotch/System/NoteFile.swift
 )
 
 TESTS=(Tests/*.swift)
