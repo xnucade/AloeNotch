@@ -914,7 +914,7 @@ private struct ExpandedContent: View {
 
     /// The third column exists if either of the things it holds is enabled.
     private var hasUtilities: Bool {
-        settings.showShelf || settings.showClipboard || settings.showTimer
+        settings.showShelf || settings.showClipboard || settings.showTimer || settings.showMirror
     }
 
     var body: some View {
@@ -942,7 +942,8 @@ private struct ExpandedContent: View {
                 if hasUtilities {
                     UtilityColumn(tray: viewModel.tray,
                                   clipboard: viewModel.clipboard,
-                                  timer: viewModel.timer)
+                                  timer: viewModel.timer,
+                                  mirror: viewModel.mirror)
                         .frame(maxWidth: (settings.showMedia || settings.showCalendar) ? 160 : .infinity)
                         .notchEntrance(Slot.shelf.rawValue)
                 }

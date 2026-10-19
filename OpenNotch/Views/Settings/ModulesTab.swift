@@ -52,6 +52,9 @@ struct ModulesTab: View {
                     .init(title: "Timer", symbol: "timer",
                           description: "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs.",
                           binding: $settings.showTimer),
+                    .init(title: "Mirror", symbol: "web.camera",
+                          description: "A quick look at yourself before a call. The camera runs only while the Mirror tab is open, with the camera light on; nothing is recorded. Asks for camera access the first time you open it.",
+                          binding: $settings.showMirror),
                 ])
 
                 if settings.showShelf {

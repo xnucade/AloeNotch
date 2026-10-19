@@ -154,6 +154,7 @@ final class NotchViewModel: ObservableObject {
     let media = NowPlayingManager()
     let lyrics = LyricsProvider()
     let tray = TrayModel()
+    let mirror = MirrorCamera()
     let battery = BatteryMonitor()
     let calendar = CalendarModel()
     let weather = WeatherProvider()

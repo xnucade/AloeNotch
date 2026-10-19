@@ -77,6 +77,9 @@
     "A little overshoot. The default." : {
 
     },
+    "A quick look at yourself before a call. The camera runs only while the Mirror tab is open, with the camera light on; nothing is recorded. Asks for camera access the first time you open it." : {
+
+    },
     "A real settings window" : {
 
     },
@@ -249,6 +252,9 @@
 
     },
     "Calm" : {
+
+    },
+    "Camera access is off" : {
 
     },
     "Caps Lock" : {
@@ -711,6 +717,9 @@
     "Microphone on" : {
 
     },
+    "Mirror" : {
+
+    },
     "Modules" : {
 
     },
@@ -742,6 +751,9 @@
 
     },
     "Next track" : {
+
+    },
+    "No camera found" : {
 
     },
     "No crash reports so far. Copies your version and any reports, to paste into an issue. Never sent anywhere." : {
@@ -839,6 +851,9 @@
 
     },
     "Open" : {
+
+    },
+    "Open Settings" : {
 
     },
     "Open Settings…" : {
