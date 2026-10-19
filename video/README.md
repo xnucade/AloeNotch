@@ -1,14 +1,13 @@
 # AloeNotch demo video
 
-> **The site's demo is now the 45-second film in
-> `../brag-output-2026-09-21-155542/composition-site/`**, not the 66-second cut
-> this document describes. The new one is built the same way — rendered, not
-> captured — but the notch is drawn from the app's constants and driven by a
-> per-frame director, so the camera can push and pull against vector-crisp
-> type. The old pipeline below still builds and is kept for the social cut.
+> **This film is no longer on the site.** The homepage plays the 23-second
+> glass, lyrics and equalizer film (`site/assets/spotlight.*`) instead, and the
+> 45-second tour in `../brag-output-2026-09-21-155542/` was retired with it.
+> This pipeline is kept for the feature clips (below) and the social cut;
+> `build.sh` now writes to `out/` only.
 
 
-The 66-second product video on the site is **rendered, not screen-recorded**.
+The 66-second product video was **rendered, not screen-recorded**.
 The notch UI is rebuilt in HTML/CSS from the real SwiftUI source, animated on a
 deterministic timeline, rasterised frame-by-frame in headless Chromium, and
 encoded with ffmpeg.
@@ -33,24 +32,16 @@ if the panel's geometry or animation curves change, update `timeline.js` and
 ```sh
 npm install
 npx puppeteer browsers install chrome     # one-time
-./build.sh                                # render + encode + install into site/assets
+./build.sh                                # render + encode into out/
 ```
 
 Options:
 
 ```sh
 ./build.sh --fps 30       # quicker draft
-./build.sh --no-install   # leave site/assets alone
 ```
 
-Outputs land in `out/` and, unless `--no-install`, are copied to
-`site/assets/demo.mp4`, `demo.webm`, and `demo-poster.jpg`.
-
-> **The encoded video is gitignored.** Like the DMG, it is several MB of
-> reproducible binary that reaches users only through the deployed site. A
-> fresh clone therefore has no `demo.mp4` / `demo.webm` — run `./build.sh`
-> here **before** `wrangler deploy`, or the site ships without its demo.
-> (`demo-poster.jpg` is tracked, so the frame at least shows a still.)
+Outputs land in `out/` (gitignored).
 
 ## The feature clips (site card grid)
 
