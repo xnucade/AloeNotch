@@ -15,6 +15,11 @@ final class AppSettings: ObservableObject {
     @Published var showTimer: Bool { didSet { save(showTimer, "showTimer") } }
     /// Recent clipboard entries. Memory-only — see `ClipboardManager`.
     @Published var showClipboard: Bool { didSet { save(showClipboard, "showClipboard") } }
+    /// A live camera preview in the panel. The camera runs only while the
+    /// Mirror pane is on screen — see `MirrorCamera`.
+    @Published var showMirror: Bool { didSet { save(showMirror, "showMirror") } }
+    /// A scratchpad in the panel, saved to one file — see `NoteFile`.
+    @Published var showNotes: Bool { didSet { save(showNotes, "showNotes") } }
     @Published var showCalendar: Bool { didSet { save(showCalendar, "showCalendar") } }
     @Published var showWeather: Bool { didSet { save(showWeather, "showWeather") } }
     /// Volume / brightness readouts in the notch instead of the macOS HUD.
@@ -218,6 +223,8 @@ final class AppSettings: ObservableObject {
             "showShelf": true,
             "showClipboard": true,
             "showTimer": true,
+            "showMirror": false,
+            "showNotes": false,
             "showCalendar": true,
             "showWeather": true,
             "showHUD": true,
@@ -269,6 +276,8 @@ final class AppSettings: ObservableObject {
         blurClipboardInCalls = defaults.bool(forKey: "blurClipboardInCalls")
         showShelf = defaults.bool(forKey: "showShelf")
         showClipboard = defaults.bool(forKey: "showClipboard")
+        showMirror = defaults.bool(forKey: "showMirror")
+        showNotes = defaults.bool(forKey: "showNotes")
         showTimer = defaults.bool(forKey: "showTimer")
         showCalendar = defaults.bool(forKey: "showCalendar")
         showWeather = defaults.bool(forKey: "showWeather")

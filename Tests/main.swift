@@ -43,6 +43,7 @@ testSyncedLyrics()
 testSpectrumBands()
 testPlaybackModes()
 testLowBatteryAlert()
+testNoteFile()
 
 if failures.isEmpty {
     print("✓ \(checks) checks passed")

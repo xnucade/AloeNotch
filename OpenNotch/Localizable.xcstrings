@@ -77,10 +77,16 @@
     "A little overshoot. The default." : {
 
     },
+    "A quick look at yourself before a call. The camera runs only while the Mirror tab is open, with the camera light on; nothing is recorded. Asks for camera access the first time you open it." : {
+
+    },
     "A real settings window" : {
 
     },
     "A real type scale replaces the dozen slightly-different sizes that had accumulated, with nothing under 10pt, and spacing on a consistent rhythm." : {
+
+    },
+    "A scratchpad in the panel that saves as you type. Kept in one file on this Mac (Application Support/AloeNotch/Notes.txt), never synced or sent; the trash button deletes it." : {
 
     },
     "A strip at the top of each display. The one under the pointer opens; the others show the same live activities." : {
@@ -251,6 +257,9 @@
     "Calm" : {
 
     },
+    "Camera access is off" : {
+
+    },
     "Caps Lock" : {
 
     },
@@ -396,6 +405,12 @@
 
     },
     "Debug" : {
+
+    },
+    "Delete note" : {
+
+    },
+    "Delete this note" : {
 
     },
     "Demonstration: moving the pointer to the notch opens the panel." : {
@@ -618,6 +633,9 @@
     "Join on %@" : {
 
     },
+    "Jot something down" : {
+
+    },
     "Keep awake" : {
 
     },
@@ -711,6 +729,9 @@
     "Microphone on" : {
 
     },
+    "Mirror" : {
+
+    },
     "Modules" : {
 
     },
@@ -744,6 +765,9 @@
     "Next track" : {
 
     },
+    "No camera found" : {
+
+    },
     "No crash reports so far. Copies your version and any reports, to paste into an issue. Never sent anywhere." : {
 
     },
@@ -754,6 +778,9 @@
 
     },
     "Notch" : {
+
+    },
+    "Notes" : {
 
     },
     "Nothing about you is sent" : {
@@ -839,6 +866,9 @@
 
     },
     "Open" : {
+
+    },
+    "Open Settings" : {
 
     },
     "Open Settings…" : {

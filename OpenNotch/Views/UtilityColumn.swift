@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The panel's third column: the shelf, the clipboard and the timer, as tabs.
+/// The panel's third column: the shelf, the clipboard, the timer, notes and
+/// the mirror, as tabs.
 ///
 /// Tabs rather than columns because a fourth and fifth column at the default
 /// 680pt width would cost legibility in all of them. One click reaches the
@@ -13,6 +14,8 @@ struct UtilityColumn: View {
     @ObservedObject var tray: TrayModel
     @ObservedObject var clipboard: ClipboardManager
     @ObservedObject var timer: TimerModel
+    @ObservedObject var notes: NotesModel
+    let mirror: MirrorCamera
     /// The Tools page gives the column the whole panel, so the clipboard and
     /// timer use their full-size versions rather than the 160pt ones.
     var roomy = false
@@ -23,7 +26,7 @@ struct UtilityColumn: View {
     @State private var tab: Tool?
 
     enum Tool: String, CaseIterable, Identifiable {
-        case shelf, clipboard, timer
+        case shelf, clipboard, timer, notes, mirror
         var id: String { rawValue }
 
         var label: String {
@@ -31,6 +34,8 @@ struct UtilityColumn: View {
             case .shelf:     String(localized: "Shelf")
             case .clipboard: String(localized: "Clipboard")
             case .timer:     String(localized: "Timer")
+            case .notes:     String(localized: "Notes")
+            case .mirror:    String(localized: "Mirror")
             }
         }
         var symbol: String {
@@ -38,6 +43,8 @@ struct UtilityColumn: View {
             case .shelf:     "tray.full"
             case .clipboard: "doc.on.clipboard"
             case .timer:     "timer"
+            case .notes:     "note.text"
+            case .mirror:    "web.camera"
             }
         }
     }
@@ -48,6 +55,8 @@ struct UtilityColumn: View {
             case .shelf:     settings.showShelf
             case .clipboard: settings.showClipboard
             case .timer:     settings.showTimer
+            case .notes:     settings.showNotes
+            case .mirror:    settings.showMirror
             }
         }
     }
@@ -91,6 +100,10 @@ struct UtilityColumn: View {
             ClipboardList(clipboard: clipboard, compact: !roomy, showsHeader: showsHeader)
         case .timer:
             TimerView(timer: timer, compact: !roomy, showsHeader: showsHeader)
+        case .notes:
+            NotesView(notes: notes, showsHeader: showsHeader)
+        case .mirror:
+            MirrorView(camera: mirror, showsHeader: showsHeader)
         }
     }
 
@@ -144,6 +157,10 @@ struct UtilityColumn: View {
             }
         case .timer:
             if timer.isActive { TimerCancelButton { timer.cancel() } }
+        case .notes:
+            if !notes.text.isEmpty { NotesClearButton(notes: notes) }
+        case .mirror:
+            EmptyView()
         }
     }
 }

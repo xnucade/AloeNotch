@@ -52,6 +52,12 @@ struct ModulesTab: View {
                     .init(title: "Timer", symbol: "timer",
                           description: "A countdown, stopwatch or focus session that takes over the collapsed notch while it runs.",
                           binding: $settings.showTimer),
+                    .init(title: "Notes", symbol: "note.text",
+                          description: "A scratchpad in the panel that saves as you type. Kept in one file on this Mac (Application Support/AloeNotch/Notes.txt), never synced or sent; the trash button deletes it.",
+                          binding: $settings.showNotes),
+                    .init(title: "Mirror", symbol: "web.camera",
+                          description: "A quick look at yourself before a call. The camera runs only while the Mirror tab is open, with the camera light on; nothing is recorded. Asks for camera access the first time you open it.",
+                          binding: $settings.showMirror),
                 ])
 
                 if settings.showShelf {

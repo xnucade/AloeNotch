@@ -35,7 +35,7 @@
   <main class="legal">
     <a class="back" href="/">← Back to AloeNotch</a>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: October 13, 2026</p>
+    <p class="updated">Last updated: October 19, 2026</p>
 
     <p>AloeNotch (“the app”) is a macOS menu bar app made by Kade’s Lab (“we”,
     “us”). We built it to be private by default: it has no accounts, no
@@ -65,6 +65,10 @@
       system audio recording, the app measures how loud the music is in four
       frequency bands to move its equalizer bars, only while they are on
       screen. The audio itself is never recorded, stored, or transmitted.</li>
+      <li><strong>Mirror (optional).</strong> If you turn it on and allow camera
+      access, the app shows your camera in the Mirror tab, only while that tab
+      is open; macOS shows its camera light the whole time. The picture goes
+      straight to the screen and is never recorded, stored, or transmitted.</li>
       <li><strong>Crash reports.</strong> macOS may hand the app reports about
       its own crashes and hangs. The app keeps the last few on your Mac. They
       are sent nowhere; you can copy them from Settings to include in a bug
@@ -87,6 +91,11 @@
       copied, including any you pin, in memory only. It is never written to
       disk, is gone when the app quits, and skips anything your password manager
       or another app marks as private or temporary.</li>
+      <li><strong>Notes (optional).</strong> If you turn on Notes, what you type
+      there is saved as plain text in one file on your Mac,
+      <code>~/Library/Application Support/AloeNotch/Notes.txt</code>, readable
+      only by your account. It is never synced or transmitted. Deleting the note
+      in the panel deletes the file.</li>
       <li><strong>Keyboard and system state.</strong> To show brief
       announcements in the notch, the app notices when Caps Lock turns on or off,
       when your microphone is muted, and
@@ -145,7 +154,7 @@
     <p>AloeNotch only asks for permissions the features you enable actually need
     — Calendar access for upcoming events, Location access for weather,
     Bluetooth for headphone battery, system audio recording for the live
-    equalizer, and Accessibility to replace the volume and brightness display
+    equalizer, the camera for Mirror, and Accessibility to replace the volume and brightness display
     (which also lets it notice Caps Lock). All are optional. If you deny or disable them, the related feature simply hides
     and the app keeps working. You can change these any time in <strong>System
     Settings → Privacy &amp; Security</strong>.</p>
