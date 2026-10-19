@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Rows with a job of their own — an accent picker, the update check, one
 /// system permission.
@@ -19,9 +20,7 @@ struct AccentPicker: View {
     @Binding var hex: String
     @Environment(\.notchReduceMotion) private var reduceMotion
 
-    /// The custom well's own colour, seeded from the current selection so
-    /// opening the picker starts where the user already is.
-    @State private var customColor: Color = .accentColor
+    @StateObject private var panel = ColorPanelBridge()
 
     private var isCustom: Bool {
         !AccentPalette.swatches.contains { $0.hex.caseInsensitiveCompare(hex) == .orderedSame }
@@ -32,24 +31,39 @@ struct AccentPicker: View {
             ForEach(AccentPalette.swatches) { swatch in
                 swatchButton(swatch)
             }
+            customWell
+        }
+        .onDisappear { panel.release() }
+    }
 
-            // Custom. `supportsOpacity: false` because a translucent accent
-            // would read as washed-out chrome rather than a colour choice.
-            ColorPicker("Custom color", selection: $customColor, supportsOpacity: false)
-                .labelsHidden()
+    /// Custom. Not SwiftUI's ColorPicker: on macOS 26 it draws as a wide
+    /// capsule that ignores its frame and spills over the swatch beside it.
+    /// This is a swatch like the others that opens the system colour panel,
+    /// starting from the current accent so it begins where the user already
+    /// is. A rainbow until a custom colour is chosen, then that colour.
+    private var customWell: some View {
+        Button {
+            panel.open(with: NSColor(Color(hex: hex) ?? .accentColor)) { picked in
+                hex = Color(nsColor: picked).hexString
+            }
+        } label: {
+            Circle()
+                .fill(isCustom
+                      ? AnyShapeStyle(Color(hex: hex) ?? .accentColor)
+                      : AnyShapeStyle(AngularGradient(
+                            colors: [.red, .yellow, .green, .cyan, .blue, .purple, .red],
+                            center: .center)))
                 .frame(width: 22, height: 22)
                 .overlay {
                     Circle()
                         .strokeBorder(.primary.opacity(isCustom ? 0.9 : 0), lineWidth: 2)
                         .padding(-3)
                 }
-                .onChange(of: customColor) { _, new in
-                    hex = new.hexString
-                }
         }
-        .onAppear {
-            customColor = Color(hex: hex) ?? .accentColor
-        }
+        .buttonStyle(PressableButtonStyle())
+        .help("Custom color")
+        .accessibilityLabel("Custom color")
+        .animation(Motion.micro, value: isCustom)
     }
 
     private func swatchButton(_ swatch: AccentPalette.Swatch) -> some View {
@@ -69,6 +83,37 @@ struct AccentPicker: View {
         .buttonStyle(PressableButtonStyle())
         .help(swatch.name)
         .animation(Motion.micro, value: selected)
+    }
+}
+
+/// Points the shared system colour panel at the custom well. No alpha: a
+/// translucent accent reads as washed-out chrome rather than a colour choice.
+private final class ColorPanelBridge: NSObject, ObservableObject {
+    private var onChange: ((NSColor) -> Void)?
+
+    func open(with color: NSColor, onChange: @escaping (NSColor) -> Void) {
+        let panel = NSColorPanel.shared
+        panel.showsAlpha = false
+        // Colour first, target second, so seeding the panel doesn't report
+        // itself back as a choice.
+        panel.setTarget(nil)
+        panel.color = color
+        self.onChange = onChange
+        panel.setTarget(self)
+        panel.setAction(#selector(changed(_:)))
+        panel.orderFront(nil)
+    }
+
+    /// Stop listening when Settings closes, so the panel left open can't
+    /// keep changing the accent with nothing on screen to show it.
+    func release() {
+        guard onChange != nil else { return }
+        NSColorPanel.shared.setTarget(nil)
+        onChange = nil
+    }
+
+    @objc private func changed(_ sender: NSColorPanel) {
+        onChange?(sender.color.usingColorSpace(.sRGB) ?? sender.color)
     }
 }
 
