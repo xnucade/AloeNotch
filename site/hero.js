@@ -1,5 +1,5 @@
 /* =========================================================================
-   The hero stage and the motion toy.
+   The hero stage.
 
    The stage is the panel rebuilt in HTML — the same metrics the feature clips
    use (NotchGeometry.swift / Theme.swift) — running itself through five
@@ -108,7 +108,6 @@
   const stage = $("stage");
   const hn = $("hn");
   if (stage && hn) initStage();
-  initToy();
 
   /* =======================================================================
      The stage
@@ -544,95 +543,5 @@
     }
     setTrack(0);
     go("music");
-  }
-
-  /* =======================================================================
-     The motion toy, in the "Motion you can dial" card. A small notch opens
-     and closes on the chosen spring while the curve it is following draws
-     itself behind it.
-     ======================================================================= */
-  function initToy() {
-    const toy = $("toy");
-    const notch = $("toyNotch");
-    const path = $("toyPath");
-    const read = $("toyOver");
-    if (!toy || !notch || !path) return;
-
-    // A second copy of the curve that draws in time with the open.
-    const svg = $("toyCurve");
-    const live = svg.cloneNode(true);
-    live.removeAttribute("id");
-    live.classList.add("live");
-    live.querySelector(".target").remove();
-    const livePath = live.querySelector(".line");
-    livePath.removeAttribute("id");
-    svg.after(live);
-    path.style.opacity = "0.22";
-
-    const SPAN = 1.0;   // seconds plotted across the card
-    function draw() {
-      const b = PRESETS[preset];
-      const x = springFn(b, 0.40);
-      let d = "";
-      for (let i = 0; i <= 120; i++) {
-        const px = (400 * i) / 120;
-        const py = 150 - 90 * x((SPAN * i) / 120);
-        d += (i ? "L" : "M") + px.toFixed(1) + " " + py.toFixed(1);
-      }
-      path.setAttribute("d", d);
-      livePath.setAttribute("d", d);
-      const v = overshoot(b) * 100;
-      read.textContent = v === 0 ? "0%" : v < 1 ? v.toFixed(2) + "%" : v.toFixed(1) + "%";
-    }
-
-    let timer = null, visible = false, isOpen = false;
-
-    function setOpen(open) {
-      isOpen = open;
-      const c = reduce ? null : open ? OPEN : COLLAPSE;
-      notch.style.transitionTimingFunction = c ? c.ease : "linear";
-      notch.style.transitionDuration = c ? c.ms + "ms" : "0ms";
-      notch.classList.toggle("open", open);
-      if (reduce) { live.style.clipPath = "none"; return; }
-      if (open) {
-        live.style.transition = "none";
-        live.style.clipPath = "inset(0 100% 0 0)";
-        live.style.opacity = "1";
-        void live.getBoundingClientRect();
-        live.style.transition = `clip-path ${SPAN * 1000}ms linear`;
-        live.style.clipPath = "inset(0 0 0 0)";
-      } else {
-        live.style.transition = "opacity 0.4s ease";
-        live.style.opacity = "0";
-      }
-    }
-
-    function cycle() {
-      clearTimeout(timer);
-      if (!visible || reduce) return;
-      setOpen(!isOpen);
-      timer = setTimeout(cycle, isOpen ? 1900 : 1000);
-    }
-
-    toy.addEventListener("click", () => {
-      clearTimeout(timer);
-      setOpen(!isOpen);
-      timer = setTimeout(cycle, isOpen ? 1900 : 1000);
-    });
-
-    onPreset.push(() => {
-      draw();
-      clearTimeout(timer);
-      if (isOpen) { setOpen(false); timer = setTimeout(cycle, 600); }
-      else cycle();
-    });
-
-    new IntersectionObserver((entries) => {
-      visible = entries[0].isIntersecting;
-      if (visible) cycle(); else clearTimeout(timer);
-    }, { threshold: 0.4 }).observe(toy);
-
-    draw();
-    if (reduce) setOpen(true);
   }
 })();

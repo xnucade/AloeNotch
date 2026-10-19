@@ -1,14 +1,3 @@
-// Demo video: if none of the sources can play, show the placeholder. Listen on
-// the LAST source only — the browser walks the list in order, so an error on
-// the first (WebM) just means it is moving on to the MP4 fallback.
-const video = document.getElementById("demoVideo");
-const placeholder = document.getElementById("demoPlaceholder");
-const sources = [...video.querySelectorAll("source")];
-sources[sources.length - 1].addEventListener("error", () => {
-  video.style.display = "none";
-  placeholder.classList.add("show");
-});
-
 // Scroll reveal: IntersectionObserver, plus a manual sweep fallback so
 // sections never stay invisible in browsers where the observer misses
 // programmatic scrolls.
@@ -135,31 +124,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
   }
 })();
 
-
-/* ---------- Demo sound ----------
-   The film has a soundtrack, but autoplay is only permitted while muted, so it
-   starts silent. This button is the only thing telling anyone the audio is
-   there; it goes away the moment the video is unmuted by any route, including
-   the native controls. */
-(() => {
-  const video = document.getElementById("demoVideo");
-  const button = document.getElementById("soundOn");
-  if (!video || !button) return;
-
-  const sync = () => { button.hidden = !video.muted; };
-
-  button.addEventListener("click", () => {
-    video.muted = false;
-    // A muted autoplay that the user unmutes needs a fresh play() in Safari.
-    const p = video.play();
-    if (p) p.catch(() => {});
-    sync();
-  });
-  video.addEventListener("volumechange", sync);
-  sync();
-})();
-
-/* The 0.13 film: the vertical cut's poster on phones (the <source media>
+/* The film: the vertical cut's poster on phones (the <source media>
    attributes already pick its video), and it only plays while in view. */
 (() => {
   const video = document.getElementById("spotVideo");
