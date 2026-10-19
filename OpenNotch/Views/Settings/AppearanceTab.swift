@@ -103,7 +103,10 @@ struct AppearanceTab: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
-                    .frame(width: 210)
+                    // Its own width, not a fixed one: macOS 26 pads segments
+                    // more, and a frame narrower than that lets "Lively" draw
+                    // past the card. The description wraps instead.
+                    .fixedSize()
                     .disabled(a11y.reduceMotion)
                 }
 
@@ -147,7 +150,7 @@ struct AppearanceTab: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
-                    .frame(width: 270)
+                    .fixedSize()
                 }
 
                 if settings.hudTintMode == .perKind {
