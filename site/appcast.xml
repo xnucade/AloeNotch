@@ -3,6 +3,21 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.15.2</title>
+            <pubDate>Wed, 21 Oct 2026 13:29:32 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>0.15.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li>The live equalizer does less work while music plays: it only
+      redraws when a bar actually moves.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.15.2.dmg" length="3236114" type="application/octet-stream" sparkle:edSignature="O6tskAYsKs2llZskEZkf6JyUArSufuxgNmSv7yLhPLdrdPQmuAPxKbsiC2d6RYACmlDPtopRiPHanvToViNvAg=="/>
+        </item>
+        <item>
             <title>0.15.1</title>
             <pubDate>Wed, 21 Oct 2026 08:48:38 -0400</pubDate>
             <link>https://aloenotch.com</link>
@@ -39,33 +54,6 @@
     </ul>
 ]]></description>
             <enclosure url="https://aloenotch.com/assets/AloeNotch-0.15.0.dmg" length="3235059" type="application/octet-stream" sparkle:edSignature="RhmgLVRMq23s7mrNATYmhvhWpi2iwx7sYWGF+TbY5U0xuIdJnnVt7yuAAYQ5yVcBf4hHvNhvTZA1tJXuOlzTCA=="/>
-        </item>
-        <item>
-            <title>0.14.4</title>
-            <pubDate>Thu, 15 Oct 2026 10:13:56 -0400</pubDate>
-            <link>https://aloenotch.com</link>
-            <sparkle:version>6</sparkle:version>
-            <sparkle:shortVersionString>0.14.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<ul>
-      <li><strong>Two displays, no dead zone.</strong> With the notch on every
-      display, an invisible area around each one swallowed clicks, so a window
-      or Settings under the top of the screen couldn't be clicked or moved.
-      Clicks outside the notch now go where you aim them.</li>
-      <li><strong>No more flashing on two displays.</strong> The notches on
-      each screen could pass keyboard focus back and forth many times a second,
-      flickering the notch and catching the pointer. A closed notch no longer
-      takes focus at all.</li>
-      <li><strong>A new layout: Two pages.</strong> Home puts the large
-      Now Playing player beside your week; Tools gives the shelf, clipboard and
-      timer the whole panel. Switch from beside the clock or with a two-finger
-      swipe, and a file dragged in goes straight to Tools. Pick it in
-      Settings → Appearance → Layout.</li>
-      <li>The large player shows the current lyric line when Lyrics is on.</li>
-    </ul>
-]]></description>
-            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.4.dmg" length="3173059" type="application/octet-stream" sparkle:edSignature="0ecg782RkN8JIl7CZ8xilXi/+UnktJ50i64rKHSN6H7g2yFXyt/oreJo7t62J3ZSTsooX7LDGxtFD1m2cnC8Aw=="/>
         </item>
     </channel>
 </rss>
