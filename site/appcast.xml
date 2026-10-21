@@ -3,6 +3,21 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.15.1</title>
+            <pubDate>Wed, 21 Oct 2026 08:48:38 -0400</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>0.15.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li>The Motion picker in Settings → Appearance fits inside its card
+      again, instead of Lively hanging over the edge.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.15.1.dmg" length="3236114" type="application/octet-stream" sparkle:edSignature="584lZeNbvflrWZVz1/11pdFIyc0OF9ZGW28aHpgooZPAKhObBMysL2PSbUBE+tFpmNBk69W+9vq99XHsZoGwDw=="/>
+        </item>
+        <item>
             <title>0.15.0</title>
             <pubDate>Mon, 19 Oct 2026 12:55:30 -0400</pubDate>
             <link>https://aloenotch.com</link>
@@ -51,24 +66,6 @@
     </ul>
 ]]></description>
             <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.4.dmg" length="3173059" type="application/octet-stream" sparkle:edSignature="0ecg782RkN8JIl7CZ8xilXi/+UnktJ50i64rKHSN6H7g2yFXyt/oreJo7t62J3ZSTsooX7LDGxtFD1m2cnC8Aw=="/>
-        </item>
-        <item>
-            <title>0.14.3</title>
-            <pubDate>Wed, 14 Oct 2026 11:29:02 -0400</pubDate>
-            <link>https://aloenotch.com</link>
-            <sparkle:version>5</sparkle:version>
-            <sparkle:shortVersionString>0.14.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<ul>
-      <li><strong>Your keyboard and mouse stay yours.</strong> After a click
-      in the notch, typing could go to the notch instead of the app in front,
-      so every key beeped, and dragging a file off the shelf could leave the
-      pointer stuck mid-drag. The notch now hands focus straight back, and
-      never while a mouse button is held.</li>
-    </ul>
-]]></description>
-            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.14.3.dmg" length="3139573" type="application/octet-stream" sparkle:edSignature="EoYEcktU0lyc+NkMeBAMISOb9QWaKrPwI4YPtNoWnGxvt6oiyHUH2swVmmlggywvARL5t85yNTpXmAFT8PfEBg=="/>
         </item>
     </channel>
 </rss>
