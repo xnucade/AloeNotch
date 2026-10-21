@@ -11,6 +11,11 @@
 # Typical flow: run without --ship, fill in the new changelog entry in
 # site/changelog.html (replace the "TODO" line), then re-run with --ship.
 #
+# Notes for the next release are drafted in scripts/changelog-next.html (just
+# the <li> items), not in the site: everything in site/ goes live on any
+# `wrangler deploy`, so a draft there would publish early. Prep moves the
+# draft into the new entry and deletes it.
+#
 # Signing/notarization pass through to make-dmg.sh via SIGN_IDENTITY /
 # NOTARY_PROFILE env vars (see that script).
 #
@@ -55,26 +60,26 @@ fi
 # 2. Site download link + version text.
 sed -i '' "s/AloeNotch-$OLD\.dmg/AloeNotch-$NEW.dmg/g; s/Version $OLD/Version $NEW/g" "$INDEX"
 
-# 3. Scaffold a changelog entry (skipped if this version is already present).
-# An entry written ahead of time is headed "$NEW — Unreleased"; it gets
-# today's date here, so the notes can be drafted alongside the work.
+# 3. Scaffold a changelog entry (skipped if this version is already present),
+# filled from scripts/changelog-next.html when there is a draft.
 DATE=$(date "+%B %e, %Y" | tr -s ' ')
+DRAFT="$PROJECT_DIR/scripts/changelog-next.html"
 if grep -q "<h2>$NEW " "$CHANGELOG"; then
-    sed -i '' "s|<h2>$NEW — Unreleased</h2>|<h2>$NEW — $DATE</h2>|" "$CHANGELOG"
     echo "    changelog already has a $NEW entry — leaving it"
 else
     ENTRY=$(mktemp)
-    cat > "$ENTRY" <<EOF
-
-    <h2>$NEW — $DATE</h2>
-    <ul>
-      <li>TODO: describe this release.</li>
-    </ul>
-EOF
+    { printf '\n    <h2>%s — %s</h2>\n    <ul>\n' "$NEW" "$DATE"
+      if [ -s "$DRAFT" ]; then cat "$DRAFT"; else echo '      <li>TODO: describe this release.</li>'; fi
+      printf '    </ul>\n'; } > "$ENTRY"
     awk -v ef="$ENTRY" '/<!-- new-entry -->/{print; while((getline line < ef)>0) print line; close(ef); next} {print}' "$CHANGELOG" > "$CHANGELOG.tmp"
     mv "$CHANGELOG.tmp" "$CHANGELOG"
     rm -f "$ENTRY"
-    echo "    added changelog stub for $NEW — edit the TODO line in site/changelog.html"
+    if [ -s "$DRAFT" ]; then
+        rm -f "$DRAFT"
+        echo "    moved scripts/changelog-next.html into the $NEW entry"
+    else
+        echo "    added changelog stub for $NEW — edit the TODO line in site/changelog.html"
+    fi
 fi
 
 # 4. Build the DMG (make-dmg.sh derives the version from the project).
@@ -106,6 +111,8 @@ fi
 # --- Ship ---
 grep -q "TODO: describe this release." "$CHANGELOG" && \
     fail "changelog still has a TODO placeholder — fill in the $NEW entry before shipping"
+grep -q "— Unreleased</h2>" "$CHANGELOG" && \
+    fail "changelog has an Unreleased heading — drafts belong in scripts/changelog-next.html"
 
 # Everything the GitHub Release needs is checked before anything is pushed, so
 # a missing `gh` can't leave the site on a version the app never hears about.
