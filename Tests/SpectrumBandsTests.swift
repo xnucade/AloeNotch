@@ -31,4 +31,20 @@ func testSpectrumBands() {
     var quiet = SpectrumBands(sampleRate: rate)
     expect(quiet.process(tone(100, amplitude: 0.001))[0] < 0.2, "a whisper barely moves a bar")
     quiet.destroy()
+
+    // Published levels are rounded, so a long fade stops sending frames
+    // once it is closer to rest than a step.
+    let rounded = SpectrumBands.quantized([0.5, 0.51, 0.999, 0.004])
+    expect(rounded.allSatisfy { ($0 * SpectrumBands.steps).rounded() == $0 * SpectrumBands.steps },
+           "published levels land on steps")
+    expect(rounded[0] == rounded[1], "a change under half a step isn't a new frame")
+    var fading = SpectrumBands(sampleRate: rate)
+    _ = fading.process(tone(100))
+    var frames: [[Float]] = []
+    for _ in 0..<60 {
+        frames.append(SpectrumBands.quantized(fading.process([Float](repeating: 0, count: SpectrumBands.blockSize))))
+    }
+    expect(frames.suffix(20).allSatisfy { $0 == frames.last! }, "a finished fade publishes the same frame")
+    expect(frames.last!.allSatisfy { $0 == 0 }, "a finished fade rests at empty bars")
+    fading.destroy()
 }

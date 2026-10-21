@@ -99,10 +99,15 @@ sed -i '' -E "s/(Download free · )[0-9.]+ MB/\1$SIZE MB/" "$INDEX"
 echo "==> Site download set to AloeNotch-$NEW.dmg"
 
 if [ "$SHIP" != "--ship" ]; then
+    if grep -q "TODO: describe this release." "$CHANGELOG"; then
+        STEP="Edit the new entry in site/changelog.html (replace the TODO line)."
+    else
+        STEP="Check the new entry in site/changelog.html."
+    fi
     cat <<EOF
 
 Prep done for $NEW. Next:
-  1. Edit the new entry in site/changelog.html (replace the TODO line).
+  1. $STEP
   2. Ship it:   ./scripts/release.sh $NEW --ship
 EOF
     exit 0

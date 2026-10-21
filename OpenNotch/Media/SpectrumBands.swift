@@ -7,8 +7,18 @@ import Accelerate
 ///
 /// No Core Audio here — samples in, levels out — so it's tested from the
 /// shell with synthetic tones.
+///
+/// Runs ~47 times a second on the audio queue while music plays, so the
+/// working buffers are made once here and reused: a block allocates nothing.
 struct SpectrumBands {
     static let blockSize = 1024
+
+    /// What a published level is rounded to. The tallest bar travels 9 pt,
+    /// so a step is under half a point — below what reads as movement. The
+    /// smoothed fall never quite arrives anywhere, so without rounding every
+    /// frame is "new" and the glyph redraws 30 times a second through a
+    /// steady chord or a long fade.
+    static let steps: Float = 24
 
     /// Band edges in Hz. Four bands, one per bar: lows, low-mids, high-mids,
     /// highs — spaced roughly evenly on a log scale, the way pitch is heard.
@@ -23,6 +33,10 @@ struct SpectrumBands {
     private let setup: FFTSetup
     private let log2n: vDSP_Length
     private let window: [Float]
+    private var windowed: [Float]
+    private var real: [Float]
+    private var imag: [Float]
+    private var power: [Float]
 
     init(sampleRate: Double) {
         let n = Self.blockSize
@@ -38,30 +52,42 @@ struct SpectrumBands {
             return a..<b
         }
         levels = Array(repeating: 0, count: bins.count)
+        windowed = Array(repeating: 0, count: n)
+        real = Array(repeating: 0, count: n / 2)
+        imag = Array(repeating: 0, count: n / 2)
+        power = Array(repeating: 0, count: n / 2)
+    }
+
+    /// Levels rounded to `steps`, for publishing.
+    static func quantized(_ levels: [Float]) -> [Float] {
+        levels.map { ($0 * steps).rounded() / steps }
     }
 
     /// Feeds one block of exactly `blockSize` mono samples and returns the
     /// smoothed levels.
     mutating func process(_ samples: [Float]) -> [Float] {
+        samples.withUnsafeBufferPointer { process($0) }
+    }
+
+    mutating func process(_ samples: UnsafeBufferPointer<Float>) -> [Float] {
         precondition(samples.count == Self.blockSize)
         let n = Self.blockSize
-        let windowed = vDSP.multiply(samples, window)
-
-        var real = [Float](repeating: 0, count: n / 2)
-        var imag = [Float](repeating: 0, count: n / 2)
-        var power = [Float](repeating: 0, count: n / 2)
-        real.withUnsafeMutableBufferPointer { re in
-            imag.withUnsafeMutableBufferPointer { im in
-                var split = DSPSplitComplex(realp: re.baseAddress!, imagp: im.baseAddress!)
-                windowed.withUnsafeBufferPointer { src in
-                    src.baseAddress!.withMemoryRebound(to: DSPComplex.self, capacity: n / 2) {
-                        vDSP_ctoz($0, 2, &split, 1, vDSP_Length(n / 2))
+        let half = vDSP_Length(n / 2)
+        windowed.withUnsafeMutableBufferPointer { w in
+            vDSP_vmul(samples.baseAddress!, 1, window, 1, w.baseAddress!, 1, vDSP_Length(n))
+            real.withUnsafeMutableBufferPointer { re in
+                imag.withUnsafeMutableBufferPointer { im in
+                    var split = DSPSplitComplex(realp: re.baseAddress!, imagp: im.baseAddress!)
+                    w.baseAddress!.withMemoryRebound(to: DSPComplex.self, capacity: n / 2) {
+                        vDSP_ctoz($0, 2, &split, 1, half)
+                    }
+                    vDSP_fft_zrip(setup, &split, 1, log2n, FFTDirection(FFT_FORWARD))
+                    // Bin 0 packs DC and Nyquist together; neither is in a band.
+                    split.imagp[0] = 0
+                    power.withUnsafeMutableBufferPointer { p in
+                        vDSP_zvmags(&split, 1, p.baseAddress!, 1, half)
                     }
                 }
-                vDSP_fft_zrip(setup, &split, 1, log2n, FFTDirection(FFT_FORWARD))
-                // Bin 0 packs DC and Nyquist together; neither is in a band.
-                split.imagp[0] = 0
-                vDSP_zvmags(&split, 1, &power, 1, vDSP_Length(n / 2))
             }
         }
 
