@@ -865,11 +865,11 @@ private struct WaveformGlyph: View {
         .onDisappear { animating = false }
         .task(id: wantsLive) {
             guard wantsLive else { return }
-            await AudioLevels.shared.acquire()
+            AudioLevels.shared.acquire()
             // Hold the tap until this task is cancelled — the glyph goes
             // away, the music stops, or the setting is turned off.
             while !Task.isCancelled { try? await Task.sleep(for: .seconds(3600)) }
-            await AudioLevels.shared.release()
+            AudioLevels.shared.release()
         }
     }
 

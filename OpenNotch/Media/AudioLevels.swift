@@ -36,11 +36,16 @@ final class AudioLevels: ObservableObject, @unchecked Sendable {
     private var aggregateID = AudioObjectID(kAudioObjectUnknown)
     private var procID: AudioDeviceIOProcID?
 
-    // IO queue.
+    // IO queue. One block is gathered in place and analysed when full, so
+    // the audio path allocates nothing per callback.
     private var bands: SpectrumBands?
-    private var pending: [Float] = []
+    private var block = [Float](repeating: 0, count: SpectrumBands.blockSize)
+    private var filled = 0
+    private var blockHasSound = false
     private var silentBlocks = 0
     private var lastPublish = Date.distantPast
+    /// Last levels sent to the main thread, so an unchanged frame isn't sent.
+    private var lastSent: [Float]?
 
     /// Called by each glyph that wants live levels; balanced by `release()`.
     @MainActor func acquire() {
@@ -105,8 +110,10 @@ final class AudioLevels: ObservableObject, @unchecked Sendable {
         let rate = format.mSampleRate
         io.sync {
             bands = SpectrumBands(sampleRate: rate)
-            pending.removeAll(keepingCapacity: true)
+            filled = 0
+            blockHasSound = false
             silentBlocks = 0
+            lastSent = nil
         }
         let status = AudioDeviceCreateIOProcIDWithBlock(&procID, aggregateID, io) { [weak self] _, input, _, _, _ in
             self?.consume(input)
@@ -142,33 +149,49 @@ final class AudioLevels: ObservableObject, @unchecked Sendable {
         let channels = max(1, Int(first.mNumberChannels))
         let count = Int(first.mDataByteSize) / MemoryLayout<Float>.size / channels
         let samples = data.assumingMemoryBound(to: Float.self)
-        // Channel 0 of an interleaved buffer; the tap is mono, so usually all.
-        for i in 0..<count { pending.append(samples[i * channels]) }
 
+        // Channel 0 of an interleaved buffer; the tap is mono, so usually all.
         let n = SpectrumBands.blockSize
-        while pending.count >= n {
-            let block = Array(pending.prefix(n))
-            pending.removeFirst(n)
-            analyze(block)
+        var i = 0
+        while i < count {
+            let take = min(count - i, n - filled)
+            var sound = blockHasSound
+            block.withUnsafeMutableBufferPointer { dst in
+                for j in 0..<take {
+                    let sample = samples[(i + j) * channels]
+                    dst[filled + j] = sample
+                    if sample != 0 { sound = true }
+                }
+            }
+            blockHasSound = sound
+            filled += take
+            i += take
+            if filled == n {
+                analyze()
+                filled = 0
+                blockHasSound = false
+            }
         }
     }
 
-    private func analyze(_ block: [Float]) {
-        guard var analyzer = bands else { return }
-        let levels = analyzer.process(block)
-        bands = analyzer
+    private func analyze() {
+        guard bands != nil else { return }
+        let levels = block.withUnsafeBufferPointer { bands!.process($0) }
 
-        let silent = block.allSatisfy { $0 == 0 }
-        silentBlocks = silent ? silentBlocks + 1 : 0
+        silentBlocks = blockHasSound ? 0 : silentBlocks + 1
         // ~2 s of exact zeros: denied, or nothing actually sounding.
         let live = silentBlocks < 90
 
         let now = Date()
         guard now.timeIntervalSince(lastPublish) >= 1.0 / 30 else { return }
+        let next = live ? SpectrumBands.quantized(levels) : nil
+        // Most frames of a held note or a fade round to what is already on
+        // screen; those cost the main thread nothing.
+        guard next != lastSent else { return }
         lastPublish = now
+        lastSent = next
         DispatchQueue.main.async {
             guard self.demand > 0 else { return }
-            let next = live ? levels : nil
             if self.levels != next { self.levels = next }
         }
     }
