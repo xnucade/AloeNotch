@@ -601,181 +601,264 @@ p { text-wrap: pretty; }
   .stage-bar { margin-top: 12px; border-radius: 20px; }
 }
 
-/* ---------- Numbers ---------- */
-.stats { max-width: 1060px; margin: 0 auto; padding: 72px 24px 120px; }
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
+/* =========================================================================
+   Below the hero
+
+   The hero is the one loud thing on the page. Everything after it is quiet
+   on purpose: type, footage and hairlines, no boxes. Sections share one
+   left edge and one headline style (a white line, then a grey one), and
+   the only colour is the notch's line of light over the download.
+   ========================================================================= */
+.sec {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 150px;
 }
-/* Hairline separators drawn by the grid gap over a tinted backdrop, so the
-   cells stay flush at every column count the auto-fit produces. */
-.stat { background: var(--bg); padding: 28px 20px; text-align: center; }
-.stat b {
-  display: block;
-  font-size: 34px;
+.sec-head { margin-bottom: 56px; max-width: 760px; }
+.sec-head h2 {
+  font-size: clamp(34px, 5vw, 56px);
   font-weight: 650;
-  letter-spacing: -0.03em;
-  margin-bottom: 4px;
-}
-.stat span { font-size: 13px; color: var(--faint); }
-
-/* ---------- Section heads ---------- */
-.features h2, .section-head h2 {
-  font-size: clamp(36px, 5.4vw, 60px);
   letter-spacing: -0.035em;
-  line-height: 1.04;
-  text-align: center;
+  line-height: 1.05;
 }
-.section-head { text-align: center; margin-bottom: 48px; }
-.section-head p { margin: 18px auto 0; max-width: 520px; font-size: 17px; line-height: 1.5; color: var(--muted); }
+.sec-head h2 span { color: var(--faint); }
+.sec-lede {
+  margin-top: 20px;
+  max-width: 600px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.sec-lede a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
+.sec-lede a:hover { text-decoration-color: currentColor; }
 
-/* ---------- Features: bento ---------- */
-.features { max-width: 1240px; margin: 0 auto; padding: 0 24px 140px; }
-.features h2 { margin-bottom: 56px; }
-.bento {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 18px;
-}
-.span-5 { grid-column: span 5; }
-.span-6 { grid-column: span 6; }
-.span-7 { grid-column: span 7; }
-.span-12 { grid-column: span 12; }
-@media (max-width: 900px) {
-  .bento > * { grid-column: span 12; }
-}
-
-.card {
+/* ---------- The film ---------- */
+.film { padding-top: 140px; }
+.film-frame {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 26px 26px 28px;
-  transition: transform 0.4s var(--ease-out), border-color 0.3s, background 0.3s;
-}
-/* The notch's line of light along the card's top edge, on hover. */
-.card::before {
-  content: "";
-  position: absolute;
-  top: -1px; left: 50%;
-  width: 46%; height: 1px;
-  transform: translateX(-50%) scaleX(0.2);
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  box-shadow: 0 0 14px 1px var(--accent-soft);
-  opacity: 0;
-  transition: transform 0.5s var(--ease-out), opacity 0.4s;
-}
-.card:hover { transform: translateY(-4px); border-color: var(--border-strong); }
-.card:hover::before { opacity: 1; transform: translateX(-50%) scaleX(1); }
-
-/* ---------- Card clips ----------
-   Each card leads with a short rendered clip of the feature instead of an
-   icon. The poster carries the card at rest; the video only loads and plays
-   when the pointer is on it, which is why `preload="none"` matters — ten
-   autoloading videos would cost more than the rest of the page combined. */
-.card-clip {
-  position: relative;
-  margin: -12px -12px 22px;
-  border-radius: 18px;
+  aspect-ratio: 16 / 9;
+  border-radius: 22px;
   overflow: hidden;
   background: #05070c;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  /* The clips are 800x320. Reserving the box by aspect-ratio means the card
-     never reflows when the poster arrives. */
+  border: 1px solid var(--border);
+  box-shadow: 0 50px 120px -50px rgba(0, 0, 0, 0.9);
+}
+.film-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 640px) {
+  .film { padding-top: 96px; }
+  .film-frame { aspect-ratio: 9 / 16; max-width: 420px; max-height: 82svh; margin: 0 auto; }
+}
+
+/* ---------- Clips ----------
+   Each feature leads with a short rendered clip. The poster carries it at
+   rest; the video only loads and plays under the pointer, which is why
+   `preload="none"` matters: nine autoloading videos would outweigh the rest
+   of the page. The clips are 800x320, reserved by aspect-ratio so nothing
+   reflows when a poster arrives. Clicking one opens it full size. */
+.card-clip {
+  position: relative;
   aspect-ratio: 800 / 320;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #05070c;
+  border: 1px solid var(--border);
   cursor: zoom-in;
+  transition: border-color 0.3s;
 }
-.card-clip video {
-  display: block;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s var(--ease-out);
-}
-.card:hover .card-clip video { transform: scale(1.025); }
-.card-clip::after {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 1px transparent;
-  transition: box-shadow 0.3s;
-  pointer-events: none;
-}
-.card:hover .card-clip::after { box-shadow: inset 0 0 0 1px var(--accent-soft); }
-.card-clip .zoomhint {
-  position: absolute;
-  right: 10px; bottom: 10px;
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: rgba(10, 12, 18, 0.72);
-  backdrop-filter: blur(8px);
-  font-size: 11px;
-  color: rgba(245, 245, 247, 0.8);
-  opacity: 0;
-  transition: opacity 0.25s;
-  pointer-events: none;
-}
-.card:hover .card-clip .zoomhint { opacity: 1; }
+.card-clip video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.feat:hover .card-clip, .lead-row:hover .card-clip { border-color: var(--border-strong); }
 
-.card h3 { font-size: 19px; letter-spacing: -0.015em; margin-bottom: 8px; }
-.card p { font-size: 14.5px; line-height: 1.55; color: var(--muted); }
-
-/* The lead cards get a little more voice. */
-.span-7 h3 { font-size: 22px; }
-.span-7 p { font-size: 15.5px; max-width: 560px; }
-
-/* The closer: clip and words side by side. */
-.card-wide {
+/* ---------- Features ---------- */
+/* The three headline features: big clip, words beside it, alternating. */
+.lead { display: grid; gap: 88px; margin-bottom: 120px; }
+.lead-row {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   align-items: center;
-  gap: 40px;
-  padding: 18px 40px 18px 18px;
+  gap: 56px;
 }
-.card-wide .card-clip { margin: 0; }
-.card-wide h3 { font-size: 26px; }
-.card-wide p { font-size: 16px; }
-@media (max-width: 900px) {
-  .card-wide { display: flex; padding: 26px 26px 28px; gap: 0; }
-  .card-wide .card-clip { margin: -12px -12px 22px; }
+.lead-row:nth-child(even) .card-clip { order: 2; }
+.lead-row h3 {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin-bottom: 12px;
 }
+.lead-row p { font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 420px; }
 
-/* The three newest features carry a badge in the same light as the hero's. */
-.card h3 .new {
-  display: inline-block;
-  vertical-align: 0.18em;
-  margin-left: 10px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
-  color: #000;
-  background: color-mix(in oklab, var(--glow) 55%, white);
+/* Everything else: two across, clip over words. Never three: the clips are
+   already hard to read at two, and that is the floor. */
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 64px 40px;
 }
+.feat h3 {
+  margin-top: 22px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.feat p { margin-top: 8px; font-size: 15px; line-height: 1.55; color: var(--muted); max-width: 470px; }
 
-/* Everything that didn't need its own clip: one quiet row of chips. */
-.extras { margin-top: 56px; text-align: center; }
-.extras h3 { font-size: 15px; font-weight: 600; color: var(--faint); margin-bottom: 18px; }
-.extras ul {
+/* The small stuff: a ruled list, not a cloud of pills. */
+.also { margin-top: 120px; }
+.also h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 18px;
+}
+.also ul {
   list-style: none;
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 10px;
-  max-width: 860px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  column-gap: 40px;
 }
-.extras li {
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 14px;
+.also li {
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
   color: var(--muted);
 }
+
+@media (max-width: 860px) {
+  .lead { gap: 64px; margin-bottom: 88px; }
+  .lead-row { grid-template-columns: 1fr; gap: 22px; }
+  .lead-row:nth-child(even) .card-clip { order: 0; }
+  .lead-row h3 { font-size: 22px; }
+  .feat-grid { grid-template-columns: 1fr; gap: 48px; }
+  .also { margin-top: 88px; }
+}
+
+/* ---------- Free ---------- */
+/* The numbers, as a spec line rather than a box of tiles. Measured on a
+   real machine, not estimated: idle CPU sampled over 30 seconds, and
+   phys_footprint rather than RSS (RSS counts shared frameworks and roughly
+   doubles the figure). Re-measure before changing them. No download size
+   here on purpose: release.sh only updates the one on the download button. */
+.specs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 32px;
+  margin-bottom: 72px;
+}
+.specs div { border-top: 1px solid var(--border-strong); padding-top: 18px; }
+.specs dt {
+  font-size: clamp(30px, 3.6vw, 42px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.specs dd { margin-top: 4px; font-size: 14px; color: var(--faint); }
+
+.doesnt {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 32px;
+}
+.doesnt li { border-top: 1px solid var(--border); padding-top: 18px; font-size: 15px; line-height: 1.55; color: var(--muted); }
+.doesnt b { display: block; margin-bottom: 6px; color: var(--text); font-weight: 600; }
+.doesnt a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-strong); }
+
+@media (max-width: 860px) {
+  .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; margin-bottom: 56px; }
+  .doesnt { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* ---------- Download ---------- */
+/* The one place below the hero with the notch's line of light: it sits on
+   the top edge, the way the light sits on the icon's notch. */
+.download { padding: 0 24px 150px; }
+.dl {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-top: 110px;
+  text-align: center;
+}
+.dl::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  width: min(520px, 70%); height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 28px 3px var(--accent-soft);
+}
+.dl img { border-radius: 18px; margin-bottom: 22px; }
+.dl h2 { font-size: clamp(34px, 5vw, 56px); font-weight: 650; letter-spacing: -0.035em; line-height: 1.05; }
+.dl .fineprint { display: block; margin: 14px 0 30px; }
+.dl .fineprint a { text-decoration: underline; text-underline-offset: 3px; }
+.dl-notes {
+  max-width: 520px;
+  margin: 44px auto 0;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.dl-notes details { border-top: 1px solid var(--border); }
+.dl-notes summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 15px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.dl-notes summary:hover { color: var(--text); }
+.dl-notes details p { font-size: 14px; line-height: 1.6; color: var(--muted); padding-bottom: 16px; }
+.dl-notes details p + p { margin-top: -6px; }
+.dl-notes strong { color: var(--text); font-weight: 600; }
+.dl-notes a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.dl-notes a:hover { color: var(--accent); }
+
+/* ---------- FAQ ---------- */
+.faq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: 40px;
+  align-items: start;
+}
+.faq h2 { font-size: clamp(30px, 3.6vw, 40px); font-weight: 650; letter-spacing: -0.03em; }
+.faq-list { border-bottom: 1px solid var(--border); }
+.faq-more { margin-top: 22px; font-size: 14px; color: var(--faint); }
+.faq-more a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.faq-more a:hover { color: var(--text); }
+@media (max-width: 860px) {
+  .faq-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* Shared by the FAQ and the download notes: hairline rows with a plus that
+   turns into a minus. Drawn here rather than left to the browser, because
+   Safari and Chrome disagree about the default triangle. */
+.faq details { border-top: 1px solid var(--border); }
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 20px 0;
+  font-size: 17px;
+  font-weight: 500;
+  display: flex; justify-content: space-between; align-items: center; gap: 24px;
+}
+.faq summary::-webkit-details-marker, .dl-notes summary::-webkit-details-marker { display: none; }
+.faq summary::after, .dl-notes summary::after {
+  content: "";
+  flex: none;
+  width: 11px; height: 11px;
+  background:
+    linear-gradient(currentColor, currentColor) center / 11px 1.5px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1.5px 11px no-repeat;
+  color: var(--faint);
+  transition: transform 0.3s var(--ease-out);
+}
+.faq details[open] summary::after, .dl-notes details[open] summary::after {
+  transform: rotate(45deg);
+}
+.faq details p { font-size: 15.5px; line-height: 1.6; color: var(--muted); padding: 0 40px 22px 0; }
 
 /* ---------- Lightbox ---------- */
 #lightbox {
@@ -805,187 +888,6 @@ p { text-wrap: pretty; }
   color: var(--faint);
 }
 
-/* ---------- Pitch ---------- */
-.pitch { max-width: 1060px; margin: 0 auto; padding: 0 24px 120px; }
-.pitch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-  gap: 18px;
-  /* Each card is its own height. Stretching them to match left 250px of dead
-     space under the shorter one, which reads as something failing to load. */
-  align-items: start;
-}
-.pitch-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 34px 32px;
-}
-.pitch-card h2 {
-  font-size: 26px;
-  letter-spacing: -0.02em;
-  margin-bottom: 16px;
-}
-.pitch-card p {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-.pitch-card p + p { margin-top: 14px; }
-.pitch-card a { color: var(--accent); }
-.pitch-card a:hover { text-decoration: underline; }
-.plainlist { list-style: none; display: grid; gap: 14px; }
-.plainlist li {
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--muted);
-  padding-left: 20px;
-  position: relative;
-}
-/* A dash rather than a tick: these are things the app declines to do, and a
-   row of green checkmarks against "no telemetry" reads as a feature list. */
-.plainlist li::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 11px;
-  width: 10px; height: 1.5px;
-  background: var(--accent);
-  border-radius: 1px;
-}
-.plainlist b { color: var(--text); font-weight: 600; }
-
-/* ---------- FAQ ---------- */
-.faq { max-width: 760px; margin: 0 auto; padding: 0 24px 140px; }
-.faq h2 {
-  font-size: clamp(30px, 4vw, 44px);
-  letter-spacing: -0.03em;
-  text-align: center;
-  margin-bottom: 36px;
-}
-.faq-list { display: grid; gap: 10px; }
-.faq details {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 4px 22px;
-  transition: border-color 0.3s, background 0.3s;
-}
-.faq details:hover { background: rgba(255, 255, 255, 0.06); }
-.faq details[open] { border-color: var(--accent-soft); }
-.faq summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 17px 0;
-  font-size: 16px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.faq summary::-webkit-details-marker { display: none; }
-/* The marker is drawn here rather than left to the browser so it can rotate;
-   Safari and Chrome disagree about the default triangle's size and position. */
-.faq summary::after {
-  content: "";
-  flex: none;
-  width: 8px; height: 8px;
-  border-right: 1.5px solid var(--faint);
-  border-bottom: 1.5px solid var(--faint);
-  transform: rotate(45deg) translate(-2px, -2px);
-  transition: transform 0.25s ease;
-}
-.faq details[open] summary::after {
-  transform: rotate(-135deg) translate(-2px, -2px);
-}
-.faq details p {
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--muted);
-  padding: 0 0 18px;
-}
-
-/* ---------- Download ---------- */
-.download { padding: 0 24px 140px; }
-.dl-panel {
-  position: relative;
-  max-width: 640px;
-  margin: 0 auto;
-  text-align: center;
-  background:
-    radial-gradient(70% 60% at 50% 0%, rgba(115, 191, 255, 0.13), transparent 70%),
-    var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 36px;
-  padding: 64px 40px 44px;
-}
-/* The icon's notch, hanging from the panel's top edge with its light on. */
-.dl-notch {
-  position: absolute;
-  top: -1px; left: 50%;
-  width: 150px; height: 24px;
-  transform: translateX(-50%);
-  background: var(--bg);
-  border: 1px solid #9fd4ff;
-  border-top: 0;
-  border-radius: 0 0 14px 14px;
-  box-shadow: 0 6px 24px -2px var(--accent-soft), 0 0 8px 0 var(--accent-soft);
-}
-.dl-panel img { border-radius: 22px; margin-bottom: 18px; }
-.dl-panel h2 { font-size: 36px; letter-spacing: -0.03em; }
-.dl-panel .fineprint { display: block; margin: 10px 0 26px; }
-.dl-panel .fineprint a { text-decoration: underline; text-underline-offset: 3px; }
-.dl-panel details {
-  margin-top: 26px;
-  font-size: 13.5px;
-  color: var(--muted);
-  text-align: left;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 14px;
-  padding: 14px 18px;
-}
-.dl-panel summary { cursor: pointer; font-weight: 600; color: var(--text); }
-.dl-panel details p { margin-top: 10px; line-height: 1.55; }
-
-/* The Intel / macOS 15 end-of-line build. Sits directly under the first
-   disclosure, so it takes a tighter margin than the 26px that separates the
-   pair from the download button above them. */
-.dl-panel details.dl-legacy { margin-top: 10px; }
-.dl-legacy a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
-.dl-legacy a:hover { color: var(--accent); }
-
-/* ---------- Wordmark ----------
-   The name at display size, nearly not there, with the notch's line of light
-   running along its top. */
-.wordmark {
-  position: relative;
-  overflow: hidden;
-  text-align: center;
-  line-height: 0.8;
-  padding-top: 20px;
-  user-select: none;
-}
-.wordmark::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 50%;
-  width: min(560px, 60%); height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  box-shadow: 0 0 30px 4px var(--accent-soft);
-}
-.wordmark span {
-  display: block;
-  font-size: clamp(72px, 19vw, 260px);
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  color: transparent;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0) 78%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  transform: translateY(12%);
-}
-
 /* ---------- Footer ---------- */
 footer {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -994,7 +896,6 @@ footer {
   font-size: 12.5px;
   color: var(--faint);
 }
-.home footer { border-top: 0; }
 footer p + p { margin-top: 6px; }
 footer a { text-decoration: underline; text-underline-offset: 2px; }
 .footer-links {
@@ -1084,8 +985,8 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
 }
 .reveal.in { opacity: 1; transform: none; }
-/* Bento tiles arrive one after another rather than as a slab. */
-.bento > .reveal:nth-child(2n) { transition-delay: 0.08s; }
+/* Two-across features arrive one after the other rather than as a slab. */
+.feat-grid > .reveal:nth-child(2n) { transition-delay: 0.08s; }
 
 /* ---------- Hero entrance ---------- */
 .hero-copy > * { animation: rise 0.9s var(--ease-out) both; }
@@ -1102,8 +1003,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   :root { transition: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .hero-copy > *, .stage-wrap, .stage-hint { animation: none; }
-  .faq summary::after, .faq details { transition: none; }
-  .card, .card::before, .card-clip video, .card-clip::after, .card-clip .zoomhint { transition: none; }
+  .faq summary::after, .dl-notes summary::after, .card-clip { transition: none; }
   .wave i { animation: none; height: 60%; }
   .hn-strip .side > *, .tool-body > *, .file { animation: none; }
 }
@@ -1226,46 +1126,3 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   .hn-rim { animation: none; }
   .eyebrow .tag::after { animation: none; }
 }
-
-/* ---------- The film ---------- */
-.spotlight { max-width: 1240px; margin: 0 auto; padding: 120px 24px 0; }
-.spotlight .section-head em {
-  font-style: normal;
-  background: linear-gradient(100deg, #ffd166, #ff6fb5 40%, #9b7bff 70%, #5ee7ff);
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent;
-}
-/* The film, in a frame lit by the same rim colours as the glass panel. */
-.spot-film {
-  position: relative;
-  margin: 0 auto 56px;
-  max-width: 1100px;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: #05070c;
-  border: 1px solid var(--border-strong);
-  box-shadow:
-    0 40px 120px -40px rgba(155, 123, 255, 0.45),
-    0 30px 80px -30px rgba(0, 0, 0, 0.9);
-}
-.spot-film::before {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(from var(--ang), #5ee7ff, #9b7bff, #ff6fb5, #ffd166, #5ee7ff);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: rim-drift 12s linear infinite;
-  opacity: 0.8;
-  z-index: 1;
-  pointer-events: none;
-}
-.spot-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 640px) {
-  .spotlight { padding-top: 80px; }
-  .spot-film { aspect-ratio: 9 / 16; max-width: 420px; max-height: 82svh; }
-}
-@media (prefers-reduced-motion: reduce) { .spot-film::before { animation: none; } }

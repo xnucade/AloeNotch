@@ -64,7 +64,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
     if (!video) continue;
 
     if (hoverCapable) {
-      const card = box.closest(".card") || box;
+      const card = box.closest(".feat, .lead-row") || box;
       card.addEventListener("pointerenter", () => play(video));
       card.addEventListener("pointerleave", () => stop(video));
     }

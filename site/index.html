@@ -192,11 +192,11 @@
          and only plays it in view. (The older 45-second tour and its
          video/verify-site.mjs check predate all three, so it is off the page.)
          ================================================================ -->
-    <section class="spotlight" id="tour">
-      <div class="section-head reveal">
-        <h2>Glass, lyrics, and a notch<br><em>that listens.</em></h2>
+    <section class="sec film" id="tour">
+      <div class="sec-head reveal">
+        <h2>Glass, lyrics, and a notch <span>that listens.</span></h2>
       </div>
-      <div class="spot-film reveal">
+      <div class="film-frame reveal">
         <video id="spotVideo" muted loop playsinline preload="metadata"
                poster="assets/spotlight.jpg"
                data-poster-vertical="assets/spotlight-vertical.jpg"
@@ -209,31 +209,14 @@
       </div>
     </section>
 
-    <!-- The first objection to a free menu bar app is that it will be bloated
-         or slow. Memory and CPU are measured on a real machine, not estimated:
-         idle CPU sampled over 30 seconds, and phys_footprint rather than RSS
-         (RSS counts shared frameworks and roughly doubles the figure).
-         Re-measure before changing them. No download size here on purpose:
-         release.sh only updates the one on the download button. -->
-    <section class="stats">
-      <div class="stat-row reveal">
-        <div class="stat"><b>$0</b><span>no Pro tier, ever</span></div>
-        <div class="stat"><b>37 MB</b><span>memory in use</span></div>
-        <div class="stat"><b>&lt;1%</b><span>of one core, idle</span></div>
-        <div class="stat"><b>MIT</b><span>open source</span></div>
+    <!-- Features: the three headline ones as big alternating rows, then the
+         rest two across, then the small stuff as a ruled list. -->
+    <section class="sec features" id="features">
+      <div class="sec-head reveal">
+        <h2>Everything the notch <span>should have been.</span></h2>
       </div>
-    </section>
-
-    <!-- ================================================================
-         Features as a bento: the three new ones lead, then pairs, then one
-         wide closer. Clip cards never go three across: the clips were
-         already hard to read at two, and that is the floor. Everything
-         smaller is a line in the list underneath, not another clip.
-         ================================================================ -->
-    <section class="features" id="features">
-      <h2 class="reveal">Everything the notch<br>should have been.</h2>
-      <div class="bento">
-        <article class="card reveal span-7">
+      <div class="lead">
+        <article class="lead-row reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/glass.jpg"
@@ -241,15 +224,13 @@
               <source src="assets/clips/glass.webm" type="video/webm">
               <source src="assets/clips/glass.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
-          <h3>A glass notch<span class="new">New</span></h3>
-          <p>Switch the open panel to glass and it frosts whatever is behind it, with an edge that shifts color with the song. It stays black over the camera, so the cutout never shows.</p>
+          <div>
+            <h3>A glass notch</h3>
+            <p>Switch the open panel to glass and it frosts whatever is behind it, with an edge that shifts color with the song. It stays black over the camera, so the cutout never shows.</p>
+          </div>
         </article>
-        <article class="card reveal span-5">
+        <article class="lead-row reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/lyrics.jpg"
@@ -257,31 +238,29 @@
               <source src="assets/clips/lyrics.webm" type="video/webm">
               <source src="assets/clips/lyrics.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
-          <h3>Lyrics in the notch<span class="new">New</span></h3>
-          <p>The line being sung, right under the track title. Off until you turn it on.</p>
+          <div>
+            <h3>Lyrics in the notch</h3>
+            <p>The line being sung, right under the track title. Off until you turn it on.</p>
+          </div>
         </article>
-        <article class="card reveal span-5">
+        <article class="lead-row reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/live-eq.jpg"
-                   aria-label="The live equalizer, demonstrated">
+                   aria-label="An equalizer that listens, demonstrated">
               <source src="assets/clips/live-eq.webm" type="video/webm">
               <source src="assets/clips/live-eq.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
-          <h3>An equalizer that listens<span class="new">New</span></h3>
-          <p>The bars follow the actual music, bass to treble. The sound is measured, never recorded.</p>
+          <div>
+            <h3>An equalizer that listens</h3>
+            <p>The bars follow the actual music, bass to treble. The sound is measured, never recorded.</p>
+          </div>
         </article>
-        <article class="card reveal span-7">
+      </div>
+      <div class="feat-grid">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/now-playing.jpg"
@@ -289,15 +268,11 @@
               <source src="assets/clips/now-playing.webm" type="video/webm">
               <source src="assets/clips/now-playing.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
           <h3>Now Playing, everywhere</h3>
           <p>Apple Music, Spotify — even YouTube in your browser. Title, artwork and controls for whatever your Mac is playing.</p>
         </article>
-        <article class="card reveal span-6">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/shelf.jpg"
@@ -305,15 +280,11 @@
               <source src="assets/clips/shelf.webm" type="video/webm">
               <source src="assets/clips/shelf.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
           <h3>The Shelf</h3>
           <p>Drag a file onto the notch and it opens to catch it. Park screenshots and downloads, then drag them back out anywhere.</p>
         </article>
-        <article class="card reveal span-6">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/at-a-glance.jpg"
@@ -321,15 +292,11 @@
               <source src="assets/clips/at-a-glance.webm" type="video/webm">
               <source src="assets/clips/at-a-glance.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
           <h3>Your day, at a glance</h3>
           <p>Your calendar, the weather and a clock in the header — and a Join button ten minutes before a Zoom, Meet or Teams call.</p>
         </article>
-        <article class="card reveal span-6">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/timer.jpg"
@@ -337,15 +304,11 @@
               <source src="assets/clips/timer.webm" type="video/webm">
               <source src="assets/clips/timer.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
           <h3>A timer, in the notch</h3>
           <p>It takes over the strip while it counts down. With music playing, it pinches off into its own bubble beside the notch.</p>
         </article>
-        <article class="card reveal span-6">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/clipboard.jpg"
@@ -353,15 +316,11 @@
               <source src="assets/clips/clipboard.webm" type="video/webm">
               <source src="assets/clips/clipboard.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
           <h3>The last 24 things you copied</h3>
           <p>Click one to copy it again. Kept in memory only, and anything a password manager marks private is skipped.</p>
         </article>
-        <article class="card reveal span-12 card-wide">
+        <article class="feat reveal">
           <div class="card-clip">
             <video muted loop playsinline preload="none"
                    poster="assets/clips/invisible.jpg"
@@ -369,19 +328,13 @@
               <source src="assets/clips/invisible.webm" type="video/webm">
               <source src="assets/clips/invisible.mp4" type="video/mp4">
             </video>
-            <span class="zoomhint" aria-hidden="true">
-              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.6" cy="8.6" r="5.6"/><path d="M12.8 12.8 17 17M8.6 6.2v4.8M6.2 8.6h4.8"/></svg>
-              Enlarge
-            </span>
           </div>
-          <div class="card-text">
-            <h3>Invisible by design</h3>
-            <p>Collapsed, it hugs the hardware notch to the pixel — pure black, nothing added. On a screen without a notch, it draws its own.</p>
-          </div>
+          <h3>Invisible by design</h3>
+          <p>Collapsed, it hugs the hardware notch to the pixel — pure black, nothing added. On a screen without a notch, it draws its own.</p>
         </article>
       </div>
-      <div class="extras reveal">
-        <h3>And the small stuff</h3>
+      <div class="also reveal">
+        <h3>Also in the box</h3>
         <ul>
           <li>Mirror, for a look before a call</li>
           <li>Notes that stay put</li>
@@ -397,40 +350,41 @@
       </div>
     </section>
 
-    <section class="pitch">
-      <div class="pitch-grid">
-        <article class="pitch-card reveal">
-          <h2>Free, without the asterisk.</h2>
-          <p>No trial, no licence key, no Pro tier, no account, and nothing
-          inside the app asking you to upgrade. It's MIT licensed and the
-          whole thing is on <a href="https://github.com/xnucade/AloeNotch">GitHub</a>,
-          so you can read exactly what it does before you run it.</p>
-        </article>
-
-        <article class="pitch-card reveal">
-          <h2>What it doesn't do.</h2>
-          <ul class="plainlist">
-            <li><b>No analytics, no telemetry, no account.</b> Nothing about how
-            you use it leaves your Mac.</li>
-            <li><b>Only the requests you'd expect.</b> Weather, a daily update
-            check, and lyrics if you turn them on — each one optional.
-            <a href="/privacy">The full list</a>.</li>
-            <li><b>Clipboard history never touches the disk.</b> It lives in
-            memory and clears when the app quits.</li>
-          </ul>
-        </article>
+    <section class="sec free" id="free">
+      <div class="sec-head reveal">
+        <h2>Free, <span>without the asterisk.</span></h2>
+        <p class="sec-lede">No trial, no licence key, no Pro tier, no account, and
+        nothing inside the app asking you to upgrade. It's MIT licensed and the
+        whole thing is on <a href="https://github.com/xnucade/AloeNotch">GitHub</a>,
+        so you can read exactly what it does before you run it.</p>
       </div>
+      <!-- Measured, not estimated; see the note on .specs in style.css
+           before changing a number. -->
+      <dl class="specs reveal">
+        <div><dt>$0</dt><dd>no Pro tier, ever</dd></div>
+        <div><dt>37 MB</dt><dd>memory in use</dd></div>
+        <div><dt>&lt;1%</dt><dd>of one core, idle</dd></div>
+        <div><dt>MIT</dt><dd>open source</dd></div>
+      </dl>
+      <ul class="doesnt reveal">
+        <li><b>No analytics, no telemetry, no account.</b> Nothing about how you
+        use it leaves your Mac.</li>
+        <li><b>Only the requests you'd expect.</b> Weather, a daily update check,
+        and lyrics if you turn them on, each one optional.
+        <a href="/privacy">The full list</a>.</li>
+        <li><b>Clipboard history never touches the disk.</b> It lives in memory
+        and clears when the app quits.</li>
+      </ul>
     </section>
 
     <section class="download" id="download">
-      <div class="dl-panel reveal">
-        <!-- A notch at the top edge of the panel, lit the way the icon is. -->
-        <span class="dl-notch" aria-hidden="true"></span>
-        <img src="assets/icon.png" alt="AloeNotch icon" width="96" height="96">
+      <div class="dl reveal">
+        <img src="assets/icon.png" alt="AloeNotch icon" width="80" height="80">
         <h2>Get AloeNotch</h2>
         <p class="fineprint">Version 0.15.2 · Apple Silicon · macOS 26 or later ·
         <a href="/changelog">what’s new</a></p>
         <a class="btn btn-big" href="assets/AloeNotch-0.15.2.dmg" download>Download free · 3.1 MB</a>
+        <div class="dl-notes">
         <details>
           <summary>First launch on macOS</summary>
           <p>AloeNotch is an independent app, so macOS will ask before the first
@@ -452,12 +406,15 @@
           <p><a href="assets/AloeNotch-0.6.0-intel-eol.dmg" download>Download 0.6.0 (Intel · final release)</a></p>
         </details>
 
+        </div>
       </div>
     </section>
 
-    <section class="faq" id="faq">
-      <h2 class="reveal">Questions</h2>
-      <div class="faq-list reveal">
+    <section class="sec faq" id="faq">
+      <div class="faq-grid">
+        <h2 class="reveal">Questions</h2>
+        <div class="reveal">
+          <div class="faq-list">
         <details>
           <summary>My Mac doesn't have a notch. Does it still work?</summary>
           <p>Yes. On a display without a notch, AloeNotch draws its own strip in
@@ -481,6 +438,9 @@
           changed; it downloads, checks the update's signature, and reopens on
           the new version. Your settings and permissions carry over.</p>
         </details>
+          </div>
+          <p class="faq-more">Something else? <a href="/support">Support</a> has the rest.</p>
+        </div>
       </div>
     </section>
 
@@ -490,10 +450,6 @@
   </div>
 
   </main>
-
-  <!-- The name, huge and nearly not there, lit from above by the same line of
-       light the notch has. Decorative only. -->
-  <div class="wordmark" aria-hidden="true"><span>AloeNotch</span></div>
 
   <footer>
     <div class="footer-links">
@@ -511,6 +467,5 @@
 
   <script src="main.js"></script>
   <script src="hero.js"></script>
-  <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="xnucade" data-description="Support me on Buy me a coffee!" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 </body>
 </html>
