@@ -175,6 +175,18 @@ final class AppSettings: ObservableObject {
 
     static let panelWidthRange: ClosedRange<Double> = 520...900
 
+    /// The narrowest the open panel can be and still hold what's switched on.
+    /// "All at once" with all three columns needs more than the slider's
+    /// floor: below this the row is wider than the panel, and the cover and
+    /// the shelf are cut off at its edges.
+    var minimumPanelWidth: Double {
+        let tools = showShelf || showClipboard || showTimer || showNotes || showMirror
+        guard panelLayout == .columns, showMedia, showCalendar, tools else {
+            return Self.panelWidthRange.lowerBound
+        }
+        return 664
+    }
+
     /// Solid black or glass for the open notch panel. See `GlassPanelFill`.
     @Published var notchStyle: NotchStyle {
         didSet { save(notchStyle.rawValue, "notchStyle") }

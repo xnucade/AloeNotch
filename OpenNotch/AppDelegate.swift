@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         let vm = NotchViewModel()
         vm.onOpenSettings = { [weak self] in self?.showSettings() }
+        vm.onOpenAccess = { [weak self] in self?.showSettings(tab: .permissions) }
         let controller = NotchWindowController(viewModel: vm)
         controller.show()
 
@@ -75,13 +76,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Open (or focus) the preferences window. As an accessory app we must
     /// activate ourselves for the window to come forward and take input.
-    func showSettings() {
-        if settingsWindow == nil {
-            let view = SettingsView(
+    ///
+    /// With a `tab`, the window opens on that pane — and if it already
+    /// exists, its content is rebuilt so it turns to that pane rather than
+    /// coming forward on whichever one was left showing.
+    func showSettings(tab: SettingsView.Tab? = nil) {
+        func content() -> NSHostingController<SettingsView> {
+            NSHostingController(rootView: SettingsView(
                 onReposition: { [weak self] in self?.notchController?.moveToPointerScreen() },
-                onShowWelcome: { [weak self] in self?.showWelcome() }
-            )
-            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+                onShowWelcome: { [weak self] in self?.showWelcome() },
+                initialTab: tab ?? .general
+            ))
+        }
+        if let settingsWindow, tab != nil {
+            settingsWindow.contentViewController = content()
+        }
+        if settingsWindow == nil {
+            let window = NSWindow(contentViewController: content())
             window.title = String(localized: "AloeNotch Settings")
             window.styleMask = [.titled, .closable, .miniaturizable]
             // Without this the window paints its own opaque backing and the

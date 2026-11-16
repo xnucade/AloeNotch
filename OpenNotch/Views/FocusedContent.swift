@@ -81,7 +81,8 @@ struct FocusedContent: View {
             Group {
                 switch resolvedFocus {
                 case .media:    FocusedMedia(media: viewModel.media, lyrics: viewModel.lyrics, morph: morph)
-                case .calendar: FocusedCalendar(calendar: viewModel.calendar)
+                case .calendar: FocusedCalendar(calendar: viewModel.calendar,
+                                                onAllowAccess: { viewModel.onOpenAccess?() })
                 case .shelf:    TrayView(tray: viewModel.tray)
                 case .clipboard: ClipboardList(clipboard: viewModel.clipboard, compact: false)
                 case .timer:    TimerView(timer: viewModel.timer, compact: false)
@@ -176,22 +177,36 @@ struct FocusedMedia: View {
             HStack(spacing: Metrics.Spacing.loose) {
                 artwork
                 VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
-                    VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
-                        MarqueeText(text: media.current.title, font: Typography.headline())
-                        Text(media.current.artist)
-                            .font(Typography.label())
-                            .foregroundStyle(Ink.secondary)
-                            .lineLimit(1)
-                        // Only when Lyrics is on and the song has some.
-                        if let synced = lyrics.lyrics {
-                            LyricLine(media: media, lyrics: synced)
-                                .padding(.top, Metrics.Spacing.hairline)
+                    HStack(alignment: .top, spacing: Metrics.Spacing.snug) {
+                        VStack(alignment: .leading, spacing: Metrics.Spacing.hairline) {
+                            MarqueeText(text: media.current.title, font: Typography.headline())
+                            Text(media.current.artist)
+                                .font(Typography.label())
+                                .foregroundStyle(Ink.secondary)
+                                .lineLimit(1)
+                            // Only when Lyrics is on and the song has some.
+                            if let synced = lyrics.lyrics {
+                                LyricLine(media: media, lyrics: synced)
+                                    .padding(.top, Metrics.Spacing.hairline)
+                            }
                         }
+                        .id(media.current.title + "\u{1F}" + media.current.artist)
+                        .accessibilityElement(children: .combine)
+                        .transition(.textSkip(reduceMotion: reduceMotion))
+                        .animation(Motion.contentFade, value: media.current.title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // The strip's bars, carried into the open panel so
+                        // the music stays visible once the wings are gone.
+                        // Outside the title's identity: they keep time
+                        // through a skip instead of leaving with the song.
+                        WaveformGlyph(tint: media.current.accent ?? Ink.primary,
+                                      isPlaying: media.isPlaying)
+                            .opacity(media.isPlaying ? 1 : 0)
+                            .animation(Motion.contentFade, value: media.isPlaying)
+                            .padding(.top, Metrics.Spacing.tight)
+                            .accessibilityHidden(true)
                     }
-                    .id(media.current.title + "\u{1F}" + media.current.artist)
-                    .accessibilityElement(children: .combine)
-                    .transition(.textSkip(reduceMotion: reduceMotion))
-                    .animation(Motion.contentFade, value: media.current.title)
 
                     Spacer(minLength: Metrics.Spacing.snug)
 
@@ -272,6 +287,7 @@ struct FocusedMedia: View {
                     .offset(x: -6, y: 6)
             }
         }
+        .artworkTilt(radius: Metrics.focusedArtworkRadius)
     }
 
     /// Bigger than the column layout's, and leading-aligned rather than
@@ -279,15 +295,15 @@ struct FocusedMedia: View {
     private var controls: some View {
         HStack(spacing: Metrics.Spacing.snug) {
             PlaybackModeButton(kind: .shuffle, media: media, diameter: 28)
-            FocusedTransportButton(symbol: "backward.fill", size: 15) { media.previous() }
+            FocusedTransportButton(symbol: "backward.fill", size: 15, nudge: -1) { media.previous() }
                 .accessibilityLabel("Previous track")
             FocusedTransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill",
-                                   size: 18, prominent: true) {
+                                   size: 18, prominent: true, tint: media.current.accent) {
                 media.togglePlayPause()
             }
             .contentTransition(.symbolEffect(.replace))
             .accessibilityLabel(media.isPlaying ? "Pause" : "Play")
-            FocusedTransportButton(symbol: "forward.fill", size: 15) { media.next() }
+            FocusedTransportButton(symbol: "forward.fill", size: 15, nudge: 1) { media.next() }
                 .accessibilityLabel("Next track")
             PlaybackModeButton(kind: .repeat, media: media, diameter: 28)
         }
@@ -298,23 +314,37 @@ private struct FocusedTransportButton: View {
     let symbol: String
     var size: CGFloat = 15
     var prominent = false
+    /// The cover's colour, for the prominent button's disc.
+    var tint: Color? = nil
+    /// Which way the glyph darts when used: −1, 1, or 0 for not at all.
+    var nudge: CGFloat = 0
     let action: () -> Void
 
     @State private var hovering = false
+    @State private var taps = 0
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     private var diameter: CGFloat { prominent ? 34 : 30 }
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if nudge != 0 && !reduceMotion { taps += 1 }
+            action()
+        } label: {
             Image(systemName: symbol)
                 .font(Typography.icon(size))
                 .foregroundStyle(hovering ? .white : Ink.primary)
+                .modifier(SkipNudge(direction: nudge, taps: taps))
                 .frame(width: diameter, height: diameter)
                 .background {
                     Circle().fill(prominent
                                   ? (hovering ? Ink.fillBright : Ink.fillStrong)
                                   : (hovering ? Ink.fillStrong : .clear))
+                    // The play button wears the cover's colour, faintly, so
+                    // the one control you reach for most is the one lit.
+                    if prominent, let tint {
+                        Circle().fill(tint.opacity(hovering ? 0.42 : 0.3))
+                    }
                 }
                 .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(reduceMotion ? 1 : (hovering ? 1.06 : 1))
@@ -348,7 +378,7 @@ private struct FocusedScrubber: View {
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
                         Capsule().fill(Ink.fillStrong)
-                        Capsule().fill(Ink.primary)
+                        Capsule().fill(MediaTint.scrubber(media.current.accent))
                             .frame(width: max(2, w * fraction))
                     }
                     .frame(height: hovering || dragging ? 6 : 4)
@@ -402,6 +432,8 @@ private struct FocusedScrubber: View {
 /// The week strip plus the next few events, rather than one truncated line.
 struct FocusedCalendar: View {
     @ObservedObject var calendar: CalendarModel
+    /// Takes the user to Settings → Access; see `CalendarWeekStrip`.
+    var onAllowAccess: (() -> Void)? = nil
     @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
@@ -424,7 +456,8 @@ struct FocusedCalendar: View {
                                 Text(day, format: .dateTime.day())
                                     .font(Typography.body(isToday ? .bold : .regular))
                                     .monospacedDigit()
-                                    .foregroundStyle(isToday ? settings.accent : Ink.secondary)
+                                    .foregroundStyle(isToday ? Color.white : Ink.secondary)
+                                    .todayChip(isToday, accent: settings.accent, side: 23)
                             }
                             .frame(width: 24)
                             // "T 24" read aloud is noise; say the day.
@@ -438,7 +471,16 @@ struct FocusedCalendar: View {
                 Divider().frame(width: 1).overlay(Ink.fillStrong)
 
                 VStack(alignment: .leading, spacing: Metrics.Spacing.tight) {
-                    if !calendar.isAuthorized {
+                    if !calendar.isAuthorized, let onAllowAccess {
+                        Button(action: onAllowAccess) {
+                            Text("Allow Calendar in Settings → Access")
+                                .font(Typography.caption())
+                                .foregroundStyle(.white)
+                                .hoverLift(scale: 1, restOpacity: 0.6)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressableButtonStyle(pressedScale: 0.96))
+                    } else if !calendar.isAuthorized {
                         Text("Allow Calendar in Settings → Access")
                             .font(Typography.caption())
                             .foregroundStyle(Ink.tertiary)

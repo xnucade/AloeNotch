@@ -148,6 +148,7 @@ struct MediaView: View {
                     .offset(x: -5, y: 5)
             }
         }
+        .artworkTilt(radius: Metrics.expandedArtworkRadius)
     }
 
     /// Shuffle and repeat flank the transport when the player reports them,
@@ -166,14 +167,14 @@ struct MediaView: View {
 
     private var transport: some View {
         HStack(spacing: Metrics.Spacing.tight) {
-            TransportButton(symbol: "backward.fill") { media.previous() }
+            TransportButton(symbol: "backward.fill", nudge: -1) { media.previous() }
                 .accessibilityLabel("Previous track")
             TransportButton(symbol: media.isPlaying ? "pause.fill" : "play.fill", size: 15) {
                 media.togglePlayPause()
             }
             .contentTransition(.symbolEffect(.replace))
             .accessibilityLabel(media.isPlaying ? "Pause" : "Play")
-            TransportButton(symbol: "forward.fill") { media.next() }
+            TransportButton(symbol: "forward.fill", nudge: 1) { media.next() }
                 .accessibilityLabel("Next track")
         }
     }
@@ -236,16 +237,23 @@ struct LyricLine: View {
 private struct TransportButton: View {
     let symbol: String
     var size: CGFloat = 13
+    /// Which way the glyph darts when used: −1, 1, or 0 for not at all.
+    var nudge: CGFloat = 0
     let action: () -> Void
 
     @State private var hovering = false
+    @State private var taps = 0
     @Environment(\.notchReduceMotion) private var reduceMotion
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if nudge != 0 && !reduceMotion { taps += 1 }
+            action()
+        } label: {
             Image(systemName: symbol)
                 .font(Typography.icon(size))
                 .foregroundStyle(hovering ? .white : Ink.primary)
+                .modifier(SkipNudge(direction: nudge, taps: taps))
                 .frame(width: 27, height: 27)
                 .background(hovering ? Ink.fillStrong : .clear, in: Circle())
                 // Play and pause trade places rather than cutting.
@@ -348,7 +356,11 @@ private struct ProgressScrubber: View {
 
     /// On glass the fill takes the artwork's colour and glows, as if lit
     /// from inside; on black it stays white.
-    private var fill: Color { glass ? (media.current.accent ?? Ink.primary) : Ink.primary }
+    private var fill: AnyShapeStyle {
+        glass ? AnyShapeStyle(media.current.accent ?? Ink.primary)
+              : AnyShapeStyle(MediaTint.scrubber(media.current.accent))
+    }
+    private var glow: Color { glass ? (media.current.accent ?? Ink.primary).opacity(0.8) : .clear }
 
     var body: some View {
         // Repaint twice a second so the fill creeps forward between updates.
@@ -364,7 +376,7 @@ private struct ProgressScrubber: View {
                         Capsule().fill(Ink.fillStrong)
                         Capsule().fill(fill)
                             .frame(width: max(2, w * fraction))
-                            .shadow(color: glass ? fill.opacity(0.8) : .clear, radius: 4)
+                            .shadow(color: glow, radius: 4)
                         // The knob appears on hover as well as during a drag,
                         // so the bar advertises that it can be scrubbed before
                         // you commit to grabbing it.

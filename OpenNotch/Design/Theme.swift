@@ -151,6 +151,23 @@ enum Motion {
     static let rubberBandReach = Spring.snappy
     static let rubberBandSettle = Spring.bouncy(extraBounce: 0.1)
 
+    /// A skip button's glyph darting the way the track is going, then
+    /// springing home: the button answers the tap before the player does.
+    /// Keyframes like the rubber band, so the caller skips them under Reduce
+    /// Motion rather than asking for a reduced curve.
+    static let nudgeTravel: CGFloat = 4
+    static let nudgeOut = 0.08
+    static let nudgeHome = Spring.bouncy(duration: 0.3, extraBounce: 0.12)
+
+    /// Cover art leaning after the pointer. Quick enough to feel attached to
+    /// it, smooth enough that hover samples don't show as steps.
+    static var tilt: Animation { responsive(.smooth(duration: scaled(Duration.micro))) }
+
+    /// The cover settling flat again when the pointer leaves.
+    static var tiltRelease: Animation {
+        responsive(.spring(duration: scaled(Duration.arrival), bounce: 0.25))
+    }
+
     // Values that track data rather than respond to an action — playback
     // position, a countdown ring, live audio levels. Not scaled by the speed
     // preference and not swapped under Reduce Motion: they interpolate between

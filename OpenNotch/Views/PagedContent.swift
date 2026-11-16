@@ -114,10 +114,12 @@ struct PagedContent: View {
                 // Beside the music, the week strip; alone, the roomy version
                 // with the next few events.
                 if settings.showMedia {
-                    CalendarWeekStrip(calendar: viewModel.calendar)
+                    CalendarWeekStrip(calendar: viewModel.calendar,
+                                      onAllowAccess: { viewModel.onOpenAccess?() })
                         .frame(width: 196)
                 } else {
-                    FocusedCalendar(calendar: viewModel.calendar)
+                    FocusedCalendar(calendar: viewModel.calendar,
+                                    onAllowAccess: { viewModel.onOpenAccess?() })
                 }
             }
         }

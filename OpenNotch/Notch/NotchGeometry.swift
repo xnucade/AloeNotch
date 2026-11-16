@@ -84,7 +84,8 @@ struct NotchMetrics {
     // narrow the user sets it: a panel narrower than the notch it grows out of
     // would collapse *inward*, which looks broken rather than adjustable.
     var expandedWidth: CGFloat {
-        max(collapsedSize.width + 40, CGFloat(AppSettings.shared.panelWidth))
+        max(collapsedSize.width + 40,
+            CGFloat(max(AppSettings.shared.panelWidth, AppSettings.shared.minimumPanelWidth)))
     }
     var expandedHeight: CGFloat { AppSettings.shared.panelLayout.height }
 
