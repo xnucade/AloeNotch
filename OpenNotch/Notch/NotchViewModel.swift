@@ -151,6 +151,10 @@ final class NotchViewModel: ObservableObject {
     /// Opens the preferences window; set by AppDelegate.
     var onOpenSettings: (() -> Void)?
 
+    /// Opens the preferences window on its Access pane, for the places in
+    /// the panel that say a permission is missing; set by AppDelegate.
+    var onOpenAccess: (() -> Void)?
+
     let media = NowPlayingManager()
     let lyrics = LyricsProvider()
     let tray = TrayModel()

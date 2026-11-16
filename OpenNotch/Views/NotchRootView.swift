@@ -154,9 +154,12 @@ struct NotchRootView: View {
 
     /// The open panel is glass: chosen in Appearance, and not overruled by
     /// Reduce Transparency.
-    private var glassOpen: Bool {
-        state.isExpanded && settings.notchStyle == .glass && !a11y.reduceTransparency
+    /// Glass is chosen and allowed, whether or not the panel is open.
+    private var usesGlass: Bool {
+        settings.notchStyle == .glass && !a11y.reduceTransparency
     }
+
+    private var glassOpen: Bool { state.isExpanded && usesGlass }
 
     /// Whether the open panel's content is mounted: while open, and until a
     /// collapse has settled.
@@ -172,6 +175,19 @@ struct NotchRootView: View {
         let radius = Metrics.radius(expanded: state.isExpanded)
         return ZStack {
             panelFill
+
+            // The cover's colour, pooled across the open panel. Solid style
+            // only: glass already takes its colour from what's behind it.
+            // Increase Contrast keeps the panel plain black.
+            // Mounted with the panel's content and for the same stretch, so
+            // a closed notch isn't carrying a view that follows the player.
+            if showsPanelContent && settings.showMedia && !usesGlass && !a11y.increaseContrast {
+                PanelAurora(media: viewModel.media,
+                            clearTop: stripHeight,
+                            isExpanded: state.isExpanded)
+                    .frame(width: expandedSize.width, height: expandedSize.height)
+                    .transition(.identity)
+            }
 
             // The open panel's content is a layer, not a branch. It mounts
             // on opening and stays mounted until the collapse has finished
@@ -817,7 +833,7 @@ private struct RubberBand: ViewModifier {
 /// The little equalizer from the website — a few bars that breathe while
 /// something is playing. Tinted with the artwork's accent so it ties into the
 /// ambient glow.
-private struct WaveformGlyph: View {
+struct WaveformGlyph: View {
     var tint: Color = .white
     /// Drives the bars. Paused music leaves them settled rather than dancing to
     /// nothing — the glyph used to loop forever regardless of playback, which
@@ -932,7 +948,8 @@ private struct ExpandedContent: View {
                     columnDivider.notchEntrance(Slot.media.rawValue)
                 }
                 if settings.showCalendar {
-                    CalendarWeekStrip(calendar: viewModel.calendar)
+                    CalendarWeekStrip(calendar: viewModel.calendar,
+                                      onAllowAccess: { viewModel.onOpenAccess?() })
                         .frame(maxWidth: .infinity)
                         .notchEntrance(Slot.calendar.rawValue)
                 }
@@ -1344,6 +1361,9 @@ private struct WeatherForecastRow: View {
 /// highlighted) — with the next event (or "Nothing for today") beneath it.
 struct CalendarWeekStrip: View {
     @ObservedObject var calendar: CalendarModel
+    /// Takes the user to Settings → Access. The line that says calendar
+    /// access is missing is a button when this is set.
+    var onAllowAccess: (() -> Void)? = nil
     @ObservedObject private var settings = AppSettings.shared
 
     /// Today's highlight. Was a hardcoded blue; now follows the user's accent,
@@ -1372,7 +1392,8 @@ struct CalendarWeekStrip: View {
                                 Text(day, format: .dateTime.day())
                                     .font(Typography.body(isToday ? .bold : .regular))
                                     .monospacedDigit()
-                                    .foregroundStyle(isToday ? accent : Ink.secondary)
+                                    .foregroundStyle(isToday ? Color.white : Ink.secondary)
+                                    .todayChip(isToday, accent: accent, side: 21)
                             }
                             .frame(width: 21)
                             // "T 24" read aloud is noise; say the day.
@@ -1393,12 +1414,17 @@ struct CalendarWeekStrip: View {
                             .foregroundStyle(Ink.secondary)
                         JoinMeetingButton(link: link)
                     }
-                } else {
-                    HStack(spacing: Metrics.Spacing.tight) {
-                        Image(systemName: "calendar").font(Typography.icon(11, .medium))
-                        Text(subtitle).font(Typography.caption()).lineLimit(1)
+                } else if !calendar.isAuthorized, let onAllowAccess {
+                    // It names a place, so it goes there.
+                    Button(action: onAllowAccess) {
+                        subtitleLine
+                            .foregroundStyle(.white)
+                            .hoverLift(scale: 1, restOpacity: 0.6)
+                            .contentShape(Rectangle())
                     }
-                    .foregroundStyle(Ink.tertiary)
+                    .buttonStyle(PressableButtonStyle(pressedScale: 0.96))
+                } else {
+                    subtitleLine.foregroundStyle(Ink.tertiary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -1412,6 +1438,13 @@ struct CalendarWeekStrip: View {
     private func joinable(at now: Date) -> UpcomingEvent? {
         guard calendar.isAuthorized else { return nil }
         return calendar.upcoming.first { $0.isJoinable(at: now) }
+    }
+
+    private var subtitleLine: some View {
+        HStack(spacing: Metrics.Spacing.tight) {
+            Image(systemName: "calendar").font(Typography.icon(11, .medium))
+            Text(subtitle).font(Typography.caption()).lineLimit(1)
+        }
     }
 
     private var subtitle: String {
