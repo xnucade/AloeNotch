@@ -30,6 +30,21 @@ enum WhatsNew {
     /// Newest first. Only the entry matching the running version is shown.
     static let entries: [Entry] = [
         Entry(
+            version: "0.16.0",
+            headline: "Lit by the music",
+            items: [
+                Item(symbol: "paintpalette",
+                     title: "Color from the cover",
+                     detail: "The open panel takes a soft wash of the artwork's color, brightest under the cover and dimmer when you pause."),
+                Item(symbol: "hand.point.up.left",
+                     title: "Controls that answer",
+                     detail: "Cover art leans toward the pointer, the skip buttons dart the way the track goes, and the equalizer follows you into the open panel."),
+                Item(symbol: "calendar",
+                     title: "Today, at a glance",
+                     detail: "Today's date sits on a disc of your accent color, and the calendar access line takes you straight to Settings → Access."),
+            ]
+        ),
+        Entry(
             version: "0.14.0",
             headline: "Polished, and a little more useful",
             items: [

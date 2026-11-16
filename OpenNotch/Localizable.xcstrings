@@ -332,6 +332,9 @@
     "Color" : {
 
     },
+    "Color from the cover" : {
+
+    },
     "Color the volume and brightness bars" : {
 
     },
@@ -357,6 +360,9 @@
 
     },
     "Controls for whatever your Mac is playing." : {
+
+    },
+    "Controls that answer" : {
 
     },
     "Convert to" : {
@@ -390,6 +396,9 @@
 
     },
     "Cover art is decoded off the main thread, so skipping a track no longer costs a frame just as the artwork is crossfading." : {
+
+    },
+    "Cover art leans toward the pointer, the skip buttons dart the way the track goes, and the equalizer follows you into the open panel." : {
 
     },
     "Custom" : {
@@ -679,6 +688,9 @@
 
     },
     "Liquid Glass" : {
+
+    },
+    "Lit by the music" : {
 
     },
     "Live equalizer" : {
@@ -1216,6 +1228,9 @@
     "The open panel frosts the desktop behind it, with a color-shifting edge. It stays black over the camera." : {
 
     },
+    "The open panel takes a soft wash of the artwork's color, brightest under the cover and dimmer when you pause." : {
+
+    },
     "The panel moves as one piece" : {
 
     },
@@ -1253,6 +1268,12 @@
 
     },
     "Tints controls, the selected tab and today's date in the calendar. The glow around album art keeps following the artwork." : {
+
+    },
+    "Today's date sits on a disc of your accent color, and the calendar access line takes you straight to Settings → Access." : {
+
+    },
+    "Today, at a glance" : {
 
     },
     "Tools" : {

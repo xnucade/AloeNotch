@@ -3,6 +3,38 @@
     <channel>
         <title>AloeNotch</title>
         <item>
+            <title>0.16.0</title>
+            <pubDate>Mon, 16 Nov 2026 09:51:17 -0500</pubDate>
+            <link>https://aloenotch.com</link>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.16.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<ul>
+      <li><strong>Lit by the music.</strong> The open panel takes a soft wash
+      of the cover's color, brightest under the artwork and dimming when you
+      pause. The top of the panel stays black, and glass and Increase
+      Contrast are left as they were.</li>
+      <li>Cover art leans toward the pointer and catches a highlight where it
+      is. Reduce Motion keeps the highlight and drops the lean.</li>
+      <li>Previous and Next answer the click: the glyph darts the way the
+      track is going and springs back.</li>
+      <li>The equalizer bars follow you into the open panel, beside the
+      title, in the Two pages and One at a time layouts.</li>
+      <li>The scrubber's played part runs from the cover's color to white,
+      and the play button wears the color too.</li>
+      <li>Today's date sits on a disc of your accent color in the calendar,
+      so it reads at a glance and not by color alone.</li>
+      <li>"Allow Calendar in Settings → Access" is now a button that opens
+      Settings on that pane.</li>
+      <li>Fixed: with All at once showing all three columns, a narrow panel
+      width cut the artwork and the shelf off at the edges. The panel now
+      keeps the width that layout needs.</li>
+    </ul>
+]]></description>
+            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.16.0.dmg" length="3287746" type="application/octet-stream" sparkle:edSignature="Rg8S0CrYA470z2gMRLsGDgJhuyc3tBItGdINBOpPek0jxhT2j37NiFEbId//1FrzZhoT+tpe+eHpRRgctZO6DQ=="/>
+        </item>
+        <item>
             <title>0.15.2</title>
             <pubDate>Wed, 21 Oct 2026 13:29:32 -0400</pubDate>
             <link>https://aloenotch.com</link>
@@ -31,29 +63,6 @@
     </ul>
 ]]></description>
             <enclosure url="https://aloenotch.com/assets/AloeNotch-0.15.1.dmg" length="3236114" type="application/octet-stream" sparkle:edSignature="584lZeNbvflrWZVz1/11pdFIyc0OF9ZGW28aHpgooZPAKhObBMysL2PSbUBE+tFpmNBk69W+9vq99XHsZoGwDw=="/>
-        </item>
-        <item>
-            <title>0.15.0</title>
-            <pubDate>Mon, 19 Oct 2026 12:55:30 -0400</pubDate>
-            <link>https://aloenotch.com</link>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>0.15.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<ul>
-      <li><strong>Mirror.</strong> A new tab with your camera in it, for a
-      quick look before a call. The camera runs only while the tab is open,
-      nothing is recorded, and it asks for camera access the first time you
-      open it. Off by default: turn it on in Settings → Modules → Tools.</li>
-      <li><strong>Notes.</strong> A scratchpad tab that saves as you type and
-      is still there tomorrow. It lives in one file on your Mac, never synced
-      or sent anywhere, and the trash button deletes it. Also off by default,
-      in the same place.</li>
-      <li>The custom color in Settings → Appearance → Accent is a swatch like
-      the others again, instead of a wide button covering the last one.</li>
-    </ul>
-]]></description>
-            <enclosure url="https://aloenotch.com/assets/AloeNotch-0.15.0.dmg" length="3235059" type="application/octet-stream" sparkle:edSignature="RhmgLVRMq23s7mrNATYmhvhWpi2iwx7sYWGF+TbY5U0xuIdJnnVt7yuAAYQ5yVcBf4hHvNhvTZA1tJXuOlzTCA=="/>
         </item>
     </channel>
 </rss>
